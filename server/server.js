@@ -20,7 +20,6 @@ app.use(cors({
     callback(new Error("Origin not allowed by CORS"));
   },
 }));
-app.options("*", cors());
 app.use(express.json({ limit: "24kb" }));
 
 const geminiApiKey = process.env.GEMINI_API_KEY;
