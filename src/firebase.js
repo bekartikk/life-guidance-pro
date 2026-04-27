@@ -19,4 +19,6 @@ export const auth = getAuth(app);
 export const db = initializeFirestore(app, {
   localCache: memoryLocalCache(),
   experimentalAutoDetectLongPolling: true,
+  experimentalForceLongPolling: true,
+  useFetchStreams: false,
 });

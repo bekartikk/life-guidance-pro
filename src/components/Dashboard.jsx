@@ -554,7 +554,7 @@ function Dashboard({ user }) {
     async function loadWorkspace() {
       setIsLoadingWorkspace(true);
       try {
-        const [loadedPlans, loadedProfile, loadedFeedback, loadedGoals, loadedHabits, loadedReviews, loadedMonthlyReviews, loadedCareerExplorations, loadedHobbyPlans, loadedRoutineBuilders, loadedReminderSettings, loadedProgress, loadedEvents, loadedCheckins] = await Promise.all([
+        const results = await Promise.allSettled([
           loadUserPlans(user.uid),
           loadUserProfile(user.uid),
           loadUserFeedback(user.uid),
@@ -571,6 +571,24 @@ function Dashboard({ user }) {
           loadUserCheckins(user.uid),
         ]);
         if (!isMounted) return;
+        const getValue = (index, fallback) =>
+          results[index]?.status === "fulfilled" ? results[index].value : fallback;
+
+        const loadedPlans = getValue(0, []);
+        const loadedProfile = getValue(1, null);
+        const loadedFeedback = getValue(2, []);
+        const loadedGoals = getValue(3, []);
+        const loadedHabits = getValue(4, []);
+        const loadedReviews = getValue(5, []);
+        const loadedMonthlyReviews = getValue(6, []);
+        const loadedCareerExplorations = getValue(7, []);
+        const loadedHobbyPlans = getValue(8, []);
+        const loadedRoutineBuilders = getValue(9, []);
+        const loadedReminderSettings = getValue(10, null);
+        const loadedProgress = getValue(11, emptyProgress);
+        const loadedEvents = getValue(12, []);
+        const loadedCheckins = getValue(13, []);
+
         setPlans(loadedPlans);
         setCurrentPlan(loadedPlans[0] || null);
         setFeedbackItems(loadedFeedback);
@@ -596,11 +614,36 @@ function Dashboard({ user }) {
           difficultyReason: today.difficultyReason || "",
         } : initialCheckinFields);
         if (loadedProfile) setProfile({ ...initialProfile, ...loadedProfile });
+        setError("");
+
+        const rejectedMessages = results
+          .filter((item) => item.status === "rejected")
+          .map((item) => String(item.reason?.message || item.reason || ""))
+          .filter(Boolean);
+        if (rejectedMessages.length > 0) {
+          const combined = rejectedMessages.join(" ");
+          if (
+            combined.includes("offline") ||
+            combined.includes("unavailable") ||
+            combined.includes("AbortError") ||
+            combined.includes("IndexedDbTransactionError")
+          ) {
+            setStatusMessage("Some cloud data could not load right now, but the planner is still open. Try again after reconnecting or reloading.");
+          } else {
+            setStatusMessage("Some saved data could not be loaded yet, but the planner is still open.");
+          }
+        }
       } catch (workspaceError) {
         if (isMounted) {
           const message = String(workspaceError?.message || "");
-          if (message.includes("IndexedDbTransactionError") || message.includes("AbortError")) {
-            setError("The browser cache for Firestore failed to initialize. Refresh once and try again. This app now uses a lighter memory cache to avoid that issue on deployed builds.");
+          if (
+            message.includes("IndexedDbTransactionError") ||
+            message.includes("AbortError") ||
+            message.includes("offline") ||
+            message.includes("unavailable")
+          ) {
+            setError("");
+            setStatusMessage("Cloud data is temporarily unavailable, but you can still use the planner. Try reloading in a moment.");
           } else {
             setError(message || "Could not load your workspace.");
           }

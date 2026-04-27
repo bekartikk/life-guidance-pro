@@ -7,7 +7,7 @@ import {
   runTransaction,
 } from "firebase/firestore";
 import { db } from "../firebase";
-import { applyProgressAction, defaultProgress, getDateKey } from "./rewards";
+import { applyProgressAction as runRewardAction, defaultProgress, getDateKey } from "./rewards";
 
 const progressCollection = collection(db, "progress");
 
@@ -16,80 +16,37 @@ function normalizeDate(value) {
   return typeof value?.toDate === "function" ? value.toDate().toISOString() : value;
 }
 
-import { auth } from "../firebase"; // adjust path if needed
-console.log("FINAL FIX APPLIED");
-export async function loadUserProgress() {
-  const user = auth.currentUser;
+export async function loadUserProgress(userId) {
+  if (!userId) return { ...defaultProgress };
 
-  if (!user) {
-    console.log("❌ No user logged in");
-    return { ...defaultProgress };
-  }
-
-  const userId = user.uid;
-
-  console.log("USER ID:", userId);
-
-  const progressRef = doc(db, "progress", userId);
-
-  try {
-    const snapshot = await getDoc(progressRef);
-
-    if (!snapshot.exists()) {
-      console.log("❌ No progress document");
-      return { ...defaultProgress };
-    }
-
-    console.log("✅ DATA:", snapshot.data());
-
-    return { ...defaultProgress, ...snapshot.data() };
-
-  } catch (error) {
-    console.error("🔥 ERROR:", error);
-    return { ...defaultProgress };
-  }
+  const snapshot = await getDoc(doc(db, "progress", userId));
+  return snapshot.exists() ? { ...defaultProgress, ...snapshot.data() } : { ...defaultProgress };
 }
-export async function loadUserCheckins() {
-  const user = auth.currentUser;
-  if (!user) return [];
 
-  const userId = user.uid;
+export async function loadUserCheckins(userId) {
+  if (!userId) return [];
 
-  const snapshot = await getDocs(
-    collection(db, "progress", userId, "checkins")
-  );
-
+  const snapshot = await getDocs(collection(db, "progress", userId, "checkins"));
   return snapshot.docs
     .map((item) => ({ id: item.id, ...item.data() }))
     .sort((left, right) => right.date.localeCompare(left.date));
 }
 
-export async function loadRewardEvents() {
-  const user = auth.currentUser;
-  if (!user) return [];
+export async function loadRewardEvents(userId) {
+  if (!userId) return [];
 
-  const userId = user.uid;
-
-  const snapshot = await getDocs(
-    collection(db, "progress", userId, "events")
-  );
-
+  const snapshot = await getDocs(collection(db, "progress", userId, "events"));
   return snapshot.docs
     .map((item) => ({ id: item.id, ...item.data() }))
     .sort(
       (left, right) =>
         new Date(normalizeDate(right.createdAt) || 0) -
-        new Date(normalizeDate(left.createdAt) || 0)
+        new Date(normalizeDate(left.createdAt) || 0),
     );
 }
-export async function applyRewardAction(action) {
-  const user = auth.currentUser;
 
-  if (!user) {
-    throw new Error("User not logged in");
-  }
-
-  const userId = user.uid;
+export async function applyRewardAction(userId, action) {
+  if (!userId) throw new Error("User not logged in");
 
   const progressRef = doc(db, "progress", userId);
 
@@ -100,7 +57,7 @@ export async function applyRewardAction(action) {
       ? { ...defaultProgress, ...progressSnapshot.data() }
       : { ...defaultProgress, userId, createdAt: new Date().toISOString() };
 
-    const { progress, rewards } = applyProgressAction(currentProgress, action);
+    const { progress, rewards } = runRewardAction(currentProgress, action);
     const now = new Date().toISOString();
 
     transaction.set(
@@ -111,7 +68,7 @@ export async function applyRewardAction(action) {
         createdAt: currentProgress.createdAt || now,
         updatedAt: now,
       },
-      { merge: true }
+      { merge: true },
     );
 
     rewards.forEach((reward) => {
@@ -134,10 +91,8 @@ export async function submitDailyCheckin(userId, payload) {
   const checkinRef = doc(progressCollection, userId, "checkins", dateKey);
 
   return runTransaction(db, async (transaction) => {
-    const [progressSnapshot, checkinSnapshot] = await Promise.all([
-      transaction.get(progressRef),
-      transaction.get(checkinRef),
-    ]);
+    const progressSnapshot = await transaction.get(progressRef);
+    const checkinSnapshot = await transaction.get(checkinRef);
 
     const currentProgress = progressSnapshot.exists()
       ? { ...defaultProgress, ...progressSnapshot.data() }
@@ -153,7 +108,7 @@ export async function submitDailyCheckin(userId, payload) {
       planId: payload.planId || null,
     };
 
-    const { progress, rewards } = applyProgressAction(currentProgress, action);
+    const { progress, rewards } = runRewardAction(currentProgress, action);
 
     transaction.set(
       progressRef,
@@ -218,4 +173,3 @@ export async function deleteAllProgressData(userId) {
   checkinsSnapshot.forEach((item) => deletions.push(deleteDoc(item.ref)));
   await Promise.all(deletions);
 }
-
