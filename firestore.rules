@@ -128,6 +128,10 @@ service cloud.firestore {
       allow read, write: if isOwner(userId) || isAdmin();
     }
 
+    match /analytics/{userId}/{document=**} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

@@ -1,6 +1,16 @@
 import { collection, doc, getDocs, query, runTransaction, where } from "firebase/firestore";
 import { db } from "../firebase";
 
+async function runSafeAnalyticsWrite(writeOperation) {
+  try {
+    await writeOperation();
+    return true;
+  } catch (error) {
+    console.warn("Analytics write skipped:", error?.message || error);
+    return false;
+  }
+}
+
 function stripUndefinedDeep(value) {
   if (Array.isArray(value)) {
     return value.map(stripUndefinedDeep).filter((item) => item !== undefined);
@@ -21,78 +31,86 @@ export async function logPlanGeneration(userId, planData) {
   const eventRef = doc(collection(db, "analytics", userId, "plan_events"));
   const timestamp = new Date().toISOString();
 
-  return runTransaction(db, async (transaction) => {
-    transaction.set(eventRef, stripUndefinedDeep({
-      type: "plan-generated",
-      userId,
-      timestamp,
-      profile: {
-        planDuration: planData.profile?.planDuration,
-        roadmapFocus: planData.profile?.roadmapFocus,
-        preferredTone: planData.profile?.preferredTone,
-        flexibilityLevel: planData.profile?.flexibilityLevel,
-        energyLevel: planData.profile?.energyLevel,
-        ageGroup: planData.profile?.profileContext?.ageGroup,
-        role: planData.profile?.profileContext?.role,
-      },
-      planTokens: Math.ceil((planData.plan?.length || 0) / 4),
-      hasAdjustment: !!planData.adjustmentRequest,
-      keywords: extractKeywords(planData.profile),
-    }));
-  });
+  return runSafeAnalyticsWrite(() =>
+    runTransaction(db, async (transaction) => {
+      transaction.set(eventRef, stripUndefinedDeep({
+        type: "plan-generated",
+        userId,
+        timestamp,
+        profile: {
+          planDuration: planData.profile?.planDuration,
+          roadmapFocus: planData.profile?.roadmapFocus,
+          preferredTone: planData.profile?.preferredTone,
+          flexibilityLevel: planData.profile?.flexibilityLevel,
+          energyLevel: planData.profile?.energyLevel,
+          ageGroup: planData.profile?.profileContext?.ageGroup,
+          role: planData.profile?.profileContext?.role,
+        },
+        planTokens: Math.ceil((planData.plan?.length || 0) / 4),
+        hasAdjustment: !!planData.adjustmentRequest,
+        keywords: extractKeywords(planData.profile),
+      }));
+    }),
+  );
 }
 
 export async function logPlanFeedback(userId, planId, feedback) {
   const eventRef = doc(collection(db, "analytics", userId, "feedback_events"));
 
-  return runTransaction(db, async (transaction) => {
-    transaction.set(eventRef, stripUndefinedDeep({
-      type: "feedback-submitted",
-      userId,
-      planId,
-      timestamp: new Date().toISOString(),
-      rating: Number(feedback.rating) || null,
-      message: String(feedback.message || "").slice(0, 500),
-      sentiment: analyzeSentiment(feedback.message),
-      useful: feedback.message?.toLowerCase().includes("helpful") || feedback.message?.toLowerCase().includes("useful"),
-    }));
-  });
+  return runSafeAnalyticsWrite(() =>
+    runTransaction(db, async (transaction) => {
+      transaction.set(eventRef, stripUndefinedDeep({
+        type: "feedback-submitted",
+        userId,
+        planId,
+        timestamp: new Date().toISOString(),
+        rating: Number(feedback.rating) || null,
+        message: String(feedback.message || "").slice(0, 500),
+        sentiment: analyzeSentiment(feedback.message),
+        useful: feedback.message?.toLowerCase().includes("helpful") || feedback.message?.toLowerCase().includes("useful"),
+      }));
+    }),
+  );
 }
 
 export async function logPlanAdjustment(userId, adjustmentData) {
   const eventRef = doc(collection(db, "analytics", userId, "adjustment_events"));
 
-  return runTransaction(db, async (transaction) => {
-    transaction.set(eventRef, stripUndefinedDeep({
-      type: "plan-adjusted",
-      userId,
-      timestamp: new Date().toISOString(),
-      originalFocus: adjustmentData.originalFocus,
-      adjustmentRequest: String(adjustmentData.adjustmentRequest || "").slice(0, 500),
-      reason: categorizeAdjustmentReason(adjustmentData.adjustmentRequest),
-      duration: adjustmentData.planDuration,
-    }));
-  });
+  return runSafeAnalyticsWrite(() =>
+    runTransaction(db, async (transaction) => {
+      transaction.set(eventRef, stripUndefinedDeep({
+        type: "plan-adjusted",
+        userId,
+        timestamp: new Date().toISOString(),
+        originalFocus: adjustmentData.originalFocus,
+        adjustmentRequest: String(adjustmentData.adjustmentRequest || "").slice(0, 500),
+        reason: categorizeAdjustmentReason(adjustmentData.adjustmentRequest),
+        duration: adjustmentData.planDuration,
+      }));
+    }),
+  );
 }
 
 export async function logCheckinPattern(userId, checkinStats) {
   const metricsRef = doc(collection(db, "analytics", userId, "checkin_metrics"));
 
-  return runTransaction(db, async (transaction) => {
-    transaction.set(
-      metricsRef,
-      stripUndefinedDeep({
-        timestamp: new Date().toISOString(),
-        completedDays: checkinStats.completedDays || 0,
-        partialDays: checkinStats.partialDays || 0,
-        difficultDays: checkinStats.difficultDays || 0,
-        missedDays: checkinStats.missedDays || 0,
-        activeStreak: checkinStats.activeStreak || 0,
-        engagementScore: calculateEngagementScore(checkinStats),
-      }),
-      { merge: true },
-    );
-  });
+  return runSafeAnalyticsWrite(() =>
+    runTransaction(db, async (transaction) => {
+      transaction.set(
+        metricsRef,
+        stripUndefinedDeep({
+          timestamp: new Date().toISOString(),
+          completedDays: checkinStats.completedDays || 0,
+          partialDays: checkinStats.partialDays || 0,
+          difficultDays: checkinStats.difficultDays || 0,
+          missedDays: checkinStats.missedDays || 0,
+          activeStreak: checkinStats.activeStreak || 0,
+          engagementScore: calculateEngagementScore(checkinStats),
+        }),
+        { merge: true },
+      );
+    }),
+  );
 }
 
 export async function getAnalyticsSummary(timeframeHours = 168) {
