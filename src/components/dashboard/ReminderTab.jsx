@@ -39,10 +39,11 @@ function ReminderTab({
             <label>
               Daily reminder time
               <input
+                type="time"
                 name="dailyTime"
                 value={reminderSettings.dailyTime}
                 onChange={onChange}
-                placeholder="7:30 AM"
+                placeholder="07:30"
               />
             </label>
           </div>
@@ -60,10 +61,11 @@ function ReminderTab({
             <label>
               Weekly review time
               <input
+                type="time"
                 name="weeklyTime"
                 value={reminderSettings.weeklyTime}
                 onChange={onChange}
-                placeholder="8:00 PM"
+                placeholder="20:00"
               />
             </label>
           </div>

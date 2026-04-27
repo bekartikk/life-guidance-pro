@@ -77,7 +77,7 @@ function RoutineBuilderTab({
                 </label>
                 <label>
                   Time
-                  <input name="time" value={blockDraft.time} onChange={onBlockChange} placeholder="6:00 PM" />
+                  <input type="time" name="time" value={blockDraft.time} onChange={onBlockChange} placeholder="18:00" />
                 </label>
                 <label>
                   Type

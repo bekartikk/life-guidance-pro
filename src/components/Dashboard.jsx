@@ -597,7 +597,14 @@ function Dashboard({ user }) {
         } : initialCheckinFields);
         if (loadedProfile) setProfile({ ...initialProfile, ...loadedProfile });
       } catch (workspaceError) {
-        if (isMounted) setError(workspaceError.message || "Could not load your workspace.");
+        if (isMounted) {
+          const message = String(workspaceError?.message || "");
+          if (message.includes("IndexedDbTransactionError") || message.includes("AbortError")) {
+            setError("The browser cache for Firestore failed to initialize. Refresh once and try again. This app now uses a lighter memory cache to avoid that issue on deployed builds.");
+          } else {
+            setError(message || "Could not load your workspace.");
+          }
+        }
       } finally {
         if (isMounted) setIsLoadingWorkspace(false);
       }
