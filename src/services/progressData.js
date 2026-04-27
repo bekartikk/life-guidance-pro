@@ -17,7 +17,7 @@ function normalizeDate(value) {
 }
 
 import { auth } from "../firebase"; // adjust path if needed
-
+console.log("FINAL FIX APPLIED");
 export async function loadUserProgress() {
   const user = auth.currentUser;
 
