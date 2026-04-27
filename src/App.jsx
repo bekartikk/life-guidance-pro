@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { signOut } from "firebase/auth";
 import { auth } from "./firebase";
+import AppErrorBoundary from "./components/AppErrorBoundary";
 import Dashboard from "./components/Dashboard";
 import Login from "./components/Login";
 import "./App.css";
@@ -48,7 +49,9 @@ function App() {
         )}
       </section>
 
-      {user ? <Dashboard user={user} /> : <Login />}
+      <AppErrorBoundary>
+        {user ? <Dashboard user={user} /> : <Login />}
+      </AppErrorBoundary>
     </main>
   );
 }

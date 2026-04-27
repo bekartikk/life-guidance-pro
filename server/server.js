@@ -6,9 +6,21 @@ dotenv.config({ path: new URL(".env", import.meta.url) });
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-const allowedOrigin = process.env.CLIENT_ORIGIN || "http://localhost:5173";
+const allowedOrigins = String(process.env.CLIENT_ORIGIN || "http://localhost:5173")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
-app.use(cors({ origin: allowedOrigin }));
+app.use(cors({
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+      return;
+    }
+    callback(new Error("Origin not allowed by CORS"));
+  },
+}));
+app.options("*", cors());
 app.use(express.json({ limit: "24kb" }));
 
 const geminiApiKey = process.env.GEMINI_API_KEY;
@@ -176,6 +188,10 @@ function hasRequiredProfile(profile) {
 
 app.get("/", (req, res) => {
   res.json({ status: "Life Guidance API is running" });
+});
+
+app.get("/healthz", (req, res) => {
+  res.json({ ok: true, model: geminiModel });
 });
 
 app.post("/api/guidance", async (req, res) => {

@@ -34,46 +34,55 @@ function sortByNewest(items) {
 }
 
 export async function loadUserPlans(userId) {
+  if (!userId) return [];
   const snapshot = await getDocs(query(plansCollection, where("userId", "==", userId)));
   return sortByNewest(snapshot.docs.map((planDoc) => ({ id: planDoc.id, ...planDoc.data() })));
 }
 
 export async function loadUserGoals(userId) {
+  if (!userId) return [];
   const snapshot = await getDocs(query(goalsCollection, where("userId", "==", userId)));
   return sortByNewest(snapshot.docs.map((goalDoc) => ({ id: goalDoc.id, ...goalDoc.data() })));
 }
 
 export async function loadUserHabits(userId) {
+  if (!userId) return [];
   const snapshot = await getDocs(query(habitsCollection, where("userId", "==", userId)));
   return sortByNewest(snapshot.docs.map((habitDoc) => ({ id: habitDoc.id, ...habitDoc.data() })));
 }
 
 export async function loadWeeklyReviews(userId) {
+  if (!userId) return [];
   const snapshot = await getDocs(query(reviewsCollection, where("userId", "==", userId)));
   return sortByNewest(snapshot.docs.map((reviewDoc) => ({ id: reviewDoc.id, ...reviewDoc.data() })));
 }
 
 export async function loadMonthlyReviews(userId) {
+  if (!userId) return [];
   const snapshot = await getDocs(query(monthlyReviewsCollection, where("userId", "==", userId)));
   return sortByNewest(snapshot.docs.map((reviewDoc) => ({ id: reviewDoc.id, ...reviewDoc.data() })));
 }
 
 export async function loadUserCareerExplorations(userId) {
+  if (!userId) return [];
   const snapshot = await getDocs(query(careerExplorationsCollection, where("userId", "==", userId)));
   return sortByNewest(snapshot.docs.map((itemDoc) => ({ id: itemDoc.id, ...itemDoc.data() })));
 }
 
 export async function loadUserHobbyPlans(userId) {
+  if (!userId) return [];
   const snapshot = await getDocs(query(hobbyPlansCollection, where("userId", "==", userId)));
   return sortByNewest(snapshot.docs.map((itemDoc) => ({ id: itemDoc.id, ...itemDoc.data() })));
 }
 
 export async function loadUserRoutineBuilders(userId) {
+  if (!userId) return [];
   const snapshot = await getDocs(query(routineBuildersCollection, where("userId", "==", userId)));
   return sortByNewest(snapshot.docs.map((itemDoc) => ({ id: itemDoc.id, ...itemDoc.data() })));
 }
 
 export async function loadReminderSettings(userId) {
+  if (!userId) return null;
   const snapshot = await getDoc(doc(reminderSettingsCollection, userId));
   return snapshot.exists() ? snapshot.data() : null;
 }
@@ -209,6 +218,7 @@ export async function deleteRoutineBuilderRecord(recordId) {
 }
 
 export async function loadUserProfile(userId) {
+  if (!userId) return null;
   const snapshot = await getDoc(doc(profilesCollection, userId));
   return snapshot.exists() ? snapshot.data() : null;
 }
@@ -224,6 +234,7 @@ export async function submitFeedbackRecord(payload) {
 }
 
 export async function loadUserFeedback(userId) {
+  if (!userId) return [];
   const snapshot = await getDocs(query(feedbackCollection, where("userId", "==", userId)));
   return sortByNewest(snapshot.docs.map((feedbackDoc) => ({ id: feedbackDoc.id, ...feedbackDoc.data() })));
 }

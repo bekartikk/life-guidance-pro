@@ -1,5 +1,6 @@
 ﻿import { useEffect, useMemo, useState } from "react";
 import { sampleProfiles } from "../data/sampleProfiles";
+import { sendEmailVerification } from "firebase/auth";
 import AdminTab from "./dashboard/AdminTab";
 import AchievementTab from "./dashboard/AchievementTab";
 import ChatExtensionTab from "./dashboard/ChatExtensionTab";
@@ -1190,12 +1191,11 @@ function Dashboard({ user }) {
 
   const handleResendVerification = async () => {
     try {
-      const { sendEmailVerification: resendVerification } = await import("firebase/auth");
       if (!user) {
         setError("No signed-in user was found for verification.");
         return;
       }
-      await resendVerification(user);
+      await sendEmailVerification(user);
       setStatusMessage("Verification email sent.");
     } catch (verificationError) {
       setError(verificationError.message || "Could not send verification email.");
