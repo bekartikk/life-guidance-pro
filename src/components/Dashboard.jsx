@@ -554,25 +554,33 @@ function Dashboard({ user }) {
     async function loadWorkspace() {
       setIsLoadingWorkspace(true);
       try {
-        const results = await Promise.allSettled([
-          loadUserPlans(user.uid),
-          loadUserProfile(user.uid),
-          loadUserFeedback(user.uid),
-          loadUserGoals(user.uid),
-          loadUserHabits(user.uid),
-          loadWeeklyReviews(user.uid),
-          loadMonthlyReviews(user.uid),
-          loadUserCareerExplorations(user.uid),
-          loadUserHobbyPlans(user.uid),
-          loadUserRoutineBuilders(user.uid),
-          loadReminderSettings(user.uid),
-          loadUserProgress(user.uid),
-          loadRewardEvents(user.uid),
-          loadUserCheckins(user.uid),
-        ]);
+        const safeLoad = async (loader, fallback) => {
+          try {
+            return { status: "fulfilled", value: await loader() };
+          } catch (reason) {
+            return { status: "rejected", reason, value: fallback };
+          }
+        };
+
+        const results = [
+          await safeLoad(() => loadUserPlans(user.uid), []),
+          await safeLoad(() => loadUserProfile(user.uid), null),
+          await safeLoad(() => loadUserFeedback(user.uid), []),
+          await safeLoad(() => loadUserGoals(user.uid), []),
+          await safeLoad(() => loadUserHabits(user.uid), []),
+          await safeLoad(() => loadWeeklyReviews(user.uid), []),
+          await safeLoad(() => loadMonthlyReviews(user.uid), []),
+          await safeLoad(() => loadUserCareerExplorations(user.uid), []),
+          await safeLoad(() => loadUserHobbyPlans(user.uid), []),
+          await safeLoad(() => loadUserRoutineBuilders(user.uid), []),
+          await safeLoad(() => loadReminderSettings(user.uid), null),
+          await safeLoad(() => loadUserProgress(user.uid), emptyProgress),
+          await safeLoad(() => loadRewardEvents(user.uid), []),
+          await safeLoad(() => loadUserCheckins(user.uid), []),
+        ];
         if (!isMounted) return;
         const getValue = (index, fallback) =>
-          results[index]?.status === "fulfilled" ? results[index].value : fallback;
+          results[index]?.status === "fulfilled" ? results[index].value : (results[index]?.value ?? fallback);
 
         const loadedPlans = getValue(0, []);
         const loadedProfile = getValue(1, null);
@@ -621,6 +629,7 @@ function Dashboard({ user }) {
           .map((item) => String(item.reason?.message || item.reason || ""))
           .filter(Boolean);
         if (rejectedMessages.length > 0) {
+          console.warn("Workspace loaders failed:", rejectedMessages);
           const combined = rejectedMessages.join(" ");
           if (
             combined.includes("offline") ||
