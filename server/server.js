@@ -5,7 +5,7 @@ import express from "express";
 dotenv.config({ path: new URL(".env", import.meta.url) });
 
 const app = express();
-const port = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5000;
 const allowedOrigin = process.env.CLIENT_ORIGIN || "http://localhost:5173";
 
 app.use(cors({ origin: allowedOrigin }));
@@ -299,6 +299,6 @@ app.post("/api/followup", async (req, res) => {
   }
 });
 
-app.listen(port, () => {
-  console.log(`Life Guidance API running on port ${port}`);
+app.listen(PORT, () => {
+  console.log(`Life Guidance API running on port ${PORT}`);
 });

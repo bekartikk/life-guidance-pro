@@ -16,34 +16,86 @@ function normalizeDate(value) {
   return typeof value?.toDate === "function" ? value.toDate().toISOString() : value;
 }
 
-export async function loadUserProgress(userId) {
-  const progressRef = doc(progressCollection, userId);
-  const snapshot = await getDoc(progressRef);
-  if (!snapshot.exists()) {
+import { auth } from "../firebase"; // adjust path if needed
+
+export async function loadUserProgress() {
+  const user = auth.currentUser;
+
+  if (!user) {
+    console.log("❌ No user logged in");
     return { ...defaultProgress };
   }
-  return { ...defaultProgress, ...snapshot.data() };
-}
 
-export async function loadUserCheckins(userId) {
-  const snapshot = await getDocs(collection(progressCollection, userId, "checkins"));
+  const userId = user.uid;
+
+  console.log("USER ID:", userId);
+
+  const progressRef = doc(db, "progress", userId);
+
+  try {
+    const snapshot = await getDoc(progressRef);
+
+    if (!snapshot.exists()) {
+      console.log("❌ No progress document");
+      return { ...defaultProgress };
+    }
+
+    console.log("✅ DATA:", snapshot.data());
+
+    return { ...defaultProgress, ...snapshot.data() };
+
+  } catch (error) {
+    console.error("🔥 ERROR:", error);
+    return { ...defaultProgress };
+  }
+}
+export async function loadUserCheckins() {
+  const user = auth.currentUser;
+  if (!user) return [];
+
+  const userId = user.uid;
+
+  const snapshot = await getDocs(
+    collection(db, "progress", userId, "checkins")
+  );
+
   return snapshot.docs
     .map((item) => ({ id: item.id, ...item.data() }))
     .sort((left, right) => right.date.localeCompare(left.date));
 }
 
-export async function loadRewardEvents(userId) {
-  const snapshot = await getDocs(collection(progressCollection, userId, "events"));
+export async function loadRewardEvents() {
+  const user = auth.currentUser;
+  if (!user) return [];
+
+  const userId = user.uid;
+
+  const snapshot = await getDocs(
+    collection(db, "progress", userId, "events")
+  );
+
   return snapshot.docs
     .map((item) => ({ id: item.id, ...item.data() }))
-    .sort((left, right) => new Date(normalizeDate(right.createdAt) || 0) - new Date(normalizeDate(left.createdAt) || 0));
+    .sort(
+      (left, right) =>
+        new Date(normalizeDate(right.createdAt) || 0) -
+        new Date(normalizeDate(left.createdAt) || 0)
+    );
 }
+export async function applyRewardAction(action) {
+  const user = auth.currentUser;
 
-export async function applyRewardAction(userId, action) {
-  const progressRef = doc(progressCollection, userId);
+  if (!user) {
+    throw new Error("User not logged in");
+  }
+
+  const userId = user.uid;
+
+  const progressRef = doc(db, "progress", userId);
 
   return runTransaction(db, async (transaction) => {
     const progressSnapshot = await transaction.get(progressRef);
+
     const currentProgress = progressSnapshot.exists()
       ? { ...defaultProgress, ...progressSnapshot.data() }
       : { ...defaultProgress, userId, createdAt: new Date().toISOString() };
@@ -59,11 +111,11 @@ export async function applyRewardAction(userId, action) {
         createdAt: currentProgress.createdAt || now,
         updatedAt: now,
       },
-      { merge: true },
+      { merge: true }
     );
 
     rewards.forEach((reward) => {
-      const eventRef = doc(collection(progressCollection, userId, "events"));
+      const eventRef = doc(collection(db, "progress", userId, "events"));
       transaction.set(eventRef, {
         ...reward,
         date: action.dateKey || getDateKey(),
