@@ -1,28 +1,8 @@
-﻿import { useEffect, useMemo, useState } from "react";
+import { Suspense, lazy, useEffect, useMemo, useState } from "react";
 import { sampleProfiles } from "../data/sampleProfiles";
 import { sendEmailVerification } from "firebase/auth";
-import AdminTab from "./dashboard/AdminTab";
-import AchievementTab from "./dashboard/AchievementTab";
-import ChatExtensionTab from "./dashboard/ChatExtensionTab";
-import CareerExplorerTab from "./dashboard/CareerExplorerTab";
-import DailyProgressTab from "./dashboard/DailyProgressTab";
-import FeedbackTab from "./dashboard/FeedbackTab";
-import GoalTab from "./dashboard/GoalTab";
-import HabitTab from "./dashboard/HabitTab";
-import HistoryTab from "./dashboard/HistoryTab";
-import HobbyIncomeTab from "./dashboard/HobbyIncomeTab";
-import MonthlyReviewTab from "./dashboard/MonthlyReviewTab";
-import MissionsTab from "./dashboard/MissionsTab";
-import PersonalizationTab from "./dashboard/PersonalizationTab";
 import PlannerTab from "./dashboard/PlannerTab";
-import ProfileTab from "./dashboard/ProfileTab";
-import ReminderTab from "./dashboard/ReminderTab";
 import ResultPanel from "./dashboard/ResultPanel";
-import RoutineBuilderTab from "./dashboard/RoutineBuilderTab";
-import SettingsTab from "./dashboard/SettingsTab";
-import SupportTab from "./dashboard/SupportTab";
-import WeeklyReviewTab from "./dashboard/WeeklyReviewTab";
-import WeeklyProgressTab from "./dashboard/WeeklyProgressTab";
 import {
   deleteRoutineBuilderRecord,
   deleteAllUserData,
@@ -193,7 +173,46 @@ const emptyProgress = {
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "";
 const adminEmails = String(import.meta.env.VITE_ADMIN_EMAILS || "").split(",").map((email) => email.trim().toLowerCase()).filter(Boolean);
 const requiredFields = ["currentRoutine", "workOrStudy", "personalChallenges", "futureConfusion", "goals", "hobbies", "happinessSources"];
-const navigationItems = ["planner", "goals", "habits", "daily", "weekly", "review", "monthly", "career", "income", "routine", "chat", "achievements", "missions", "insights", "history", "profile", "feedback", "reminders", "support", "settings", "admin"];
+const navigationItems = ["planner", "goals", "habits", "daily", "weekly", "review", "monthly", "career", "income", "routine", "chat", "achievements", "missions", "insights", "system", "history", "profile", "feedback", "reminders", "support", "settings", "admin"];
+
+const GoalTab = lazy(() => import("./dashboard/GoalTab"));
+const HabitTab = lazy(() => import("./dashboard/HabitTab"));
+const DailyProgressTab = lazy(() => import("./dashboard/DailyProgressTab"));
+const WeeklyProgressTab = lazy(() => import("./dashboard/WeeklyProgressTab"));
+const WeeklyReviewTab = lazy(() => import("./dashboard/WeeklyReviewTab"));
+const MonthlyReviewTab = lazy(() => import("./dashboard/MonthlyReviewTab"));
+const CareerExplorerTab = lazy(() => import("./dashboard/CareerExplorerTab"));
+const HobbyIncomeTab = lazy(() => import("./dashboard/HobbyIncomeTab"));
+const RoutineBuilderTab = lazy(() => import("./dashboard/RoutineBuilderTab"));
+const ChatExtensionTab = lazy(() => import("./dashboard/ChatExtensionTab"));
+const AchievementTab = lazy(() => import("./dashboard/AchievementTab"));
+const MissionsTab = lazy(() => import("./dashboard/MissionsTab"));
+const PersonalizationTab = lazy(() => import("./dashboard/PersonalizationTab"));
+const ProjectMapTab = lazy(() => import("./dashboard/ProjectMapTab"));
+const HistoryTab = lazy(() => import("./dashboard/HistoryTab"));
+const ProfileTab = lazy(() => import("./dashboard/ProfileTab"));
+const FeedbackTab = lazy(() => import("./dashboard/FeedbackTab"));
+const ReminderTab = lazy(() => import("./dashboard/ReminderTab"));
+const SupportTab = lazy(() => import("./dashboard/SupportTab"));
+const SettingsTab = lazy(() => import("./dashboard/SettingsTab"));
+const AdminTab = lazy(() => import("./dashboard/AdminTab"));
+
+const initialSectionLoading = {
+  plans: true,
+  profile: true,
+  feedback: true,
+  goals: true,
+  habits: true,
+  reviews: true,
+  monthlyReviews: true,
+  careerExplorations: true,
+  hobbyPlans: true,
+  routineBuilders: true,
+  reminders: true,
+  progress: true,
+  rewardEvents: true,
+  checkins: true,
+};
 
 function formatDate(value) {
   if (!value) return "Just now";
@@ -490,6 +509,26 @@ function buildWeeklySummaryText(week, progress) {
   ].join("\n");
 }
 
+function SectionLoadingCard({ title, description }) {
+  return (
+    <section className="section-loading-card">
+      <div className="section-loading-pulse" />
+      <div>
+        <strong>{title}</strong>
+        <p>{description}</p>
+      </div>
+    </section>
+  );
+}
+
+function LazyTabShell({ title, description, children }) {
+  return (
+    <Suspense fallback={<SectionLoadingCard title={title} description={description} />}>
+      {children}
+    </Suspense>
+  );
+}
+
 function Dashboard({ user }) {
   const [activeTab, setActiveTab] = useState("planner");
   const [form, setForm] = useState(initialForm);
@@ -532,6 +571,7 @@ function Dashboard({ user }) {
   const [statusMessage, setStatusMessage] = useState("");
   const [error, setError] = useState("");
   const [isLoadingWorkspace, setIsLoadingWorkspace] = useState(true);
+  const [sectionLoading, setSectionLoading] = useState(initialSectionLoading);
   const [isLoading, setIsLoading] = useState(false);
   const [isAdjusting, setIsAdjusting] = useState(false);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
@@ -549,54 +589,70 @@ function Dashboard({ user }) {
   const [isSendingChat, setIsSendingChat] = useState(false);
 
   const isAdmin = adminEmails.includes(String(user?.email || "").toLowerCase());
+  const statusTone =
+    statusMessage.startsWith("Some ") || statusMessage.startsWith("Cloud data")
+      ? "info"
+      : "success";
+
+  useEffect(() => {
+    if (!statusMessage || statusTone === "info") return undefined;
+    const timer = window.setTimeout(() => setStatusMessage(""), 4800);
+    return () => window.clearTimeout(timer);
+  }, [statusMessage, statusTone]);
 
   useEffect(() => {
     let isMounted = true;
     async function loadWorkspace() {
       setIsLoadingWorkspace(true);
+      setSectionLoading(initialSectionLoading);
       try {
-        const safeLoad = async (loader, fallback) => {
+        const safeLoad = async (key, loader, fallback) => {
           try {
-            return { status: "fulfilled", value: await loader() };
+            return { key, status: "fulfilled", value: await loader() };
           } catch (reason) {
-            return { status: "rejected", reason, value: fallback };
+            return { key, status: "rejected", reason, value: fallback };
+          } finally {
+            if (isMounted) {
+              setSectionLoading((current) => ({ ...current, [key]: false }));
+            }
           }
         };
 
         const results = [
-          await safeLoad(() => loadUserPlans(user.uid), []),
-          await safeLoad(() => loadUserProfile(user.uid), null),
-          await safeLoad(() => loadUserFeedback(user.uid), []),
-          await safeLoad(() => loadUserGoals(user.uid), []),
-          await safeLoad(() => loadUserHabits(user.uid), []),
-          await safeLoad(() => loadWeeklyReviews(user.uid), []),
-          await safeLoad(() => loadMonthlyReviews(user.uid), []),
-          await safeLoad(() => loadUserCareerExplorations(user.uid), []),
-          await safeLoad(() => loadUserHobbyPlans(user.uid), []),
-          await safeLoad(() => loadUserRoutineBuilders(user.uid), []),
-          await safeLoad(() => loadReminderSettings(user.uid), null),
-          await safeLoad(() => loadUserProgress(user.uid), emptyProgress),
-          await safeLoad(() => loadRewardEvents(user.uid), []),
-          await safeLoad(() => loadUserCheckins(user.uid), []),
+          await safeLoad("plans", () => loadUserPlans(user.uid), []),
+          await safeLoad("profile", () => loadUserProfile(user.uid), null),
+          await safeLoad("feedback", () => loadUserFeedback(user.uid), []),
+          await safeLoad("goals", () => loadUserGoals(user.uid), []),
+          await safeLoad("habits", () => loadUserHabits(user.uid), []),
+          await safeLoad("reviews", () => loadWeeklyReviews(user.uid), []),
+          await safeLoad("monthlyReviews", () => loadMonthlyReviews(user.uid), []),
+          await safeLoad("careerExplorations", () => loadUserCareerExplorations(user.uid), []),
+          await safeLoad("hobbyPlans", () => loadUserHobbyPlans(user.uid), []),
+          await safeLoad("routineBuilders", () => loadUserRoutineBuilders(user.uid), []),
+          await safeLoad("reminders", () => loadReminderSettings(user.uid), null),
+          await safeLoad("progress", () => loadUserProgress(user.uid), emptyProgress),
+          await safeLoad("rewardEvents", () => loadRewardEvents(user.uid), []),
+          await safeLoad("checkins", () => loadUserCheckins(user.uid), []),
         ];
         if (!isMounted) return;
-        const getValue = (index, fallback) =>
-          results[index]?.status === "fulfilled" ? results[index].value : (results[index]?.value ?? fallback);
+        const resultMap = Object.fromEntries(results.map((item) => [item.key, item]));
+        const getValue = (key, fallback) =>
+          resultMap[key]?.status === "fulfilled" ? resultMap[key].value : (resultMap[key]?.value ?? fallback);
 
-        const loadedPlans = getValue(0, []);
-        const loadedProfile = getValue(1, null);
-        const loadedFeedback = getValue(2, []);
-        const loadedGoals = getValue(3, []);
-        const loadedHabits = getValue(4, []);
-        const loadedReviews = getValue(5, []);
-        const loadedMonthlyReviews = getValue(6, []);
-        const loadedCareerExplorations = getValue(7, []);
-        const loadedHobbyPlans = getValue(8, []);
-        const loadedRoutineBuilders = getValue(9, []);
-        const loadedReminderSettings = getValue(10, null);
-        const loadedProgress = getValue(11, emptyProgress);
-        const loadedEvents = getValue(12, []);
-        const loadedCheckins = getValue(13, []);
+        const loadedPlans = getValue("plans", []);
+        const loadedProfile = getValue("profile", null);
+        const loadedFeedback = getValue("feedback", []);
+        const loadedGoals = getValue("goals", []);
+        const loadedHabits = getValue("habits", []);
+        const loadedReviews = getValue("reviews", []);
+        const loadedMonthlyReviews = getValue("monthlyReviews", []);
+        const loadedCareerExplorations = getValue("careerExplorations", []);
+        const loadedHobbyPlans = getValue("hobbyPlans", []);
+        const loadedRoutineBuilders = getValue("routineBuilders", []);
+        const loadedReminderSettings = getValue("reminders", null);
+        const loadedProgress = getValue("progress", emptyProgress);
+        const loadedEvents = getValue("rewardEvents", []);
+        const loadedCheckins = getValue("checkins", []);
 
         setPlans(loadedPlans);
         setCurrentPlan(loadedPlans[0] || null);
@@ -659,7 +715,12 @@ function Dashboard({ user }) {
           }
         }
       } finally {
-        if (isMounted) setIsLoadingWorkspace(false);
+        if (isMounted) {
+          setIsLoadingWorkspace(false);
+          setSectionLoading((current) =>
+            Object.fromEntries(Object.keys(current).map((key) => [key, false])),
+          );
+        }
       }
     }
     loadWorkspace();
@@ -855,8 +916,8 @@ function Dashboard({ user }) {
       setPlans((current) => [savedPlan, ...current]);
       setCurrentPlan(savedPlan);
       setAdjustmentRequest("");
-      setActiveTab("history");
-      setStatusMessage(adjustment ? "Your plan has been updated and rewarded." : "Your plan is ready.");
+      setActiveTab("planner");
+      setStatusMessage(adjustment ? "Plan updated successfully. Your revised plan is ready below." : "Plan generated successfully. Your new guidance plan is ready below.");
     } catch (requestError) {
       setError(requestError.message || "Something went wrong while creating your plan.");
     } finally {
@@ -1511,7 +1572,113 @@ function Dashboard({ user }) {
     }
   };
 
-  if (isLoadingWorkspace) return <section className="workspace-panel">Loading your planner workspace...</section>;
+  const plannerBootstrapPending = sectionLoading.plans || sectionLoading.profile || sectionLoading.feedback;
+  const progressPanelPending = sectionLoading.progress || sectionLoading.rewardEvents || sectionLoading.checkins;
+
+  const tabLoadingConfig = {
+    goals: sectionLoading.goals,
+    habits: sectionLoading.habits,
+    daily: progressPanelPending,
+    weekly: progressPanelPending,
+    review: sectionLoading.reviews || sectionLoading.goals,
+    monthly: sectionLoading.monthlyReviews || sectionLoading.goals,
+    career: sectionLoading.careerExplorations,
+    income: sectionLoading.hobbyPlans,
+    routine: sectionLoading.routineBuilders,
+    achievements: sectionLoading.progress || sectionLoading.rewardEvents,
+    missions: sectionLoading.progress,
+    insights: sectionLoading.profile || sectionLoading.plans || sectionLoading.checkins,
+    history: sectionLoading.plans,
+    profile: sectionLoading.profile,
+    feedback: sectionLoading.feedback,
+    reminders: sectionLoading.reminders,
+    settings: isLoadingWorkspace && sectionLoading.profile,
+  };
+
+  const renderActiveTab = () => {
+    if (activeTab === "planner") {
+      return (
+        <>
+          {plannerBootstrapPending && (
+            <SectionLoadingCard
+              title="Loading your saved context"
+              description="We’re pulling in your latest plans, profile, and feedback so the planner can start from your real history."
+            />
+          )}
+          <PlannerTab
+            form={form}
+            consentChecked={consentChecked}
+            isLoading={isLoading}
+            onChange={updateField}
+            onConsentChange={(event) => setConsentChecked(event.target.checked)}
+            onQuickFocus={applyQuickFocus}
+            onReset={resetPlanner}
+            onSubmit={(event) => {
+              event.preventDefault();
+              requestPlan();
+            }}
+            onUseProfile={applyProfileToPlanner}
+          />
+        </>
+      );
+    }
+
+    if (tabLoadingConfig[activeTab]) {
+      return (
+        <SectionLoadingCard
+          title={`Loading ${activeTab} data`}
+          description="This section is filling in from your saved workspace so the content reflects your latest state."
+        />
+      );
+    }
+
+    switch (activeTab) {
+      case "goals":
+        return <LazyTabShell title="Loading goals" description="Bringing in your active goals and milestones."><GoalTab goalDraft={goalDraft} goals={goals} isSavingGoal={isSavingGoal} onChange={updateGoalField} onSubmit={handleSaveGoal} onDelete={handleDeleteGoal} onStatusChange={handleGoalStatusChange} /></LazyTabShell>;
+      case "habits":
+        return <LazyTabShell title="Loading habits" description="Getting your habit list and streaks ready."><HabitTab habitDraft={habitDraft} habits={habits} isSavingHabit={isSavingHabit} onChange={updateHabitField} onSubmit={handleSaveHabit} onDelete={handleDeleteHabit} onToggle={handleToggleHabit} /></LazyTabShell>;
+      case "daily":
+        return <LazyTabShell title="Loading daily progress" description="Pulling in check-ins, rewards, and momentum data."><DailyProgressTab checkins={checkins} progress={progress} rewards={rewardEvents} /></LazyTabShell>;
+      case "weekly":
+        return <LazyTabShell title="Loading weekly progress" description="Building your weekly summary and consistency view."><WeeklyProgressTab checkins={checkins} progress={progress} rewards={rewardEvents} onExportWeeklySummary={handleExportWeeklySummary} onShareWeeklySummary={handleShareWeeklySummary} /></LazyTabShell>;
+      case "review":
+        return <LazyTabShell title="Loading weekly reviews" description="Bringing in your reflections and open goals for this week."><WeeklyReviewTab reviewDraft={reviewDraft} reviews={reviews} goals={goals} isSavingReview={isSavingReview} onChange={updateReviewField} onSubmit={handleSaveWeeklyReview} /></LazyTabShell>;
+      case "monthly":
+        return <LazyTabShell title="Loading monthly reviews" description="Preparing your monthly reflections and trend view."><MonthlyReviewTab monthlyReviewDraft={monthlyReviewDraft} monthlyReviews={monthlyReviews} goals={goals} isSavingMonthlyReview={isSavingMonthlyReview} onChange={updateMonthlyReviewField} onSubmit={handleSaveMonthlyReview} /></LazyTabShell>;
+      case "career":
+        return <LazyTabShell title="Loading career explorer" description="Opening your saved career maps and next direction ideas."><CareerExplorerTab draft={careerDraft} savedItems={careerExplorations} isSaving={isSavingCareer} onChange={updateCareerField} onSubmit={handleSaveCareerExploration} /></LazyTabShell>;
+      case "income":
+        return <LazyTabShell title="Loading hobby income paths" description="Bringing in your hobby experiments and monetization ideas."><HobbyIncomeTab draft={hobbyDraft} savedItems={hobbyPlans} isSaving={isSavingHobbyPath} onChange={updateHobbyField} onSubmit={handleSaveHobbyPath} /></LazyTabShell>;
+      case "routine":
+        return <LazyTabShell title="Loading routine builder" description="Opening your saved weekly blueprints and time blocks."><RoutineBuilderTab builderDraft={routineBuilderDraft} blockDraft={routineBlockDraft} savedItems={routineBuilders} isSaving={isSavingRoutineBuilder} onBuilderChange={updateRoutineBuilderField} onBlockChange={updateRoutineBlockField} onAddBlock={handleAddRoutineBlock} onRemoveBlock={handleRemoveRoutineBlock} onToggleLock={handleToggleRoutineBlockLock} onSave={handleSaveRoutineBuilder} onDelete={handleDeleteRoutineBuilder} onExportCalendar={handleExportRoutineCalendar} /></LazyTabShell>;
+      case "chat":
+        return <LazyTabShell title="Loading follow-up chat" description="Preparing the current plan context for follow-up guidance."><ChatExtensionTab currentPlan={currentPlan} chatPrompt={chatPrompt} chatMessages={chatMessages} isSendingChat={isSendingChat} onPromptChange={(event) => setChatPrompt(event.target.value)} onQuickPrompt={setChatPrompt} onSubmit={handleSendChat} /></LazyTabShell>;
+      case "achievements":
+        return <LazyTabShell title="Loading achievements" description="Bringing in badges, milestones, and reward history."><AchievementTab progress={progress} rewardEvents={rewardEvents} /></LazyTabShell>;
+      case "missions":
+        return <LazyTabShell title="Loading missions" description="Calculating your next momentum targets and level progress."><MissionsTab progress={progress} missionSummary={missionSummary} /></LazyTabShell>;
+      case "insights":
+        return <LazyTabShell title="Loading insights" description="Reading your history to summarize what seems to fit you best."><PersonalizationTab insights={personalizationInsights} profile={profile} plans={plans} checkins={checkins} /></LazyTabShell>;
+      case "system":
+        return <LazyTabShell title="Loading system overview" description="Opening the live project brain map generated from this codebase."><ProjectMapTab /></LazyTabShell>;
+      case "history":
+        return <LazyTabShell title="Loading history" description="Getting your saved plans and snapshots ready."><HistoryTab plans={plans} onView={setCurrentPlan} onUseAnswers={(item) => { setForm(item.profileSnapshot); setActiveTab("planner"); }} onDelete={handleDeletePlan} formatDate={formatDate} /></LazyTabShell>;
+      case "profile":
+        return <LazyTabShell title="Loading profile" description="Pulling in your saved context and planner preferences."><ProfileTab profile={profile} isSavingProfile={isSavingProfile} onChange={updateProfileField} onSubmit={handleSaveProfile} onApplyToPlanner={applyProfileToPlanner} /></LazyTabShell>;
+      case "feedback":
+        return <LazyTabShell title="Loading feedback" description="Preparing your plan feedback and saved notes."><FeedbackTab currentPlan={currentPlan} feedbackItems={feedbackItems} feedbackMessage={feedbackMessage} feedbackRating={feedbackRating} isSubmittingFeedback={isSubmittingFeedback} formatDate={formatDate} onMessageChange={(event) => setFeedbackMessage(event.target.value)} onRatingChange={(event) => setFeedbackRating(event.target.value)} onSubmit={handleSubmitFeedback} /></LazyTabShell>;
+      case "reminders":
+        return <LazyTabShell title="Loading reminders" description="Preparing your saved reminder settings and notification tools."><ReminderTab reminderSettings={reminderSettings} isSaving={isSavingReminderSettings} notificationState={notificationState} onChange={updateReminderField} onEnableNotifications={handleEnableNotifications} onSendTestReminder={handleSendTestReminder} onSubmit={handleSaveReminderSettings} /></LazyTabShell>;
+      case "support":
+        return <LazyTabShell title="Loading support" description="Getting the support and recovery guidance ready."><SupportTab /></LazyTabShell>;
+      case "settings":
+        return <LazyTabShell title="Loading settings" description="Building your privacy, export, and account controls."><SettingsTab user={user} profile={profile} plans={plans} goals={goals} habits={habits} reviews={reviews} monthlyReviews={monthlyReviews} checkins={checkins} rewardEvents={rewardEvents} careerExplorations={careerExplorations} hobbyPlans={hobbyPlans} routineBuilders={routineBuilders} reminderSettings={reminderSettings} onDeleteMyData={handleDeleteMyData} onExportData={handleExportData} onResendVerification={handleResendVerification} onShareProgress={handleShareProgress} /></LazyTabShell>;
+      case "admin":
+        return isAdmin ? <LazyTabShell title="Loading admin dashboard" description="Preparing the current product snapshot for admin review."><AdminTab adminSnapshot={adminSnapshot} userId={user.uid} /></LazyTabShell> : null;
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="dashboard-shell">
@@ -1570,29 +1737,10 @@ function Dashboard({ user }) {
 
       <section className="workspace-panel">
         <nav className="workspace-nav" aria-label="Workspace sections">{navigationItems.filter((item) => item !== "admin" || isAdmin).map((item) => <button key={item} type="button" className={item === activeTab ? "nav-chip active" : "nav-chip"} onClick={() => setActiveTab(item)}>{item[0].toUpperCase() + item.slice(1)}</button>)}</nav>
-        {statusMessage && <p className="success-message">{statusMessage}</p>}
+        {statusMessage && <div className={`status-toast ${statusTone === "info" ? "status-toast-info" : "status-toast-success"}`}>{statusMessage}</div>}
         {error && <p className="error-message">{error}</p>}
-        {activeTab === "planner" && <PlannerTab form={form} consentChecked={consentChecked} isLoading={isLoading} onChange={updateField} onConsentChange={(event) => setConsentChecked(event.target.checked)} onQuickFocus={applyQuickFocus} onReset={resetPlanner} onSubmit={(event) => { event.preventDefault(); requestPlan(); }} onUseProfile={applyProfileToPlanner} />}
-        {activeTab === "goals" && <GoalTab goalDraft={goalDraft} goals={goals} isSavingGoal={isSavingGoal} onChange={updateGoalField} onSubmit={handleSaveGoal} onDelete={handleDeleteGoal} onStatusChange={handleGoalStatusChange} />}
-        {activeTab === "habits" && <HabitTab habitDraft={habitDraft} habits={habits} isSavingHabit={isSavingHabit} onChange={updateHabitField} onSubmit={handleSaveHabit} onDelete={handleDeleteHabit} onToggle={handleToggleHabit} />}
-        {activeTab === "daily" && <DailyProgressTab checkins={checkins} progress={progress} rewards={rewardEvents} />}
-        {activeTab === "weekly" && <WeeklyProgressTab checkins={checkins} progress={progress} rewards={rewardEvents} onExportWeeklySummary={handleExportWeeklySummary} onShareWeeklySummary={handleShareWeeklySummary} />}
-        {activeTab === "review" && <WeeklyReviewTab reviewDraft={reviewDraft} reviews={reviews} goals={goals} isSavingReview={isSavingReview} onChange={updateReviewField} onSubmit={handleSaveWeeklyReview} />}
-        {activeTab === "monthly" && <MonthlyReviewTab monthlyReviewDraft={monthlyReviewDraft} monthlyReviews={monthlyReviews} goals={goals} isSavingMonthlyReview={isSavingMonthlyReview} onChange={updateMonthlyReviewField} onSubmit={handleSaveMonthlyReview} />}
-        {activeTab === "career" && <CareerExplorerTab draft={careerDraft} savedItems={careerExplorations} isSaving={isSavingCareer} onChange={updateCareerField} onSubmit={handleSaveCareerExploration} />}
-        {activeTab === "income" && <HobbyIncomeTab draft={hobbyDraft} savedItems={hobbyPlans} isSaving={isSavingHobbyPath} onChange={updateHobbyField} onSubmit={handleSaveHobbyPath} />}
-        {activeTab === "routine" && <RoutineBuilderTab builderDraft={routineBuilderDraft} blockDraft={routineBlockDraft} savedItems={routineBuilders} isSaving={isSavingRoutineBuilder} onBuilderChange={updateRoutineBuilderField} onBlockChange={updateRoutineBlockField} onAddBlock={handleAddRoutineBlock} onRemoveBlock={handleRemoveRoutineBlock} onToggleLock={handleToggleRoutineBlockLock} onSave={handleSaveRoutineBuilder} onDelete={handleDeleteRoutineBuilder} onExportCalendar={handleExportRoutineCalendar} />}
-        {activeTab === "chat" && <ChatExtensionTab currentPlan={currentPlan} chatPrompt={chatPrompt} chatMessages={chatMessages} isSendingChat={isSendingChat} onPromptChange={(event) => setChatPrompt(event.target.value)} onQuickPrompt={setChatPrompt} onSubmit={handleSendChat} />}
-        {activeTab === "achievements" && <AchievementTab progress={progress} rewardEvents={rewardEvents} />}
-        {activeTab === "missions" && <MissionsTab progress={progress} missionSummary={missionSummary} />}
-        {activeTab === "insights" && <PersonalizationTab insights={personalizationInsights} profile={profile} plans={plans} checkins={checkins} />}
-        {activeTab === "history" && <HistoryTab plans={plans} onView={setCurrentPlan} onUseAnswers={(item) => { setForm(item.profileSnapshot); setActiveTab("planner"); }} onDelete={handleDeletePlan} formatDate={formatDate} />}
-        {activeTab === "profile" && <ProfileTab profile={profile} isSavingProfile={isSavingProfile} onChange={updateProfileField} onSubmit={handleSaveProfile} onApplyToPlanner={applyProfileToPlanner} />}
-        {activeTab === "feedback" && <FeedbackTab currentPlan={currentPlan} feedbackItems={feedbackItems} feedbackMessage={feedbackMessage} feedbackRating={feedbackRating} isSubmittingFeedback={isSubmittingFeedback} formatDate={formatDate} onMessageChange={(event) => setFeedbackMessage(event.target.value)} onRatingChange={(event) => setFeedbackRating(event.target.value)} onSubmit={handleSubmitFeedback} />}
-        {activeTab === "reminders" && <ReminderTab reminderSettings={reminderSettings} isSaving={isSavingReminderSettings} notificationState={notificationState} onChange={updateReminderField} onEnableNotifications={handleEnableNotifications} onSendTestReminder={handleSendTestReminder} onSubmit={handleSaveReminderSettings} />}
-        {activeTab === "support" && <SupportTab />}
-        {activeTab === "settings" && <SettingsTab user={user} profile={profile} plans={plans} goals={goals} habits={habits} reviews={reviews} monthlyReviews={monthlyReviews} checkins={checkins} rewardEvents={rewardEvents} careerExplorations={careerExplorations} hobbyPlans={hobbyPlans} routineBuilders={routineBuilders} reminderSettings={reminderSettings} onDeleteMyData={handleDeleteMyData} onExportData={handleExportData} onResendVerification={handleResendVerification} onShareProgress={handleShareProgress} />}
-        {activeTab === "admin" && isAdmin && <AdminTab adminSnapshot={adminSnapshot} userId={user.uid} />}
+        {isLoadingWorkspace && <SectionLoadingCard title="Syncing your workspace" description="We’re warming up your saved planner data section by section so you can keep using the app while it loads." />}
+        {renderActiveTab()}
       </section>
 
       <ResultPanel currentPlan={currentPlan} currentPlanFeedback={currentPlanFeedback} adjustmentRequest={adjustmentRequest} checkinNote={checkinNote} checkinFields={checkinFields} isAdjusting={isAdjusting} isSubmittingCheckin={isSubmittingCheckin} progress={progress} recentRewards={recentRewards} todayCheckin={todayCheckin} formatDate={formatDate} onAdjustChange={(event) => setAdjustmentRequest(event.target.value)} onAdjust={() => adjustmentRequest.trim() ? requestPlan({ adjustment: adjustmentRequest }) : setError("Write what feels difficult or what you want to change.")} onCheckin={handleDailyCheckin} onCheckinFieldChange={updateCheckinField} onCheckinNoteChange={(event) => setCheckinNote(event.target.value)} onRegenerate={() => requestPlan()} onRate={() => setActiveTab("feedback")} />
