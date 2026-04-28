@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "project:map": "node scripts/generate-project-map.mjs",
+    "project:map:watch": "node scripts/watch-project-map.mjs"
   },
   "dependencies": {
     "firebase": "^12.7.0",

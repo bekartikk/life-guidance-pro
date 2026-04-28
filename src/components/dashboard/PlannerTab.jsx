@@ -1,3 +1,18 @@
+function countCompletedPlannerFields(form) {
+  const keys = [
+    "currentRoutine",
+    "workOrStudy",
+    "personalChallenges",
+    "futureConfusion",
+    "goals",
+    "hobbies",
+    "happinessSources",
+    "knownObstacles",
+    "skillsToBuild",
+  ];
+  return keys.filter((key) => String(form[key] || "").trim()).length;
+}
+
 function PlannerTab({
   form,
   consentChecked,
@@ -9,6 +24,9 @@ function PlannerTab({
   onSubmit,
   onUseProfile,
 }) {
+  const completedCount = countCompletedPlannerFields(form);
+  const progressPercent = Math.round((completedCount / 9) * 100);
+
   return (
     <form className="planner-form" onSubmit={onSubmit}>
       <div className="form-header">
@@ -21,15 +39,46 @@ function PlannerTab({
         </button>
       </div>
 
+      <section className="planner-step-strip">
+        <article className="planner-step-card">
+          <span>Step 1</span>
+          <strong>Reality first</strong>
+          <p>Capture your real routine before trying to optimize it.</p>
+        </article>
+        <article className="planner-step-card">
+          <span>Step 2</span>
+          <strong>Pressure and goals</strong>
+          <p>Show what feels hard and what future you want to move toward.</p>
+        </article>
+        <article className="planner-step-card">
+          <span>Step 3</span>
+          <strong>Interests and support</strong>
+          <p>Help the app protect your energy and build around what matters to you.</p>
+        </article>
+        <article className="planner-step-card">
+          <span>Step 4</span>
+          <strong>Guidance settings</strong>
+          <p>Choose the plan length, structure, and tone you want back.</p>
+        </article>
+      </section>
+
       <div className="quick-options">
         <button type="button" onClick={() => onQuickFocus("career", "1-week")}>Job roadmap</button>
         <button type="button" onClick={() => onQuickFocus("hobbies", "1-month")}>Hobbies to income</button>
         <button type="button" onClick={() => onQuickFocus("mental-energy", "1-week")}>Motivation reset</button>
       </div>
 
+      <section className="planner-progress-panel">
+        <div>
+          <span>Planner readiness</span>
+          <strong>{progressPercent}%</strong>
+        </div>
+        <p>{completedCount}/9 core prompts completed. Enough detail means a better, fuller plan.</p>
+      </section>
+
       <section className="form-section">
         <div className="section-heading">
-          <h3>Routine and life context</h3>
+          <h3>Step 1: Routine and life context</h3>
           <p>Start with what your real days already look like.</p>
         </div>
         <div className="two-column">
@@ -42,7 +91,7 @@ function PlannerTab({
 
       <section className="form-section">
         <div className="section-heading">
-          <h3>Pressure points and goals</h3>
+          <h3>Step 2: Pressure points and goals</h3>
           <p>These answers guide the roadmap and motivational support.</p>
         </div>
         <label>Personal issues or stress points<textarea name="personalChallenges" value={form.personalChallenges} onChange={onChange} placeholder="What is making life heavy, confusing, lonely, or stuck?" /></label>
@@ -52,7 +101,7 @@ function PlannerTab({
 
       <section className="form-section">
         <div className="section-heading">
-          <h3>Interests and emotional support</h3>
+          <h3>Step 3: Interests and emotional support</h3>
           <p>These help the app create happier routines and future scopes.</p>
         </div>
         <div className="two-column">
@@ -66,7 +115,7 @@ function PlannerTab({
 
       <section className="form-section">
         <div className="section-heading">
-          <h3>Plan settings</h3>
+          <h3>Step 4: Plan settings</h3>
           <p>Choose the style and depth of guidance you want back from the AI.</p>
         </div>
         <div className="two-column">

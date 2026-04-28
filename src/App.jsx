@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { signOut } from "firebase/auth";
 import { auth } from "./firebase";
+import heroImage from "./assets/hero.png";
 import AppErrorBoundary from "./components/AppErrorBoundary";
 import Dashboard from "./components/Dashboard";
 import Login from "./components/Login";
@@ -35,17 +36,29 @@ function App() {
         </div>
 
         {user ? (
-          <div className="account-actions">
-            <div className="account-badge">
-              <span className="account-label">Signed in</span>
-              <strong>{user.email}</strong>
+          <div className="topbar-side">
+            <div className="account-actions">
+              <div className="account-badge">
+                <span className="account-label">Signed in</span>
+                <strong>{user.email}</strong>
+              </div>
+              <button className="secondary-button" onClick={() => signOut(auth)}>
+                Logout
+              </button>
             </div>
-            <button className="secondary-button" onClick={() => signOut(auth)}>
-              Logout
-            </button>
+            <div className="topbar-visual-shell" aria-hidden="true">
+              <img className="topbar-visual" src={heroImage} alt="" />
+              <p>Planner, tracking, AI guidance, and rewards in one flow.</p>
+            </div>
           </div>
         ) : (
-          <div className="topbar-note">Private answers. Flexible plans. Gentle guidance.</div>
+          <div className="topbar-side">
+            <div className="topbar-note">Private answers. Flexible plans. Gentle guidance.</div>
+            <div className="topbar-visual-shell" aria-hidden="true">
+              <img className="topbar-visual" src={heroImage} alt="" />
+              <p>Shape routines that stay realistic when life gets messy.</p>
+            </div>
+          </div>
         )}
       </section>
 

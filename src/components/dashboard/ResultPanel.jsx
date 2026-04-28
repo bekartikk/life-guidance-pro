@@ -10,6 +10,26 @@ function buildWeeklyLabel(progress) {
   return `${summary.positiveDays || 0}/7 positive days`;
 }
 
+function splitPlanSections(text) {
+  const source = String(text || "").trim();
+  if (!source) return [];
+
+  const matches = [...source.matchAll(/(^|\n)(\d+\.\s+[^\n]+)\n/g)];
+  if (matches.length === 0) {
+    return [{ heading: "Full plan", body: source }];
+  }
+
+  return matches.map((match, index) => {
+    const heading = match[2].trim();
+    const start = match.index + match[1].length + heading.length + 1;
+    const end = index + 1 < matches.length ? matches[index + 1].index : source.length;
+    return {
+      heading,
+      body: source.slice(start, end).trim(),
+    };
+  });
+}
+
 function ResultPanel({
   currentPlan,
   currentPlanFeedback,
@@ -33,6 +53,8 @@ function ResultPanel({
   if (!currentPlan) {
     return null;
   }
+
+  const sections = splitPlanSections(currentPlan.result);
 
   return (
     <section className="result-panel">
@@ -159,7 +181,32 @@ function ResultPanel({
         )}
       </div>
 
-      <div className="result-content">{currentPlan.result}</div>
+      <div className="result-outline">
+        <div>
+          <h3>Plan outline</h3>
+          <p>Use the sections below to jump through the plan instead of reading one long wall of text.</p>
+        </div>
+        <div className="result-outline-chips">
+          {sections.map((section) => (
+            <a key={section.heading} href={`#${section.heading.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}`} className="badge-chip">
+              {section.heading}
+            </a>
+          ))}
+        </div>
+      </div>
+
+      <div className="result-sections">
+        {sections.map((section) => (
+          <article
+            className="result-section-card"
+            key={section.heading}
+            id={section.heading.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}
+          >
+            <h3>{section.heading}</h3>
+            <div className="result-section-body">{section.body}</div>
+          </article>
+        ))}
+      </div>
 
       <div className="adjust-panel">
         <h3>Need changes?</h3>

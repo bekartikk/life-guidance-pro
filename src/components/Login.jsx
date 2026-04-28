@@ -8,6 +8,7 @@ import {
   signInWithEmailAndPassword,
 } from "firebase/auth";
 import { auth } from "../firebase";
+import heroImage from "../assets/hero.png";
 
 const trustSignals = [
   "Personal routines shaped around real energy and real schedules",
@@ -95,6 +96,13 @@ function Login() {
               <span>{item}</span>
             </div>
           ))}
+        </div>
+        <div className="auth-visual-card" aria-hidden="true">
+          <img src={heroImage} alt="" />
+          <div>
+            <strong>One system instead of scattered notes</strong>
+            <p>Plans, reviews, goals, habits, reminders, and rewards stay connected so progress doesn’t disappear.</p>
+          </div>
         </div>
       </div>
 

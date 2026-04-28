@@ -116,6 +116,25 @@ function appendSafetySupport(text) {
   return `${text}\n\nUrgent support note: If you feel in immediate danger, at risk of self-harm, or unsafe with someone around you, pause the planner and contact local emergency services or a trusted person right now.`;
 }
 
+function extractCandidateText(data) {
+  return (
+    data?.candidates?.[0]?.content?.parts
+      ?.map((part) => part?.text || "")
+      .join("\n")
+      .trim() || ""
+  );
+}
+
+function extractFinishReason(data) {
+  return String(data?.candidates?.[0]?.finishReason || "").trim();
+}
+
+function needsPlanContinuation(plan, finishReason) {
+  if (!plan.trim()) return false;
+  if (finishReason === "MAX_TOKENS") return true;
+  return !plan.includes("13. Privacy and safety reminder");
+}
+
 async function requestGuidanceFromGemini(payload) {
   let lastResult = null;
 
@@ -146,6 +165,80 @@ async function requestGuidanceFromGemini(payload) {
   }
 
   return lastResult;
+}
+
+async function generateCompletedPlan({ profile, adjustmentRequest, previousPlan }) {
+  const basePayload = {
+    systemInstruction: { parts: [{ text: guidanceSystemPrompt }] },
+    contents: [
+      {
+        role: "user",
+        parts: [
+          { text: `Create a life guidance plan from this profile:\n${JSON.stringify(profile, null, 2)}` },
+          { text: adjustmentRequest ? `The user wants this change:\n${adjustmentRequest}\n\nPrevious plan:\n${previousPlan}` : "This is a new plan request." },
+        ],
+      },
+    ],
+    generationConfig: {
+      temperature: 0.7,
+      topP: 0.9,
+      maxOutputTokens: 5200,
+    },
+  };
+
+  const firstPass = await requestGuidanceFromGemini(basePayload);
+  if (!firstPass.response.ok) {
+    return firstPass;
+  }
+
+  let plan = extractCandidateText(firstPass.data);
+  const finishReason = extractFinishReason(firstPass.data);
+
+  if (!plan) {
+    return firstPass;
+  }
+
+  if (needsPlanContinuation(plan, finishReason)) {
+    const continuationPayload = {
+      systemInstruction: {
+        parts: [{
+          text: `${guidanceSystemPrompt}\n\nThe previous answer was cut off. Continue from the next unfinished heading only. Do not restart from the beginning. Do not repeat sections that are already complete.`,
+        }],
+      },
+      contents: [
+        {
+          role: "user",
+          parts: [
+            { text: `Original user profile:\n${JSON.stringify(profile, null, 2)}` },
+            { text: adjustmentRequest ? `Adjustment request:\n${adjustmentRequest}` : "This is still the same new plan request." },
+            { text: `Partial answer already generated:\n${plan}` },
+            { text: "Continue the answer from the next missing heading so the response becomes complete." },
+          ],
+        },
+      ],
+      generationConfig: {
+        temperature: 0.68,
+        topP: 0.9,
+        maxOutputTokens: 2600,
+      },
+    };
+
+    const secondPass = await requestGuidanceFromGemini(continuationPayload);
+    if (secondPass.response.ok) {
+      const continuation = extractCandidateText(secondPass.data);
+      if (continuation) {
+        plan = `${plan.trim()}\n\n${continuation.trim()}`;
+      }
+    }
+  }
+
+  return {
+    ...firstPass,
+    data: {
+      ...firstPass.data,
+      completedPlan: plan,
+    },
+  };
 }
 
 function cleanProfile(profile = {}) {
@@ -212,31 +305,13 @@ app.post("/api/guidance", async (req, res) => {
   }
 
   try {
-    const payload = {
-      systemInstruction: { parts: [{ text: guidanceSystemPrompt }] },
-      contents: [
-        {
-          role: "user",
-          parts: [
-            { text: `Create a life guidance plan from this profile:\n${JSON.stringify(profile, null, 2)}` },
-            { text: adjustmentRequest ? `The user wants this change:\n${adjustmentRequest}\n\nPrevious plan:\n${previousPlan}` : "This is a new plan request." },
-          ],
-        },
-      ],
-      generationConfig: {
-        temperature: 0.75,
-        topP: 0.9,
-        maxOutputTokens: 3800,
-      },
-    };
-
-    const { response, data } = await requestGuidanceFromGemini(payload);
+    const { response, data } = await generateCompletedPlan({ profile, adjustmentRequest, previousPlan });
     if (!response.ok) {
       const friendlyError = getFriendlyApiError(response.status, data.error?.message);
       return res.status(friendlyError.status).json({ message: friendlyError.message });
     }
 
-    const plan = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    const plan = data.completedPlan || extractCandidateText(data);
     if (!plan?.trim()) {
       return res.status(502).json({
         message: "The AI returned an empty plan. Please try again.",
