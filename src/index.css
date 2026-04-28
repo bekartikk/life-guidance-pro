@@ -1,0 +1,157 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom component utilities */
+@layer components {
+  .btn {
+    @apply font-medium transition-all duration-200 cursor-pointer rounded-md;
+  }
+
+  .btn-primary {
+    @apply btn px-5 py-2.5 bg-primary-500 text-white hover:bg-primary-600 active:bg-primary-700 disabled:bg-neutral-300 disabled:cursor-not-allowed;
+  }
+
+  .btn-secondary {
+    @apply btn px-5 py-2.5 bg-white text-primary-500 border border-neutral-300 hover:bg-neutral-50 active:bg-neutral-100 disabled:bg-neutral-100 disabled:cursor-not-allowed;
+  }
+
+  .btn-ghost {
+    @apply btn px-3 py-2 text-primary-500 bg-transparent hover:bg-primary-50 active:bg-primary-100 disabled:text-neutral-400 disabled:cursor-not-allowed;
+  }
+
+  .btn-danger {
+    @apply btn px-5 py-2.5 text-error-600 border border-error-200 bg-white hover:bg-error-50 active:bg-error-100 disabled:bg-neutral-100 disabled:cursor-not-allowed;
+  }
+
+  .card {
+    @apply bg-white border border-neutral-200 rounded-lg p-6 shadow-xs hover:shadow-sm transition-all duration-200;
+  }
+
+  .card-elevated {
+    @apply bg-white border-none rounded-lg p-6 shadow-md hover:shadow-lg transition-all duration-200;
+  }
+
+  .input-field {
+    @apply w-full px-3.5 py-3 font-inherit text-base border border-neutral-300 rounded-md bg-white text-neutral-900 transition-all duration-200;
+  }
+
+  .input-field:hover {
+    @apply border-neutral-400;
+  }
+
+  .input-field:focus {
+    @apply outline-none border-primary-500 ring-2 ring-primary-100;
+  }
+
+  .input-field:disabled {
+    @apply bg-neutral-100 text-neutral-500 cursor-not-allowed;
+  }
+
+  .input-field.error {
+    @apply border-error-600 ring-2 ring-error-100;
+  }
+
+  .badge {
+    @apply inline-flex items-center gap-1.5 px-3 py-1.5 bg-neutral-100 text-neutral-700 rounded-full text-xs font-medium transition-colors duration-200;
+  }
+
+  .badge-primary {
+    @apply bg-primary-100 text-primary-700;
+  }
+
+  .badge-success {
+    @apply bg-success-100 text-success-700;
+  }
+
+  .badge-error {
+    @apply bg-error-100 text-error-700;
+  }
+
+  .badge-warning {
+    @apply bg-warning-100 text-warning-700;
+  }
+
+  .alert {
+    @apply p-4 rounded-lg border-l-4 flex gap-3 items-start mb-4;
+  }
+
+  .alert-info {
+    @apply bg-info-50 border-info-500 text-info-700;
+  }
+
+  .alert-success {
+    @apply bg-success-50 border-success-500 text-success-700;
+  }
+
+  .alert-warning {
+    @apply bg-warning-50 border-warning-500 text-warning-700;
+  }
+
+  .alert-error {
+    @apply bg-error-50 border-error-500 text-error-700;
+  }
+
+  .form-group {
+    @apply flex flex-col gap-2 mb-4;
+  }
+
+  .form-label {
+    @apply block text-sm font-medium text-neutral-700;
+  }
+
+  .form-hint {
+    @apply text-xs text-neutral-500 mt-1;
+  }
+
+  .divider {
+    @apply border-t border-neutral-200 my-6;
+  }
+
+  .divider-subtle {
+    @apply border-t border-neutral-100 my-4;
+  }
+}
+
+/* Global styles */
+@layer base {
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply bg-neutral-50 text-neutral-900;
+  }
+
+  h1 {
+    @apply text-4xl font-semibold tracking-tight;
+  }
+
+  h2 {
+    @apply text-3xl font-semibold tracking-tight;
+  }
+
+  h3 {
+    @apply text-2xl font-semibold;
+  }
+
+  h4 {
+    @apply text-xl font-semibold;
+  }
+
+  h5 {
+    @apply text-lg font-semibold;
+  }
+
+  h6 {
+    @apply text-base font-semibold;
+  }
+
+  p {
+    @apply text-base text-neutral-700 leading-relaxed;
+  }
+
+  a {
+    @apply text-primary-500 hover:text-primary-600 transition-colors duration-200;
+  }
+}
