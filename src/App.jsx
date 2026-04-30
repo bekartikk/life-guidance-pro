@@ -26,6 +26,8 @@ function App() {
 
   return (
     <main className="page-shell">
+      <div className="ambient ambient--left" aria-hidden="true" />
+      <div className="ambient ambient--right" aria-hidden="true" />
       <section className="topbar">
         <div className="brand-copy">
           <p className="eyebrow">Private life planning studio</p>
@@ -48,12 +50,12 @@ function App() {
             </div>
             <div className="topbar-visual-shell" aria-hidden="true">
               <img className="topbar-visual" src={heroImage} alt="" />
-              <p>Planner, tracking, AI guidance, and rewards in one flow.</p>
+              <p>Planner, tracking, AI guidance, and rewards connected in one calm system.</p>
             </div>
           </div>
         ) : (
           <div className="topbar-side">
-            <div className="topbar-note">Private answers. Flexible plans. Gentle guidance.</div>
+            <div className="topbar-note">Private answers. Flexible plans. Gentle guidance that still feels realistic.</div>
             <div className="topbar-visual-shell" aria-hidden="true">
               <img className="topbar-visual" src={heroImage} alt="" />
               <p>Shape routines that stay realistic when life gets messy.</p>
