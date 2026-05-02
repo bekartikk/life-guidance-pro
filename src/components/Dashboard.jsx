@@ -1683,7 +1683,7 @@ function Dashboard({ user }) {
   return (
     <div className="dashboard-shell">
       <aside className="dashboard-rail">
-        <section className="rail-panel intro-panel">
+        <section className="rail-panel intro-panel" id="planner-shell">
           <p className="eyebrow">Planner overview</p>
           <h2>Your next routine should fit your real life.</h2>
           <p>Shape a plan around your real schedule, your future confusion, and the things that genuinely help you feel alive again.</p>
@@ -1735,7 +1735,7 @@ function Dashboard({ user }) {
         </section>
       </aside>
 
-      <section className="workspace-panel">
+      <section className="workspace-panel" id="dashboard-workspace">
         <nav className="workspace-nav" aria-label="Workspace sections">{navigationItems.filter((item) => item !== "admin" || isAdmin).map((item) => <button key={item} type="button" className={item === activeTab ? "nav-chip active" : "nav-chip"} onClick={() => setActiveTab(item)}>{item[0].toUpperCase() + item.slice(1)}</button>)}</nav>
         {statusMessage && <div className={`status-toast ${statusTone === "info" ? "status-toast-info" : "status-toast-success"}`}>{statusMessage}</div>}
         {error && <p className="error-message">{error}</p>}

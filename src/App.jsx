@@ -7,6 +7,20 @@ import Dashboard from "./components/Dashboard";
 import Login from "./components/Login";
 import "./App.css";
 
+const heroMetrics = [
+  { label: "Life state", value: "Structured rebuild" },
+  { label: "Primary track", value: "Career clarity" },
+  { label: "Top skill", value: "Adaptive planning" },
+];
+
+const workflowSteps = [
+  "Collect routine, emotional state, interests, skills, and constraints.",
+  "Assess life state and surface hidden strengths.",
+  "Generate an adaptive daily routine and growth roadmap.",
+  "Check time and budget feasibility before recommending actions.",
+  "Refine everything through feedback and progress updates.",
+];
+
 function App() {
   const [user, setUser] = useState(null);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
@@ -35,33 +49,63 @@ function App() {
           <p className="brand-subtitle">
             Build routines, roadmaps, and calmer next steps that actually fit your real life.
           </p>
+          <div className="hero-actions">
+            <a className="primary-button hero-button" href={user ? "#dashboard-workspace" : "#auth-shell"}>
+              {user ? "Go to workspace" : "Build my plan"}
+            </a>
+            <a className="secondary-button hero-button" href={user ? "#planner-shell" : "#auth-shell"}>
+              {user ? "Open planner" : "Start with setup"}
+            </a>
+          </div>
+          <div className="hero-metrics">
+            {heroMetrics.map((metric) => (
+              <article className="hero-metric-card" key={metric.label}>
+                <span>{metric.label}</span>
+                <strong>{metric.value}</strong>
+              </article>
+            ))}
+          </div>
         </div>
 
-        {user ? (
-          <div className="topbar-side">
-            <div className="account-actions">
-              <div className="account-badge">
-                <span className="account-label">Signed in</span>
-                <strong>{user.email}</strong>
+        <aside className="topbar-side hero-panel">
+          <div className="hero-panel-header">
+            <div>
+              <p className="eyebrow">Closed-loop workflow</p>
+              <h2>From profile to progress</h2>
+            </div>
+            <span className="hero-status-pill">
+              {user ? `Signed in as ${user.email}` : "Ready now"}
+            </span>
+          </div>
+          <ol className="workflow-list">
+            {workflowSteps.map((step) => (
+              <li key={step}>{step}</li>
+            ))}
+          </ol>
+          <div className="hero-panel-footer">
+            <div className="topbar-visual-shell" aria-hidden="true">
+              <img className="topbar-visual" src={heroImage} alt="" />
+              <p>
+                {user
+                  ? "Planner, tracking, AI guidance, and rewards connected in one calm system."
+                  : "Shape routines that stay realistic when life gets messy."}
+              </p>
+            </div>
+            {user ? (
+              <div className="account-actions">
+                <div className="account-badge">
+                  <span className="account-label">Signed in</span>
+                  <strong>{user.email}</strong>
+                </div>
+                <button className="secondary-button" onClick={() => signOut(auth)}>
+                  Logout
+                </button>
               </div>
-              <button className="secondary-button" onClick={() => signOut(auth)}>
-                Logout
-              </button>
-            </div>
-            <div className="topbar-visual-shell" aria-hidden="true">
-              <img className="topbar-visual" src={heroImage} alt="" />
-              <p>Planner, tracking, AI guidance, and rewards connected in one calm system.</p>
-            </div>
+            ) : (
+              <div className="topbar-note">Private answers. Flexible plans. Gentle guidance that still feels realistic.</div>
+            )}
           </div>
-        ) : (
-          <div className="topbar-side">
-            <div className="topbar-note">Private answers. Flexible plans. Gentle guidance that still feels realistic.</div>
-            <div className="topbar-visual-shell" aria-hidden="true">
-              <img className="topbar-visual" src={heroImage} alt="" />
-              <p>Shape routines that stay realistic when life gets messy.</p>
-            </div>
-          </div>
-        )}
+        </aside>
       </section>
 
       <AppErrorBoundary>

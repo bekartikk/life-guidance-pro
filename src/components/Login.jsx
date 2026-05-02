@@ -81,7 +81,7 @@ function Login() {
   };
 
   return (
-    <section className="auth-layout">
+    <section className="auth-layout" id="auth-shell">
       <div className="auth-copy">
         <p className="eyebrow">A clearer next step starts here</p>
         <h2>Turn stress, uncertainty, and overthinking into a plan you can actually follow.</h2>

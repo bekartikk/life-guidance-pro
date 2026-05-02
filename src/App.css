@@ -2021,3 +2021,195 @@ body::before {
     grid-template-columns: 1fr;
   }
 }
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.hero-button {
+  text-decoration: none;
+  min-height: 46px;
+  padding-inline: 18px;
+}
+
+.hero-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 28px;
+}
+
+.hero-metric-card {
+  padding: 18px 20px;
+  border-radius: 22px;
+  background: rgba(255, 249, 241, 0.55);
+  border: 1px solid rgba(22, 50, 59, 0.1);
+  box-shadow: 0 10px 40px rgba(31, 46, 57, 0.08);
+  backdrop-filter: blur(18px);
+}
+
+.hero-metric-card span {
+  display: block;
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--lgp-muted);
+  margin-bottom: 10px;
+}
+
+.hero-metric-card strong {
+  display: block;
+  font-size: 1.05rem;
+  line-height: 1.3;
+}
+
+.hero-panel {
+  padding: 28px;
+  border-radius: 30px;
+  background:
+    linear-gradient(145deg, rgba(20, 37, 45, 0.94), rgba(31, 79, 82, 0.9)),
+    var(--lgp-surface);
+  color: #f8f3eb;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: var(--lgp-shadow);
+}
+
+.hero-panel .eyebrow,
+.hero-panel .pill,
+.hero-panel p,
+.hero-panel li,
+.hero-panel .topbar-note,
+.hero-panel .account-label,
+.hero-panel .topbar-visual-shell p {
+  color: #f2dfc0;
+}
+
+.hero-panel h2 {
+  font-size: 2rem;
+  color: #fff8f1;
+  margin: 0;
+}
+
+.hero-panel-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: start;
+  margin-bottom: 18px;
+}
+
+.hero-status-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #f8f3eb;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.workflow-list {
+  display: grid;
+  gap: 14px;
+  padding-left: 20px;
+  margin: 0 0 20px;
+}
+
+.workflow-list li::marker {
+  color: #ffcf7a;
+  font-weight: 700;
+}
+
+.hero-panel-footer {
+  display: grid;
+  gap: 16px;
+}
+
+.hero-panel .topbar-visual-shell,
+.hero-panel .account-badge {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.16);
+  box-shadow: none;
+}
+
+.hero-panel .secondary-button {
+  color: #f6fbfa;
+  background: linear-gradient(135deg, var(--lgp-highlight), #2d9487);
+  border-color: transparent;
+  box-shadow: 0 14px 30px rgba(37, 122, 118, 0.2);
+}
+
+.hero-panel .secondary-button:hover {
+  background: linear-gradient(135deg, #1f6864, var(--lgp-highlight));
+}
+
+.workspace-nav {
+  padding: 10px;
+  border-radius: 24px;
+  background: rgba(255, 253, 249, 0.68);
+  border: 1px solid var(--lgp-line);
+  box-shadow: 0 10px 40px rgba(31, 46, 57, 0.08);
+}
+
+.nav-chip {
+  padding: 12px 16px;
+}
+
+.intro-panel h2 {
+  font-size: clamp(3rem, 4vw, 4.7rem);
+  line-height: 0.92;
+  max-width: 7ch;
+}
+
+.intro-panel p {
+  font-size: 1.04rem;
+}
+
+.sample-list button,
+.goal-card,
+.reward-event-card,
+.result-section-card,
+.form-section,
+.checkin-panel,
+.adjust-panel {
+  overflow: hidden;
+}
+
+.checkin-panel,
+.adjust-panel {
+  padding: 22px;
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.62), rgba(241, 248, 243, 0.78));
+  border: 1px solid rgba(22, 50, 59, 0.1);
+}
+
+.adjust-panel {
+  display: grid;
+  gap: 14px;
+}
+
+.reward-event-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.reward-event-card {
+  display: grid;
+  gap: 4px;
+  padding: 16px 18px;
+  border-radius: 20px;
+}
+
+@media (max-width: 1040px) {
+  .hero-metrics {
+    grid-template-columns: 1fr;
+  }
+}
