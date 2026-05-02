@@ -2213,3 +2213,248 @@ body::before {
     grid-template-columns: 1fr;
   }
 }
+
+.panel,
+.glass-card {
+  background: rgba(255, 249, 241, 0.82);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(22, 50, 59, 0.12);
+  box-shadow: 0 28px 80px rgba(31, 46, 57, 0.16);
+  border-radius: 24px;
+}
+
+.button-primary,
+.button-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  padding: 0 18px;
+  border-radius: 999px;
+  text-decoration: none;
+  transition: transform 220ms ease, box-shadow 220ms ease, background 220ms ease;
+}
+
+.button-primary {
+  color: #fff6ee;
+  background: linear-gradient(135deg, var(--lgp-accent), #e48849);
+  box-shadow: 0 14px 30px rgba(209, 101, 65, 0.22);
+}
+
+.button-secondary {
+  color: #f6fbfa;
+  background: linear-gradient(135deg, var(--lgp-highlight), #2d9487);
+  box-shadow: 0 14px 30px rgba(37, 122, 118, 0.2);
+}
+
+.button-primary:hover,
+.button-secondary:hover {
+  transform: translateY(-2px);
+}
+
+.goals-panel,
+.daily-progress-panel {
+  display: grid;
+  gap: 20px;
+}
+
+.split-progress-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.section-card,
+.summary-card,
+.weekly-calendar,
+.activity-section,
+.rewards-section,
+.daily-stats {
+  padding: 22px;
+  border-radius: 24px;
+  background: rgba(255, 253, 249, 0.82);
+  border: 1px solid rgba(22, 50, 59, 0.12);
+  box-shadow: 0 18px 50px rgba(31, 46, 57, 0.1);
+  backdrop-filter: blur(18px);
+}
+
+.section-card-header,
+.progress-header,
+.goal-card-header,
+.activity-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 14px;
+}
+
+.section-card-header {
+  margin-bottom: 16px;
+}
+
+.summary-card {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.summary-stat,
+.stat-card {
+  padding: 18px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.6), rgba(255, 243, 228, 0.78));
+  border: 1px solid rgba(22, 50, 59, 0.1);
+}
+
+.stat-label,
+.stat-name,
+.day-name,
+.day-date {
+  display: block;
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--lgp-muted);
+}
+
+.stat-value,
+.stat-num {
+  display: block;
+  margin-top: 8px;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #16323b;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.calendar-day {
+  min-height: 168px;
+  padding: 16px;
+  border-radius: 22px;
+  border: 1px solid rgba(22, 50, 59, 0.1);
+  background: linear-gradient(180deg, rgba(255,255,255,0.66), rgba(255,243,228,0.72));
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 12px;
+}
+
+.calendar-day.today {
+  box-shadow: inset 0 0 0 1px rgba(209, 101, 65, 0.3), 0 18px 40px rgba(209, 101, 65, 0.12);
+}
+
+.calendar-day.has-checkin {
+  background: linear-gradient(180deg, rgba(255,255,255,0.78), rgba(238,249,247,0.82));
+}
+
+.day-content {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+}
+
+.status-icon {
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.goal-list,
+.activity-list {
+  display: grid;
+  gap: 14px;
+}
+
+.goal-card,
+.activity-card {
+  padding: 18px;
+  border-radius: 22px;
+  border: 1px solid rgba(22, 50, 59, 0.1);
+  background: linear-gradient(160deg, rgba(255,255,255,0.82), rgba(255,242,228,0.7));
+}
+
+.goal-card.completed {
+  background: linear-gradient(160deg, rgba(255,255,255,0.82), rgba(238,249,247,0.86));
+}
+
+.goal-milestones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.goal-milestone-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(37, 122, 118, 0.1);
+  color: var(--lgp-highlight-strong);
+  border: 1px solid rgba(37, 122, 118, 0.14);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.reward-events,
+.adjust-panel {
+  display: grid;
+  gap: 14px;
+}
+
+.checkin-actions,
+.result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.reward-summary {
+  margin-bottom: 8px;
+}
+
+@media (max-width: 1120px) {
+  .split-progress-grid,
+  .summary-card {
+    grid-template-columns: 1fr;
+  }
+
+  .calendar-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .calendar-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .section-card,
+  .summary-card,
+  .weekly-calendar,
+  .activity-section,
+  .rewards-section,
+  .daily-stats,
+  .goal-card,
+  .activity-card {
+    padding: 18px;
+    border-radius: 18px;
+  }
+}
