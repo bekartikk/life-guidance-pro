@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import react, { reactCompilerPreset } from '@vitejs/plugin-react'
 import babel from '@rolldown/plugin-babel'
+import tailwindcss from '@tailwindcss/vite'
 import { generateProjectMap } from './scripts/generate-project-map.mjs'
 
 function projectBrainMapPlugin() {
@@ -38,6 +39,7 @@ function projectBrainMapPlugin() {
 export default defineConfig({
   plugins: [
     projectBrainMapPlugin(),
+    tailwindcss(),
     react(),
     babel({ presets: [reactCompilerPreset()] })
   ],

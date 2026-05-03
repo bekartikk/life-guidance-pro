@@ -1,4 +1,6 @@
-﻿function formatLabel(value) {
+import { useEffect, useState } from "react";
+
+function formatLabel(value) {
   return String(value || "")
     .replace(/-/g, " ")
     .replace(/\b\w/g, (character) => character.toUpperCase());
@@ -55,6 +57,24 @@ function ResultPanel({
   }
 
   const sections = splitPlanSections(currentPlan.result);
+  const [expandedSections, setExpandedSections] = useState(() => new Set());
+
+  useEffect(() => {
+    const initialOpen = sections[0]?.heading ? new Set([sections[0].heading]) : new Set();
+    setExpandedSections(initialOpen);
+  }, [currentPlan?.id]);
+
+  function toggleSection(heading) {
+    setExpandedSections((current) => {
+      const next = new Set(current);
+      if (next.has(heading)) {
+        next.delete(heading);
+      } else {
+        next.add(heading);
+      }
+      return next;
+    });
+  }
 
   return (
     <section className="result-panel">
@@ -184,13 +204,18 @@ function ResultPanel({
       <div className="result-outline">
         <div>
           <h3>Plan outline</h3>
-          <p>Use the sections below to jump through the plan instead of reading one long wall of text.</p>
+          <p>Open only the sections you need right now so the plan feels calmer to scan.</p>
         </div>
         <div className="result-outline-chips">
           {sections.map((section) => (
-            <a key={section.heading} href={`#${section.heading.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}`} className="badge-chip">
+            <button
+              key={section.heading}
+              type="button"
+              onClick={() => toggleSection(section.heading)}
+              className={`badge-chip result-toggle-chip ${expandedSections.has(section.heading) ? "is-open" : ""}`}
+            >
               {section.heading}
-            </a>
+            </button>
           ))}
         </div>
       </div>
@@ -202,8 +227,16 @@ function ResultPanel({
             key={section.heading}
             id={section.heading.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}
           >
-            <h3>{section.heading}</h3>
-            <div className="result-section-body">{section.body}</div>
+            <button
+              type="button"
+              className="result-section-toggle"
+              onClick={() => toggleSection(section.heading)}
+              aria-expanded={expandedSections.has(section.heading)}
+            >
+              <h3>{section.heading}</h3>
+              <span>{expandedSections.has(section.heading) ? "Hide" : "Open"}</span>
+            </button>
+            {expandedSections.has(section.heading) ? <div className="result-section-body">{section.body}</div> : null}
           </article>
         ))}
       </div>

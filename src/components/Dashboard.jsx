@@ -3,6 +3,13 @@ import { sampleProfiles } from "../data/sampleProfiles";
 import { sendEmailVerification } from "firebase/auth";
 import PlannerTab from "./dashboard/PlannerTab";
 import ResultPanel from "./dashboard/ResultPanel";
+import Sidebar from "./dashboard/Sidebar";
+import Header from "./dashboard/Header";
+import PlannerBoard from "./dashboard/PlannerBoard";
+import ProgressWidget from "./dashboard/ProgressWidget";
+import AnalyticsChart from "./dashboard/AnalyticsChart";
+import QuickAddModal from "./dashboard/QuickAddModal";
+import AnalyticsPanel from "./dashboard/AnalyticsPanel";
 import {
   deleteRoutineBuilderRecord,
   deleteAllUserData,
@@ -174,6 +181,14 @@ const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "";
 const adminEmails = String(import.meta.env.VITE_ADMIN_EMAILS || "").split(",").map((email) => email.trim().toLowerCase()).filter(Boolean);
 const requiredFields = ["currentRoutine", "workOrStudy", "personalChallenges", "futureConfusion", "goals", "hobbies", "happinessSources"];
 const navigationItems = ["planner", "goals", "habits", "daily", "weekly", "review", "monthly", "career", "income", "routine", "chat", "achievements", "missions", "insights", "system", "history", "profile", "feedback", "reminders", "support", "settings", "admin"];
+const primaryNavigationItems = ["dashboard", "planner", "goals", "habits", "analytics"];
+const primaryNavigationTargets = {
+  dashboard: "planner",
+  planner: "planner",
+  goals: "goals",
+  habits: "habits",
+  analytics: "insights",
+};
 
 const GoalTab = lazy(() => import("./dashboard/GoalTab"));
 const HabitTab = lazy(() => import("./dashboard/HabitTab"));
@@ -529,6 +544,38 @@ function LazyTabShell({ title, description, children }) {
   );
 }
 
+function getPrimaryItemFromTab(tab) {
+  if (tab === "goals") return "goals";
+  if (tab === "habits") return "habits";
+  if (["daily", "weekly", "review", "monthly", "achievements", "missions", "insights", "history", "admin"].includes(tab)) {
+    return "analytics";
+  }
+  return tab === "planner" ? "dashboard" : "planner";
+}
+
+function getWorkspaceCopy(tab) {
+  const content = {
+    planner: {
+      title: "What should I do today?",
+      description: "Start from your real routine, then let the planner turn that into a calmer daily system with useful next steps.",
+    },
+    goals: {
+      title: "Goal system",
+      description: "Turn vague future pressure into visible goals, milestones, and trackable movement.",
+    },
+    habits: {
+      title: "Habit system",
+      description: "Build tiny repeatable wins that survive even low-energy days and still move things forward.",
+    },
+    analytics: {
+      title: "Performance insights",
+      description: "See momentum, streaks, and recent patterns so the planner can adapt without guesswork.",
+    },
+  };
+
+  return content[getPrimaryItemFromTab(tab)] || content.planner;
+}
+
 function Dashboard({ user }) {
   const [activeTab, setActiveTab] = useState("planner");
   const [form, setForm] = useState(initialForm);
@@ -566,6 +613,12 @@ function Dashboard({ user }) {
   const [adjustmentRequest, setAdjustmentRequest] = useState("");
   const [chatPrompt, setChatPrompt] = useState("");
   const [chatMessages, setChatMessages] = useState([]);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [focusMode, setFocusMode] = useState(false);
+  const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
+  const [quickAddType, setQuickAddType] = useState("goal");
+  const [quickAddTitle, setQuickAddTitle] = useState("");
+  const [quickAddNote, setQuickAddNote] = useState("");
   const [feedbackMessage, setFeedbackMessage] = useState("");
   const [feedbackRating, setFeedbackRating] = useState(5);
   const [statusMessage, setStatusMessage] = useState("");
@@ -1572,8 +1625,53 @@ function Dashboard({ user }) {
     }
   };
 
+  const handlePrimaryNavigation = (item) => {
+    setActiveTab(primaryNavigationTargets[item] || "planner");
+  };
+
+  const handleQuickAddSubmit = (event) => {
+    event.preventDefault();
+    if (!quickAddTitle.trim()) {
+      setError("Write a title before saving the quick task.");
+      return;
+    }
+
+    if (quickAddType === "goal") {
+      setGoalDraft((current) => ({
+        ...current,
+        title: quickAddTitle.trim(),
+        reason: quickAddNote.trim(),
+      }));
+      setActiveTab("goals");
+      setStatusMessage("Quick goal captured. Finish the details and save when ready.");
+    } else if (quickAddType === "habit") {
+      setHabitDraft((current) => ({
+        ...current,
+        title: quickAddTitle.trim(),
+        minimumVersion: quickAddNote.trim(),
+      }));
+      setActiveTab("habits");
+      setStatusMessage("Quick habit captured. You can save it from the habit tab.");
+    } else {
+      setForm((current) => ({
+        ...current,
+        goals: current.goals || quickAddTitle.trim(),
+        personalChallenges: quickAddNote.trim() || current.personalChallenges,
+      }));
+      setActiveTab("planner");
+      setStatusMessage("Planner note captured. It is now reflected in your planner draft.");
+    }
+
+    setQuickAddTitle("");
+    setQuickAddNote("");
+    setQuickAddType("goal");
+    setIsQuickAddOpen(false);
+  };
+
   const plannerBootstrapPending = sectionLoading.plans || sectionLoading.profile || sectionLoading.feedback;
   const progressPanelPending = sectionLoading.progress || sectionLoading.rewardEvents || sectionLoading.checkins;
+  const activePrimaryItem = getPrimaryItemFromTab(activeTab);
+  const workspaceCopy = getWorkspaceCopy(activeTab);
 
   const tabLoadingConfig = {
     goals: sectionLoading.goals,
@@ -1681,70 +1779,137 @@ function Dashboard({ user }) {
   };
 
   return (
-    <div className="dashboard-shell">
-      <aside className="dashboard-rail">
-        <section className="rail-panel intro-panel" id="planner-shell">
-          <p className="eyebrow">Planner overview</p>
-          <h2>Your next routine should fit your real life.</h2>
-          <p>Shape a plan around your real schedule, your future confusion, and the things that genuinely help you feel alive again.</p>
-          <div className="meta-grid">
-            <div><strong>{plans.length}</strong><span>saved plans</span></div>
-            <div><strong>{feedbackItems.length}</strong><span>feedback notes</span></div>
-            <div><strong>{progress.momentumPoints}</strong><span>momentum points</span></div>
-            <div><strong>{progress.activeStreak}</strong><span>active streak</span></div>
+    <>
+      <div className="flex gap-6">
+        <Sidebar
+          items={primaryNavigationItems}
+          activeItem={activePrimaryItem}
+          isCollapsed={isSidebarCollapsed}
+          onToggle={() => setIsSidebarCollapsed((current) => !current)}
+          onSelect={handlePrimaryNavigation}
+        />
+
+        <div className="min-w-0 flex-1 space-y-6">
+          <Header
+            title={workspaceCopy.title}
+            description={workspaceCopy.description}
+            onQuickAdd={() => setIsQuickAddOpen(true)}
+            focusMode={focusMode}
+            onToggleFocus={() => setFocusMode((current) => !current)}
+          />
+
+          <div className={`grid gap-6 ${focusMode ? "xl:grid-cols-1" : "xl:grid-cols-[minmax(0,1fr)_380px]"}`}>
+            <div className="min-w-0 space-y-6">
+              <div className="grid gap-6 2xl:grid-cols-[minmax(0,1.2fr)_minmax(280px,0.8fr)]">
+                <section className="rail-panel intro-panel panel" id="planner-shell">
+                  <p className="eyebrow">Planner overview</p>
+                  <h2>Your next routine should fit your real life.</h2>
+                  <p>Shape a plan around your real schedule, your future confusion, and the things that genuinely help you feel alive again.</p>
+                  <div className="meta-grid">
+                    <div><strong>{plans.length}</strong><span>saved plans</span></div>
+                    <div><strong>{feedbackItems.length}</strong><span>feedback notes</span></div>
+                    <div><strong>{progress.momentumPoints}</strong><span>momentum points</span></div>
+                    <div><strong>{progress.activeStreak}</strong><span>active streak</span></div>
+                  </div>
+                  <div className="progress-wrap" aria-label={`${completion}% complete`}><span style={{ width: `${completion}%` }} /></div>
+                  <p className="progress-label">{completion}% of the planner is ready</p>
+                </section>
+
+                <section className="rail-panel reward-panel panel">
+                  <p className="eyebrow">Reward system</p>
+                  <div className="reward-grid">
+                    <div><span>Comeback Wins</span><strong>{progress.comebackWins}</strong></div>
+                    <div><span>Longest Streak</span><strong>{progress.longestStreak}</strong></div>
+                    <div><span>Badges</span><strong>{progress.badges.length}</strong></div>
+                    <div><span>Milestones</span><strong>{progress.milestones.length}</strong></div>
+                  </div>
+                  <div className="badge-stack">
+                    {progress.badges.length === 0 ? <p className="muted-text">Your first badges will appear after plans, feedback, and check-ins.</p> : progress.badges.slice(0, 6).map((badge) => <span key={badge} className="badge-chip">{badge.replace(/-/g, " ")}</span>)}
+                  </div>
+                </section>
+              </div>
+
+              <section className="workspace-panel panel" id="dashboard-workspace">
+                <nav className="workspace-nav" aria-label="Workspace sections">{navigationItems.filter((item) => item !== "admin" || isAdmin).map((item) => <button key={item} type="button" className={item === activeTab ? "nav-chip active" : "nav-chip"} onClick={() => setActiveTab(item)}>{item[0].toUpperCase() + item.slice(1)}</button>)}</nav>
+                {statusMessage && <div className={`status-toast ${statusTone === "info" ? "status-toast-info" : "status-toast-success"}`}>{statusMessage}</div>}
+                {error && <p className="error-message">{error}</p>}
+                {isLoadingWorkspace && <SectionLoadingCard title="Syncing your workspace" description="We’re warming up your saved planner data section by section so you can keep using the app while it loads." />}
+
+                <PlannerBoard currentPlan={currentPlan} goals={goals} habits={habits} activeTab={activeTab} onGoToTab={setActiveTab}>
+                  {renderActiveTab()}
+                  {currentPlan ? (
+                    <ResultPanel currentPlan={currentPlan} currentPlanFeedback={currentPlanFeedback} adjustmentRequest={adjustmentRequest} checkinNote={checkinNote} checkinFields={checkinFields} isAdjusting={isAdjusting} isSubmittingCheckin={isSubmittingCheckin} progress={progress} recentRewards={recentRewards} todayCheckin={todayCheckin} formatDate={formatDate} onAdjustChange={(event) => setAdjustmentRequest(event.target.value)} onAdjust={() => adjustmentRequest.trim() ? requestPlan({ adjustment: adjustmentRequest }) : setError("Write what feels difficult or what you want to change.")} onCheckin={handleDailyCheckin} onCheckinFieldChange={updateCheckinField} onCheckinNoteChange={(event) => setCheckinNote(event.target.value)} onRegenerate={() => requestPlan()} onRate={() => setActiveTab("feedback")} />
+                  ) : null}
+                </PlannerBoard>
+              </section>
+            </div>
+
+            {!focusMode ? (
+              <aside className="space-y-6 xl:sticky xl:top-6 xl:self-start">
+                <ProgressWidget completion={completion} progress={progress} plans={plans} goals={goals} habits={habits} />
+                <AnalyticsChart checkins={checkins} progress={progress} />
+
+                <section className="saas-panel overflow-hidden p-6">
+                  <div className="mb-4 flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">Quick start</p>
+                      <h3 className="mt-2 text-lg font-semibold text-slate-100">Sample profiles</h3>
+                      <p className="mt-2 text-sm leading-6 text-slate-400">Use a polished starting point when you want to test the product flow without filling everything from scratch.</p>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    {sampleProfiles.slice(0, 3).map((sample) => (
+                      <button type="button" key={sample.id} onClick={() => loadSampleProfile(sample)} className="w-full rounded-2xl border border-white/10 bg-white/5 p-4 text-left transition hover:-translate-y-0.5 hover:bg-white/8">
+                        <strong className="block text-sm text-slate-100">{sample.label}</strong>
+                        <span className="mt-1 block text-sm leading-6 text-slate-400">{sample.description}</span>
+                      </button>
+                    ))}
+                  </div>
+                </section>
+
+                <section className="saas-panel overflow-hidden p-6">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">Onboarding</p>
+                  <div className="mt-3 rounded-[22px] border border-white/8 bg-gradient-to-br from-blue-500/10 via-violet-500/8 to-transparent p-4">
+                    <p className="text-sm font-semibold text-slate-100">Make the app feel useful quickly.</p>
+                    <p className="mt-1 text-sm leading-6 text-slate-400">Finish the core setup once, then let plans, reviews, and check-ins compound into a calmer workflow.</p>
+                  </div>
+                  <div className="mt-4 space-y-3">
+                    {onboardingSteps.map((step) => (
+                      <article key={step.label} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <strong className="block text-sm text-slate-100">{step.label}</strong>
+                          <span className={`rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] ${step.done ? "bg-emerald-400/12 text-emerald-300" : "bg-slate-700/70 text-slate-300"}`}>{step.done ? "Done" : "Open"}</span>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                </section>
+
+                {isAdmin ? <AnalyticsPanel userId={user.uid} /> : null}
+
+                <section className="saas-panel p-6">
+                  <strong className="text-sm text-slate-100">Privacy and consent</strong>
+                  <p className="mt-3 text-sm leading-6 text-slate-400">Do not write passwords, account numbers, legal IDs, or medical records. Only use details needed to shape the routine and roadmap.</p>
+                  <button className="mt-4 rounded-full border border-rose-400/20 bg-rose-400/10 px-4 py-2 text-sm font-semibold text-rose-300 transition hover:bg-rose-400/15" type="button" onClick={handleDeleteMyData} disabled={isDeletingData}>{isDeletingData ? "Deleting your data..." : "Delete my stored data"}</button>
+                </section>
+              </aside>
+            ) : null}
           </div>
-          <div className="progress-wrap" aria-label={`${completion}% complete`}><span style={{ width: `${completion}%` }} /></div>
-          <p className="progress-label">{completion}% of the planner is ready</p>
-        </section>
+        </div>
+      </div>
 
-        <section className="rail-panel reward-panel">
-          <p className="eyebrow">Reward system</p>
-          <div className="reward-grid">
-            <div><span>Comeback Wins</span><strong>{progress.comebackWins}</strong></div>
-            <div><span>Longest Streak</span><strong>{progress.longestStreak}</strong></div>
-            <div><span>Badges</span><strong>{progress.badges.length}</strong></div>
-            <div><span>Milestones</span><strong>{progress.milestones.length}</strong></div>
-          </div>
-          <div className="badge-stack">
-            {progress.badges.length === 0 ? <p className="muted-text">Your first badges will appear after plans, feedback, and check-ins.</p> : progress.badges.slice(0, 6).map((badge) => <span key={badge} className="badge-chip">{badge.replace(/-/g, " ")}</span>)}
-          </div>
-        </section>
-
-        <section className="rail-panel sample-panel">
-          <div><p className="eyebrow">Quick start</p><h3>Try sample profiles</h3></div>
-          <p>Use polished sample people to test the planner before sharing the app live.</p>
-          <div className="sample-list">{sampleProfiles.map((sample) => <button type="button" key={sample.id} onClick={() => loadSampleProfile(sample)}><strong>{sample.label}</strong><span>{sample.description}</span></button>)}</div>
-        </section>
-
-        <section className="rail-panel reward-panel">
-          <p className="eyebrow">Onboarding</p>
-          <div className="goal-list">
-            {onboardingSteps.map((step) => (
-              <article key={step.label} className={step.done ? "goal-card completed" : "goal-card"}>
-                <strong>{step.label}</strong>
-                <span className="goal-meta">{step.done ? "Done" : "Still open"}</span>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="rail-panel privacy-box">
-          <strong>Privacy and consent</strong>
-          <p>Do not write passwords, account numbers, legal IDs, or medical records. Only use details needed to shape the routine and roadmap.</p>
-          <button className="danger-link" type="button" onClick={handleDeleteMyData} disabled={isDeletingData}>{isDeletingData ? "Deleting your data..." : "Delete my stored data"}</button>
-        </section>
-      </aside>
-
-      <section className="workspace-panel" id="dashboard-workspace">
-        <nav className="workspace-nav" aria-label="Workspace sections">{navigationItems.filter((item) => item !== "admin" || isAdmin).map((item) => <button key={item} type="button" className={item === activeTab ? "nav-chip active" : "nav-chip"} onClick={() => setActiveTab(item)}>{item[0].toUpperCase() + item.slice(1)}</button>)}</nav>
-        {statusMessage && <div className={`status-toast ${statusTone === "info" ? "status-toast-info" : "status-toast-success"}`}>{statusMessage}</div>}
-        {error && <p className="error-message">{error}</p>}
-        {isLoadingWorkspace && <SectionLoadingCard title="Syncing your workspace" description="We’re warming up your saved planner data section by section so you can keep using the app while it loads." />}
-        {renderActiveTab()}
-      </section>
-
-      <ResultPanel currentPlan={currentPlan} currentPlanFeedback={currentPlanFeedback} adjustmentRequest={adjustmentRequest} checkinNote={checkinNote} checkinFields={checkinFields} isAdjusting={isAdjusting} isSubmittingCheckin={isSubmittingCheckin} progress={progress} recentRewards={recentRewards} todayCheckin={todayCheckin} formatDate={formatDate} onAdjustChange={(event) => setAdjustmentRequest(event.target.value)} onAdjust={() => adjustmentRequest.trim() ? requestPlan({ adjustment: adjustmentRequest }) : setError("Write what feels difficult or what you want to change.")} onCheckin={handleDailyCheckin} onCheckinFieldChange={updateCheckinField} onCheckinNoteChange={(event) => setCheckinNote(event.target.value)} onRegenerate={() => requestPlan()} onRate={() => setActiveTab("feedback")} />
-    </div>
+      <QuickAddModal
+        isOpen={isQuickAddOpen}
+        type={quickAddType}
+        title={quickAddTitle}
+        note={quickAddNote}
+        onTypeChange={(event) => setQuickAddType(event.target.value)}
+        onTitleChange={(event) => setQuickAddTitle(event.target.value)}
+        onNoteChange={(event) => setQuickAddNote(event.target.value)}
+        onClose={() => setIsQuickAddOpen(false)}
+        onSubmit={handleQuickAddSubmit}
+      />
+    </>
   );
 }
 

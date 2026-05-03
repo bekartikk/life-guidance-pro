@@ -1,25 +1,25 @@
 import { useEffect, useState } from "react";
-import { signOut } from "firebase/auth";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { auth } from "./firebase";
-import heroImage from "./assets/hero.png";
-import AppErrorBoundary from "./components/AppErrorBoundary";
+
+import Landing from "./pages/Landing";
 import Dashboard from "./components/Dashboard";
 import Login from "./components/Login";
+import AppErrorBoundary from "./components/AppErrorBoundary";
+
 import "./App.css";
 
-const heroMetrics = [
-  { label: "Life state", value: "Structured rebuild" },
-  { label: "Primary track", value: "Career clarity" },
-  { label: "Top skill", value: "Adaptive planning" },
-];
+/* 🔐 Protected Route Wrapper */
+function ProtectedRoute({ user, children }) {
+  if (!user) return <Navigate to="/login" replace />;
+  return children;
+}
 
-const workflowSteps = [
-  "Collect routine, emotional state, interests, skills, and constraints.",
-  "Assess life state and surface hidden strengths.",
-  "Generate an adaptive daily routine and growth roadmap.",
-  "Check time and budget feasibility before recommending actions.",
-  "Refine everything through feedback and progress updates.",
-];
+/* 🚫 Public Route Wrapper (avoid logged-in users seeing login) */
+function PublicRoute({ user, children }) {
+  if (user) return <Navigate to="/dashboard" replace />;
+  return children;
+}
 
 function App() {
   const [user, setUser] = useState(null);
@@ -34,84 +34,50 @@ function App() {
     return unsubscribe;
   }, []);
 
+  /* ⏳ Better Loading UI */
   if (isCheckingAuth) {
-    return <main className="page-shell loading-shell">Loading your space...</main>;
+    return (
+      <main className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-center">
+          <div className="animate-spin h-8 w-8 border-4 border-purple-500 border-t-transparent rounded-full mx-auto mb-4" />
+          <p className="text-gray-600">Setting up your workspace...</p>
+        </div>
+      </main>
+    );
   }
 
   return (
-    <main className="page-shell">
-      <div className="ambient ambient--left" aria-hidden="true" />
-      <div className="ambient ambient--right" aria-hidden="true" />
-      <section className="topbar">
-        <div className="brand-copy">
-          <p className="eyebrow">Private life planning studio</p>
-          <h1>Life Guidance Pro</h1>
-          <p className="brand-subtitle">
-            Build routines, roadmaps, and calmer next steps that actually fit your real life.
-          </p>
-          <div className="hero-actions">
-            <a className="primary-button hero-button" href={user ? "#dashboard-workspace" : "#auth-shell"}>
-              {user ? "Go to workspace" : "Build my plan"}
-            </a>
-            <a className="secondary-button hero-button" href={user ? "#planner-shell" : "#auth-shell"}>
-              {user ? "Open planner" : "Start with setup"}
-            </a>
-          </div>
-          <div className="hero-metrics">
-            {heroMetrics.map((metric) => (
-              <article className="hero-metric-card" key={metric.label}>
-                <span>{metric.label}</span>
-                <strong>{metric.value}</strong>
-              </article>
-            ))}
-          </div>
-        </div>
-
-        <aside className="topbar-side hero-panel">
-          <div className="hero-panel-header">
-            <div>
-              <p className="eyebrow">Closed-loop workflow</p>
-              <h2>From profile to progress</h2>
-            </div>
-            <span className="hero-status-pill">
-              {user ? `Signed in as ${user.email}` : "Ready now"}
-            </span>
-          </div>
-          <ol className="workflow-list">
-            {workflowSteps.map((step) => (
-              <li key={step}>{step}</li>
-            ))}
-          </ol>
-          <div className="hero-panel-footer">
-            <div className="topbar-visual-shell" aria-hidden="true">
-              <img className="topbar-visual" src={heroImage} alt="" />
-              <p>
-                {user
-                  ? "Planner, tracking, AI guidance, and rewards connected in one calm system."
-                  : "Shape routines that stay realistic when life gets messy."}
-              </p>
-            </div>
-            {user ? (
-              <div className="account-actions">
-                <div className="account-badge">
-                  <span className="account-label">Signed in</span>
-                  <strong>{user.email}</strong>
-                </div>
-                <button className="secondary-button" onClick={() => signOut(auth)}>
-                  Logout
-                </button>
-              </div>
-            ) : (
-              <div className="topbar-note">Private answers. Flexible plans. Gentle guidance that still feels realistic.</div>
-            )}
-          </div>
-        </aside>
-      </section>
-
+    <BrowserRouter>
       <AppErrorBoundary>
-        {user ? <Dashboard user={user} /> : <Login />}
+        <Routes>
+          {/* 🌐 Landing */}
+          <Route path="/" element={<Landing />} />
+
+          {/* 🔓 Public */}
+          <Route
+            path="/login"
+            element={
+              <PublicRoute user={user}>
+                <Login />
+              </PublicRoute>
+            }
+          />
+
+          {/* 🔐 Protected */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute user={user}>
+                <Dashboard user={user} />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* 🚫 Fallback Route */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </AppErrorBoundary>
-    </main>
+    </BrowserRouter>
   );
 }
 

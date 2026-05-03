@@ -2430,6 +2430,73 @@ body::before {
   margin-bottom: 8px;
 }
 
+.workspace-panel {
+  display: grid;
+  gap: 24px;
+}
+
+.workspace-nav {
+  position: sticky;
+  top: 8px;
+  z-index: 2;
+}
+
+.nav-chip {
+  min-height: 42px;
+  font-size: 0.82rem;
+}
+
+.result-panel {
+  display: grid;
+  gap: 22px;
+}
+
+.result-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(22, 50, 59, 0.08);
+}
+
+.result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.reward-summary,
+.reward-grid {
+  align-items: stretch;
+}
+
+.reward-summary div,
+.reward-grid div {
+  display: flex;
+  min-height: 118px;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.result-section-card {
+  padding: 22px;
+  border-radius: 24px;
+  border: 1px solid rgba(22, 50, 59, 0.08);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(248, 242, 233, 0.9));
+  box-shadow: 0 12px 30px rgba(31, 46, 57, 0.06);
+}
+
+.result-section-body {
+  white-space: pre-wrap;
+  line-height: 1.78;
+  color: #38515a;
+}
+
+.result-outline-chips {
+  gap: 10px;
+}
+
 @media (max-width: 1120px) {
   .split-progress-grid,
   .summary-card {

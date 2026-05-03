@@ -1,6 +1,6 @@
 # Project Brain Map
 
-_Auto-generated on 29 Apr 2026, 2:36 am. This file updates from the repo structure and app/server entry points._
+_Auto-generated on 3 May 2026, 8:46 pm. This file updates from the repo structure and app/server entry points._
 
 ## What This Project Is
 
@@ -18,7 +18,7 @@ flowchart TD
   B --> C["Auth Layer"]
   B --> D["Dashboard Workspace"]
   B --> E["Planner + Result Panel"]
-  D --> F["Tabs: AchievementTab, AdminTab, AnalyticsPanel, CareerExplorerTab, ChatExtensionTab, DailyProgressTab, FeedbackTab, GoalTab, ..."]
+  D --> F["Tabs: AchievementTab, AdminTab, AnalyticsChart, AnalyticsPanel, CareerExplorerTab, ChatExtensionTab, DailyProgressTab, FeedbackTab, ..."]
   E --> G["Express API"]
   G --> H["Gemini Guidance + Follow-up"]
   D --> I["Firestore Services"]
@@ -116,6 +116,7 @@ export async function submitDailyCheckin(userId, payload) {
 - Dashboard tabs:
   - `AchievementTab`
   - `AdminTab`
+  - `AnalyticsChart`
   - `AnalyticsPanel`
   - `CareerExplorerTab`
   - `ChatExtensionTab`
@@ -123,19 +124,25 @@ export async function submitDailyCheckin(userId, payload) {
   - `FeedbackTab`
   - `GoalTab`
   - `HabitTab`
+  - `Header`
   - `HistoryTab`
   - `HobbyIncomeTab`
   - `MissionsTab`
   - `MonthlyReviewTab`
   - `PersonalizationTab`
+  - `PlannerBoard`
   - `PlannerTab`
   - `ProfileTab`
+  - `ProgressWidget`
   - `ProjectMapTab`
+  - `QuickAddModal`
   - `ReminderTab`
   - `ResultPanel`
   - `RoutineBuilderTab`
   - `SettingsTab`
+  - `Sidebar`
   - `SupportTab`
+  - `TaskCard`
   - `WeeklyProgressTab`
   - `WeeklyReviewTab`
 
@@ -303,6 +310,7 @@ const routineBuildersCollection = collection(db, `
 - `src/components/dashboard`
 - `src/components/dashboard/AchievementTab.jsx`
 - `src/components/dashboard/AdminTab.jsx`
+- `src/components/dashboard/AnalyticsChart.jsx`
 - `src/components/dashboard/AnalyticsPanel.jsx`
 - `src/components/dashboard/CareerExplorerTab.jsx`
 - `src/components/dashboard/ChatExtensionTab.jsx`
@@ -310,28 +318,27 @@ const routineBuildersCollection = collection(db, `
 - `src/components/dashboard/FeedbackTab.jsx`
 - `src/components/dashboard/GoalTab.jsx`
 - `src/components/dashboard/HabitTab.jsx`
+- `src/components/dashboard/Header.jsx`
 - `src/components/dashboard/HistoryTab.jsx`
 - `src/components/dashboard/HobbyIncomeTab.jsx`
 - `src/components/dashboard/MissionsTab.jsx`
 - `src/components/dashboard/MonthlyReviewTab.jsx`
 - `src/components/dashboard/PersonalizationTab.jsx`
+- `src/components/dashboard/PlannerBoard.jsx`
 - `src/components/dashboard/PlannerTab.jsx`
 - `src/components/dashboard/ProfileTab.jsx`
+- `src/components/dashboard/ProgressWidget.jsx`
 - `src/components/dashboard/ProjectMapTab.jsx`
+- `src/components/dashboard/QuickAddModal.jsx`
 - `src/components/dashboard/ReminderTab.jsx`
 - `src/components/dashboard/ResultPanel.jsx`
 - `src/components/dashboard/RoutineBuilderTab.jsx`
 - `src/components/dashboard/SettingsTab.jsx`
+- `src/components/dashboard/Sidebar.jsx`
 - `src/components/dashboard/SupportTab.jsx`
+- `src/components/dashboard/TaskCard.jsx`
 - `src/components/dashboard/WeeklyProgressTab.jsx`
 - `src/components/dashboard/WeeklyReviewTab.jsx`
-- `src/components/Dashboard.jsx`
-- `src/components/Login.jsx`
-- `src/data`
-- `src/data/sampleProfiles.js`
-- `src/firebase.js`
-- `src/index.css`
-- `src/main.jsx`
 
 ### server/
 - `server/.env`
