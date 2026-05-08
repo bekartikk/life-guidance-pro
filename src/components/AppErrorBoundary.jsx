@@ -44,4 +44,38 @@ class AppErrorBoundary extends Component {
   }
 }
 
+export class WidgetErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, message: "" };
+  }
+
+  static getDerivedStateFromError(error) {
+    return {
+      hasError: true,
+      message: error?.message || "This part of the workspace could not load.",
+    };
+  }
+
+  componentDidCatch() {
+    // Intentionally quiet in production; fallback UI keeps the app interactive.
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <section className="section-loading-card widget-fallback-card">
+          <div>
+            <strong>{this.props.title || "Section unavailable"}</strong>
+            <p>{this.props.description || "Refresh the app to try loading this section again."}</p>
+            <p className="muted-text">{this.state.message}</p>
+          </div>
+        </section>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
 export default AppErrorBoundary;

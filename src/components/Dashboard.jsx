@@ -1,4 +1,4 @@
-﻿import { Suspense, lazy, useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import { sampleProfiles } from "../data/sampleProfiles";
 import { motion } from "framer-motion";
 import {
@@ -19,6 +19,28 @@ import AnalyticsChart from "./dashboard/AnalyticsChart";
 import QuickAddModal from "./dashboard/QuickAddModal";
 import ResultPanel from "./dashboard/ResultPanel";
 import Sidebar from "./dashboard/Sidebar";
+import GoalTabDirect from "./dashboard/GoalTab";
+import HabitTabDirect from "./dashboard/HabitTab";
+import DailyProgressTabDirect from "./dashboard/DailyProgressTab";
+import WeeklyProgressTabDirect from "./dashboard/WeeklyProgressTab";
+import WeeklyReviewTabDirect from "./dashboard/WeeklyReviewTab";
+import MonthlyReviewTabDirect from "./dashboard/MonthlyReviewTab";
+import CareerExplorerTabDirect from "./dashboard/CareerExplorerTab";
+import HobbyIncomeTabDirect from "./dashboard/HobbyIncomeTab";
+import RoutineBuilderTabDirect from "./dashboard/RoutineBuilderTab";
+import ChatExtensionTabDirect from "./dashboard/ChatExtensionTab";
+import AchievementTabDirect from "./dashboard/AchievementTab";
+import MissionsTabDirect from "./dashboard/MissionsTab";
+import PersonalizationTabDirect from "./dashboard/PersonalizationTab";
+import ProjectMapTabDirect from "./dashboard/ProjectMapTab";
+import HistoryTabDirect from "./dashboard/HistoryTab";
+import ProfileTabDirect from "./dashboard/ProfileTab";
+import FeedbackTabDirect from "./dashboard/FeedbackTab";
+import ReminderTabDirect from "./dashboard/ReminderTab";
+import SupportTabDirect from "./dashboard/SupportTab";
+import SettingsTabDirect from "./dashboard/SettingsTab";
+import AdminTabDirect from "./dashboard/AdminTab";
+import { WidgetErrorBoundary } from "./AppErrorBoundary";
 import "../styles/dashboard-modern.css";
 import {
   deleteRoutineBuilderRecord,
@@ -308,28 +330,6 @@ const tabMeta = {
     icon: HiOutlineChartBarSquare,
   },
 };
-
-const GoalTab = lazy(() => import("./dashboard/GoalTab"));
-const HabitTab = lazy(() => import("./dashboard/HabitTab"));
-const DailyProgressTab = lazy(() => import("./dashboard/DailyProgressTab"));
-const WeeklyProgressTab = lazy(() => import("./dashboard/WeeklyProgressTab"));
-const WeeklyReviewTab = lazy(() => import("./dashboard/WeeklyReviewTab"));
-const MonthlyReviewTab = lazy(() => import("./dashboard/MonthlyReviewTab"));
-const CareerExplorerTab = lazy(() => import("./dashboard/CareerExplorerTab"));
-const HobbyIncomeTab = lazy(() => import("./dashboard/HobbyIncomeTab"));
-const RoutineBuilderTab = lazy(() => import("./dashboard/RoutineBuilderTab"));
-const ChatExtensionTab = lazy(() => import("./dashboard/ChatExtensionTab"));
-const AchievementTab = lazy(() => import("./dashboard/AchievementTab"));
-const MissionsTab = lazy(() => import("./dashboard/MissionsTab"));
-const PersonalizationTab = lazy(() => import("./dashboard/PersonalizationTab"));
-const ProjectMapTab = lazy(() => import("./dashboard/ProjectMapTab"));
-const HistoryTab = lazy(() => import("./dashboard/HistoryTab"));
-const ProfileTab = lazy(() => import("./dashboard/ProfileTab"));
-const FeedbackTab = lazy(() => import("./dashboard/FeedbackTab"));
-const ReminderTab = lazy(() => import("./dashboard/ReminderTab"));
-const SupportTab = lazy(() => import("./dashboard/SupportTab"));
-const SettingsTab = lazy(() => import("./dashboard/SettingsTab"));
-const AdminTab = lazy(() => import("./dashboard/AdminTab"));
 
 const initialSectionLoading = {
   plans: true,
@@ -658,14 +658,6 @@ function SectionLoadingCard({ title, description }) {
         <p>{description}</p>
       </div>
     </section>
-  );
-}
-
-function LazyTabShell({ title, description, children }) {
-  return (
-    <Suspense fallback={<SectionLoadingCard title={title} description={description} />}>
-      {children}
-    </Suspense>
   );
 }
 
@@ -1879,47 +1871,47 @@ function Dashboard({ user }) {
 
     switch (activeTab) {
       case "goals":
-        return <LazyTabShell title="Loading goals" description="Bringing in your active goals and milestones."><GoalTab goalDraft={goalDraft} goals={goals} isSavingGoal={isSavingGoal} onChange={updateGoalField} onSubmit={handleSaveGoal} onDelete={handleDeleteGoal} onStatusChange={handleGoalStatusChange} /></LazyTabShell>;
+        return <WidgetErrorBoundary title="Goals unavailable" description="The goals workspace hit a rendering problem."><GoalTabDirect goalDraft={goalDraft} goals={goals} isSavingGoal={isSavingGoal} onChange={updateGoalField} onSubmit={handleSaveGoal} onDelete={handleDeleteGoal} onStatusChange={handleGoalStatusChange} /></WidgetErrorBoundary>;
       case "habits":
-        return <LazyTabShell title="Loading habits" description="Getting your habit list and streaks ready."><HabitTab habitDraft={habitDraft} habits={habits} isSavingHabit={isSavingHabit} onChange={updateHabitField} onSubmit={handleSaveHabit} onDelete={handleDeleteHabit} onToggle={handleToggleHabit} /></LazyTabShell>;
+        return <WidgetErrorBoundary title="Habits unavailable" description="The habits workspace hit a rendering problem."><HabitTabDirect habitDraft={habitDraft} habits={habits} isSavingHabit={isSavingHabit} onChange={updateHabitField} onSubmit={handleSaveHabit} onDelete={handleDeleteHabit} onToggle={handleToggleHabit} /></WidgetErrorBoundary>;
       case "daily":
-        return <LazyTabShell title="Loading daily progress" description="Pulling in check-ins, rewards, and momentum data."><DailyProgressTab checkins={checkins} progress={progress} rewards={rewardEvents} /></LazyTabShell>;
+        return <WidgetErrorBoundary title="Daily progress unavailable" description="Check-in history could not render."><DailyProgressTabDirect checkins={checkins} progress={progress} rewards={rewardEvents} /></WidgetErrorBoundary>;
       case "weekly":
-        return <LazyTabShell title="Loading weekly progress" description="Building your weekly summary and consistency view."><WeeklyProgressTab checkins={checkins} progress={progress} rewards={rewardEvents} onExportWeeklySummary={handleExportWeeklySummary} onShareWeeklySummary={handleShareWeeklySummary} /></LazyTabShell>;
+        return <WidgetErrorBoundary title="Weekly progress unavailable" description="The weekly progress view could not render."><WeeklyProgressTabDirect checkins={checkins} progress={progress} rewards={rewardEvents} onExportWeeklySummary={handleExportWeeklySummary} onShareWeeklySummary={handleShareWeeklySummary} /></WidgetErrorBoundary>;
       case "review":
-        return <LazyTabShell title="Loading weekly reviews" description="Bringing in your reflections and open goals for this week."><WeeklyReviewTab reviewDraft={reviewDraft} reviews={reviews} goals={goals} isSavingReview={isSavingReview} onChange={updateReviewField} onSubmit={handleSaveWeeklyReview} /></LazyTabShell>;
+        return <WidgetErrorBoundary title="Weekly review unavailable" description="The weekly reflection surface could not render."><WeeklyReviewTabDirect reviewDraft={reviewDraft} reviews={reviews} goals={goals} isSavingReview={isSavingReview} onChange={updateReviewField} onSubmit={handleSaveWeeklyReview} /></WidgetErrorBoundary>;
       case "monthly":
-        return <LazyTabShell title="Loading monthly reviews" description="Preparing your monthly reflections and trend view."><MonthlyReviewTab monthlyReviewDraft={monthlyReviewDraft} monthlyReviews={monthlyReviews} goals={goals} isSavingMonthlyReview={isSavingMonthlyReview} onChange={updateMonthlyReviewField} onSubmit={handleSaveMonthlyReview} /></LazyTabShell>;
+        return <WidgetErrorBoundary title="Monthly review unavailable" description="The monthly review surface could not render."><MonthlyReviewTabDirect monthlyReviewDraft={monthlyReviewDraft} monthlyReviews={monthlyReviews} goals={goals} isSavingMonthlyReview={isSavingMonthlyReview} onChange={updateMonthlyReviewField} onSubmit={handleSaveMonthlyReview} /></WidgetErrorBoundary>;
       case "career":
-        return <LazyTabShell title="Loading career explorer" description="Opening your saved career maps and next direction ideas."><CareerExplorerTab draft={careerDraft} savedItems={careerExplorations} isSaving={isSavingCareer} onChange={updateCareerField} onSubmit={handleSaveCareerExploration} /></LazyTabShell>;
+        return <WidgetErrorBoundary title="Career explorer unavailable" description="The career direction surface could not render."><CareerExplorerTabDirect draft={careerDraft} savedItems={careerExplorations} isSaving={isSavingCareer} onChange={updateCareerField} onSubmit={handleSaveCareerExploration} /></WidgetErrorBoundary>;
       case "income":
-        return <LazyTabShell title="Loading hobby income paths" description="Bringing in your hobby experiments and monetization ideas."><HobbyIncomeTab draft={hobbyDraft} savedItems={hobbyPlans} isSaving={isSavingHobbyPath} onChange={updateHobbyField} onSubmit={handleSaveHobbyPath} /></LazyTabShell>;
+        return <WidgetErrorBoundary title="Income paths unavailable" description="The hobby income surface could not render."><HobbyIncomeTabDirect draft={hobbyDraft} savedItems={hobbyPlans} isSaving={isSavingHobbyPath} onChange={updateHobbyField} onSubmit={handleSaveHobbyPath} /></WidgetErrorBoundary>;
       case "routine":
-        return <LazyTabShell title="Loading routine builder" description="Opening your saved weekly blueprints and time blocks."><RoutineBuilderTab builderDraft={routineBuilderDraft} blockDraft={routineBlockDraft} savedItems={routineBuilders} isSaving={isSavingRoutineBuilder} onBuilderChange={updateRoutineBuilderField} onBlockChange={updateRoutineBlockField} onAddBlock={handleAddRoutineBlock} onRemoveBlock={handleRemoveRoutineBlock} onToggleLock={handleToggleRoutineBlockLock} onSave={handleSaveRoutineBuilder} onDelete={handleDeleteRoutineBuilder} onExportCalendar={handleExportRoutineCalendar} /></LazyTabShell>;
+        return <WidgetErrorBoundary title="Routine builder unavailable" description="The routine builder could not render."><RoutineBuilderTabDirect builderDraft={routineBuilderDraft} blockDraft={routineBlockDraft} savedItems={routineBuilders} isSaving={isSavingRoutineBuilder} onBuilderChange={updateRoutineBuilderField} onBlockChange={updateRoutineBlockField} onAddBlock={handleAddRoutineBlock} onRemoveBlock={handleRemoveRoutineBlock} onToggleLock={handleToggleRoutineBlockLock} onSave={handleSaveRoutineBuilder} onDelete={handleDeleteRoutineBuilder} onExportCalendar={handleExportRoutineCalendar} /></WidgetErrorBoundary>;
       case "chat":
-        return <LazyTabShell title="Loading follow-up chat" description="Preparing the current plan context for follow-up guidance."><ChatExtensionTab currentPlan={currentPlan} chatPrompt={chatPrompt} chatMessages={chatMessages} isSendingChat={isSendingChat} onPromptChange={(event) => setChatPrompt(event.target.value)} onQuickPrompt={setChatPrompt} onSubmit={handleSendChat} /></LazyTabShell>;
+        return <WidgetErrorBoundary title="AI coach unavailable" description="The follow-up coach surface could not render."><ChatExtensionTabDirect currentPlan={currentPlan} chatPrompt={chatPrompt} chatMessages={chatMessages} isSendingChat={isSendingChat} onPromptChange={(event) => setChatPrompt(event.target.value)} onQuickPrompt={setChatPrompt} onSubmit={handleSendChat} /></WidgetErrorBoundary>;
       case "achievements":
-        return <LazyTabShell title="Loading achievements" description="Bringing in badges, milestones, and reward history."><AchievementTab progress={progress} rewardEvents={rewardEvents} /></LazyTabShell>;
+        return <WidgetErrorBoundary title="Achievements unavailable" description="The achievement surface could not render."><AchievementTabDirect progress={progress} rewardEvents={rewardEvents} /></WidgetErrorBoundary>;
       case "missions":
-        return <LazyTabShell title="Loading missions" description="Calculating your next momentum targets and level progress."><MissionsTab progress={progress} missionSummary={missionSummary} /></LazyTabShell>;
+        return <WidgetErrorBoundary title="Missions unavailable" description="The mission surface could not render."><MissionsTabDirect progress={progress} missionSummary={missionSummary} /></WidgetErrorBoundary>;
       case "insights":
-        return <LazyTabShell title="Loading insights" description="Reading your history to summarize what seems to fit you best."><PersonalizationTab insights={personalizationInsights} profile={profile} plans={plans} checkins={checkins} /></LazyTabShell>;
+        return <WidgetErrorBoundary title="Insights unavailable" description="The personalization surface could not render."><PersonalizationTabDirect insights={personalizationInsights} profile={profile} plans={plans} checkins={checkins} /></WidgetErrorBoundary>;
       case "system":
-        return <LazyTabShell title="Loading system overview" description="Opening the live project brain map generated from this codebase."><ProjectMapTab /></LazyTabShell>;
+        return <WidgetErrorBoundary title="System map unavailable" description="The project brain map could not render."><ProjectMapTabDirect /></WidgetErrorBoundary>;
       case "history":
-        return <LazyTabShell title="Loading history" description="Getting your saved plans and snapshots ready."><HistoryTab plans={plans} onView={setCurrentPlan} onUseAnswers={(item) => { setForm(item.profileSnapshot); setActiveTab("planner"); }} onDelete={handleDeletePlan} formatDate={formatDate} /></LazyTabShell>;
+        return <WidgetErrorBoundary title="History unavailable" description="The plan history surface could not render."><HistoryTabDirect plans={plans} onView={setCurrentPlan} onUseAnswers={(item) => { setForm(item.profileSnapshot); handleTabChange("planner"); }} onDelete={handleDeletePlan} formatDate={formatDate} /></WidgetErrorBoundary>;
       case "profile":
-        return <LazyTabShell title="Loading profile" description="Pulling in your saved context and planner preferences."><ProfileTab profile={profile} isSavingProfile={isSavingProfile} onChange={updateProfileField} onSubmit={handleSaveProfile} onApplyToPlanner={applyProfileToPlanner} /></LazyTabShell>;
+        return <WidgetErrorBoundary title="Profile unavailable" description="The profile surface could not render."><ProfileTabDirect profile={profile} isSavingProfile={isSavingProfile} onChange={updateProfileField} onSubmit={handleSaveProfile} onApplyToPlanner={applyProfileToPlanner} /></WidgetErrorBoundary>;
       case "feedback":
-        return <LazyTabShell title="Loading feedback" description="Preparing your plan feedback and saved notes."><FeedbackTab currentPlan={currentPlan} feedbackItems={feedbackItems} feedbackMessage={feedbackMessage} feedbackRating={feedbackRating} isSubmittingFeedback={isSubmittingFeedback} formatDate={formatDate} onMessageChange={(event) => setFeedbackMessage(event.target.value)} onRatingChange={(event) => setFeedbackRating(event.target.value)} onSubmit={handleSubmitFeedback} /></LazyTabShell>;
+        return <WidgetErrorBoundary title="Feedback unavailable" description="The feedback surface could not render."><FeedbackTabDirect currentPlan={currentPlan} feedbackItems={feedbackItems} feedbackMessage={feedbackMessage} feedbackRating={feedbackRating} isSubmittingFeedback={isSubmittingFeedback} formatDate={formatDate} onMessageChange={(event) => setFeedbackMessage(event.target.value)} onRatingChange={(event) => setFeedbackRating(event.target.value)} onSubmit={handleSubmitFeedback} /></WidgetErrorBoundary>;
       case "reminders":
-        return <LazyTabShell title="Loading reminders" description="Preparing your saved reminder settings and notification tools."><ReminderTab reminderSettings={reminderSettings} isSaving={isSavingReminderSettings} notificationState={notificationState} onChange={updateReminderField} onEnableNotifications={handleEnableNotifications} onSendTestReminder={handleSendTestReminder} onSubmit={handleSaveReminderSettings} /></LazyTabShell>;
+        return <WidgetErrorBoundary title="Reminders unavailable" description="The reminder surface could not render."><ReminderTabDirect reminderSettings={reminderSettings} isSaving={isSavingReminderSettings} notificationState={notificationState} onChange={updateReminderField} onEnableNotifications={handleEnableNotifications} onSendTestReminder={handleSendTestReminder} onSubmit={handleSaveReminderSettings} /></WidgetErrorBoundary>;
       case "support":
-        return <LazyTabShell title="Loading support" description="Getting the support and recovery guidance ready."><SupportTab /></LazyTabShell>;
+        return <WidgetErrorBoundary title="Support unavailable" description="The support surface could not render."><SupportTabDirect /></WidgetErrorBoundary>;
       case "settings":
-        return <LazyTabShell title="Loading settings" description="Building your privacy, export, and account controls."><SettingsTab user={user} profile={profile} plans={plans} goals={goals} habits={habits} reviews={reviews} monthlyReviews={monthlyReviews} checkins={checkins} rewardEvents={rewardEvents} careerExplorations={careerExplorations} hobbyPlans={hobbyPlans} routineBuilders={routineBuilders} reminderSettings={reminderSettings} onDeleteMyData={handleDeleteMyData} onExportData={handleExportData} onResendVerification={handleResendVerification} onShareProgress={handleShareProgress} /></LazyTabShell>;
+        return <WidgetErrorBoundary title="Settings unavailable" description="The settings surface could not render."><SettingsTabDirect user={user} profile={profile} plans={plans} goals={goals} habits={habits} reviews={reviews} monthlyReviews={monthlyReviews} checkins={checkins} rewardEvents={rewardEvents} careerExplorations={careerExplorations} hobbyPlans={hobbyPlans} routineBuilders={routineBuilders} reminderSettings={reminderSettings} onDeleteMyData={handleDeleteMyData} onExportData={handleExportData} onResendVerification={handleResendVerification} onShareProgress={handleShareProgress} /></WidgetErrorBoundary>;
       case "admin":
-        return isAdmin ? <LazyTabShell title="Loading admin dashboard" description="Preparing the current product snapshot for admin review."><AdminTab adminSnapshot={adminSnapshot} userId={user.uid} /></LazyTabShell> : null;
+        return isAdmin ? <WidgetErrorBoundary title="Admin dashboard unavailable" description="The admin surface could not render."><AdminTabDirect adminSnapshot={adminSnapshot} userId={user.uid} /></WidgetErrorBoundary> : null;
       default:
         return null;
     }
