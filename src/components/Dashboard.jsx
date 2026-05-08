@@ -10,7 +10,7 @@ import {
   HiOutlineQueueList,
   HiOutlineSparkles,
 } from "react-icons/hi2";
-import { sendEmailVerification } from "firebase/auth";
+import { sendEmailVerification, signOut } from "firebase/auth";
 import Header from "./dashboard/Header";
 import PlannerBoard from "./dashboard/PlannerBoard";
 import PlannerTab from "./dashboard/PlannerTab";
@@ -42,6 +42,7 @@ import SettingsTabDirect from "./dashboard/SettingsTab";
 import AdminTabDirect from "./dashboard/AdminTab";
 import { WidgetErrorBoundary } from "./AppErrorBoundary";
 import "../styles/dashboard-modern.css";
+import { auth } from "../firebase";
 import {
   deleteRoutineBuilderRecord,
   deleteAllUserData,
@@ -995,6 +996,16 @@ function Dashboard({ user }) {
   const handleTabChange = (nextTab) => {
     setActiveTab(nextTab);
     setIsMobileNavOpen(false);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      setStatusMessage("Signed out successfully.");
+      setError("");
+    } catch (logoutError) {
+      setError(logoutError.message || "Could not sign out right now.");
+    }
   };
 
   const updateField = (event) => setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
@@ -1971,6 +1982,8 @@ function Dashboard({ user }) {
             focusMode={focusMode}
             onToggleFocus={() => setFocusMode((current) => !current)}
             onToggleMobileNav={() => setIsMobileNavOpen((current) => !current)}
+            userEmail={user?.email || ""}
+            onLogout={handleLogout}
           />
 
           <MotionSection

@@ -14,12 +14,20 @@ export default function Landing() {
         <h1 className="text-2xl font-black bg-gradient-to-r from-white to-gray-200 bg-clip-text text-transparent drop-shadow-lg">
             Life Guidance Pro
           </h1>
-        <Link
-          to="/login"
-          className="bg-gradient-to-r from-primary-500 to-blue-600 text-white px-6 py-3 rounded-2xl font-semibold shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 hover:from-primary-600 hover:to-blue-700"
-        >
-          Get Started
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link
+            to="/login"
+            className="rounded-2xl border border-white/20 bg-white/10 px-5 py-2.5 text-white backdrop-blur-sm transition-all duration-300 hover:bg-white/15"
+          >
+            Log in
+          </Link>
+          <Link
+            to="/login"
+            className="bg-gradient-to-r from-primary-500 to-blue-600 text-white px-6 py-3 rounded-2xl font-semibold shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 hover:from-primary-600 hover:to-blue-700"
+          >
+            Get Started
+          </Link>
+        </div>
       </nav>
 
       {/* 🚀 HERO */}

@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { HiOutlineBars3BottomLeft, HiOutlineMoon, HiOutlinePlus, HiOutlineSparkles } from "react-icons/hi2";
+import { HiOutlineArrowLeftOnRectangle, HiOutlineBars3BottomLeft, HiOutlineMoon, HiOutlinePlus, HiOutlineSparkles } from "react-icons/hi2";
 
 const MotionHeader = motion.header;
 
@@ -13,6 +13,8 @@ function Header({
   focusMode,
   onToggleFocus,
   onToggleMobileNav,
+  userEmail,
+  onLogout,
 }) {
   return (
     <MotionHeader
@@ -46,6 +48,7 @@ function Header({
             placeholder="Find goals, plans, routines..."
           />
         </label>
+        {userEmail ? <span className="hero-header-chip">{userEmail}</span> : null}
         <span className="hero-header-chip">{streakLabel}</span>
         <button type="button" onClick={onToggleFocus} className="saas-button-secondary">
           <HiOutlineMoon className="h-4 w-4" />
@@ -54,6 +57,10 @@ function Header({
         <button type="button" onClick={onQuickAdd} className="saas-button-primary">
           <HiOutlinePlus className="h-4 w-4" />
           Add Task
+        </button>
+        <button type="button" onClick={onLogout} className="saas-button-secondary">
+          <HiOutlineArrowLeftOnRectangle className="h-4 w-4" />
+          Logout
         </button>
       </div>
     </MotionHeader>
