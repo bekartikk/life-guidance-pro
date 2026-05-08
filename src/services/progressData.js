@@ -8,6 +8,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebase";
 import { applyProgressAction as runRewardAction, defaultProgress, getDateKey } from "./rewards";
+import { safeRead } from "./safeFirestore";
 
 const progressCollection = collection(db, "progress");
 
@@ -18,31 +19,46 @@ function normalizeDate(value) {
 
 export async function loadUserProgress(userId) {
   if (!userId) return { ...defaultProgress };
-
-  const snapshot = await getDoc(doc(db, "progress", userId));
-  return snapshot.exists() ? { ...defaultProgress, ...snapshot.data() } : { ...defaultProgress };
+  return safeRead(
+    async () => {
+      const snapshot = await getDoc(doc(db, "progress", userId));
+      return snapshot.exists() ? { ...defaultProgress, ...snapshot.data() } : { ...defaultProgress };
+    },
+    { ...defaultProgress },
+    "loadUserProgress",
+  );
 }
 
 export async function loadUserCheckins(userId) {
   if (!userId) return [];
-
-  const snapshot = await getDocs(collection(db, "progress", userId, "checkins"));
-  return snapshot.docs
-    .map((item) => ({ id: item.id, ...item.data() }))
-    .sort((left, right) => right.date.localeCompare(left.date));
+  return safeRead(
+    async () => {
+      const snapshot = await getDocs(collection(db, "progress", userId, "checkins"));
+      return snapshot.docs
+        .map((item) => ({ id: item.id, ...item.data() }))
+        .sort((left, right) => right.date.localeCompare(left.date));
+    },
+    [],
+    "loadUserCheckins",
+  );
 }
 
 export async function loadRewardEvents(userId) {
   if (!userId) return [];
-
-  const snapshot = await getDocs(collection(db, "progress", userId, "events"));
-  return snapshot.docs
-    .map((item) => ({ id: item.id, ...item.data() }))
-    .sort(
-      (left, right) =>
-        new Date(normalizeDate(right.createdAt) || 0) -
-        new Date(normalizeDate(left.createdAt) || 0),
-    );
+  return safeRead(
+    async () => {
+      const snapshot = await getDocs(collection(db, "progress", userId, "events"));
+      return snapshot.docs
+        .map((item) => ({ id: item.id, ...item.data() }))
+        .sort(
+          (left, right) =>
+            new Date(normalizeDate(right.createdAt) || 0) -
+            new Date(normalizeDate(left.createdAt) || 0),
+        );
+    },
+    [],
+    "loadRewardEvents",
+  );
 }
 
 export async function applyRewardAction(userId, action) {

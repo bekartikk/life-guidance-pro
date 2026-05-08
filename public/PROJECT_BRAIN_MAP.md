@@ -1,6 +1,6 @@
 # Project Brain Map
 
-_Auto-generated on 3 May 2026, 8:46 pm. This file updates from the repo structure and app/server entry points._
+_Auto-generated on 8 May 2026, 1:33 pm. This file updates from the repo structure and app/server entry points._
 
 ## What This Project Is
 
@@ -54,6 +54,22 @@ export async function getAnalyticsSummary(timeframeHours = 168) {
     runTransaction(db, async (transaction) => {
       transaction.set(eventRef, stripUndefinedDeep({
         type: , ));
+      return snapshot.docs
+        .map((item) => ({ id: item.id, ...item.data() }))
+        .sort(
+          (left, right) =>
+            new Date(normalizeDate(right.createdAt) || 0) -
+            new Date(normalizeDate(left.createdAt) || 0),
+        );
+    },
+    [],
+    , ));
+      return snapshot.docs
+        .map((item) => ({ id: item.id, ...item.data() }))
+        .sort((left, right) => right.date.localeCompare(left.date));
+    },
+    [],
+    , ));
       transaction.set(eventRef, {
         ...reward,
         date: action.dateKey || getDateKey(),
@@ -69,28 +85,7 @@ export async function getAnalyticsSummary(timeframeHours = 168) {
 export async function submitDailyCheckin(userId, payload) {
   const dateKey = payload.dateKey || getDateKey();
   const progressRef = doc(progressCollection, userId);
-  const checkinRef = doc(progressCollection, userId, , ));
-      transaction.set(eventRef, {
-        ...reward,
-        date: dateKey,
-        planId: payload.planId || null,
-        createdAt: now,
-      });
-    });
-
-    return {
-      progress,
-      rewards,
-      checkin: {
-        date: dateKey,
-        status: payload.status,
-        note: payload.note || , ));
-  const timestamp = new Date().toISOString();
-
-  return runSafeAnalyticsWrite(() =>
-    runTransaction(db, async (transaction) => {
-      transaction.set(eventRef, stripUndefinedDeep({
-        type: , ..."]
+  const checkinRef = doc(progressCollection, userId, , ..."]
   D --> K["Reward + Progress Engine"]
   D --> L["Analytics Logging"]
   B --> M["Project Map Generator"]
@@ -198,6 +193,24 @@ export async function getAnalyticsSummary(timeframeHours = 168) {
       transaction.set(eventRef, stripUndefinedDeep({
         type: `
   - `));
+      return snapshot.docs
+        .map((item) => ({ id: item.id, ...item.data() }))
+        .sort(
+          (left, right) =>
+            new Date(normalizeDate(right.createdAt) || 0) -
+            new Date(normalizeDate(left.createdAt) || 0),
+        );
+    },
+    [],
+    `
+  - `));
+      return snapshot.docs
+        .map((item) => ({ id: item.id, ...item.data() }))
+        .sort((left, right) => right.date.localeCompare(left.date));
+    },
+    [],
+    `
+  - `));
       transaction.set(eventRef, {
         ...reward,
         date: action.dateKey || getDateKey(),
@@ -237,16 +250,6 @@ export async function submitDailyCheckin(userId, payload) {
     runTransaction(db, async (transaction) => {
       transaction.set(eventRef, stripUndefinedDeep({
         type: `
-  - `));
-  return snapshot.docs
-    .map((item) => ({ id: item.id, ...item.data() }))
-    .sort((left, right) => right.date.localeCompare(left.date));
-}
-
-export async function loadRewardEvents(userId) {
-  if (!userId) return [];
-
-  const snapshot = await getDocs(collection(db, `
   - `),
     where(`
   - `);
@@ -352,6 +355,14 @@ const routineBuildersCollection = collection(db, `
 - `.env.example`
 - `.gitignore`
 - `AI_IMPROVEMENT_GUIDE.md`
+- `archive/new_components_prototype/dashboard_new/new_dashboard.jsx`
+- `archive/new_components_prototype/new_layout/applayout.jsx`
+- `archive/new_components_prototype/new_layout/header.jsx`
+- `archive/new_components_prototype/new_layout/rightpanel.jsx`
+- `archive/new_components_prototype/new_layout/sidebar.jsx`
+- `archive/new_components_prototype/sections/overview.jsx`
+- `archive/new_components_prototype/sections/plannersection.jsx`
+- `archive/new_components_prototype/sections/statsgrid.jsx`
 - `DATA_COLLECTION_SUMMARY.md`
 - `DEPLOYMENT_CHECKLIST.md`
 - `eslint.config.js`
@@ -365,11 +376,3 @@ const routineBuildersCollection = collection(db, `
 - `public/favicon.svg`
 - `public/icons.svg`
 - `public/PROJECT_BRAIN_MAP.md`
-- `QUICK_START_GUIDE.md`
-- `README.md`
-- `render.yaml`
-- `scripts/generate-project-map.mjs`
-- `scripts/watch-project-map.mjs`
-- `tailwind.config.js`
-- `TAILWIND_SETUP_GUIDE.md`
-- `TODO.md`
