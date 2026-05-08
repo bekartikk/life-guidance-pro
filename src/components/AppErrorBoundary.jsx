@@ -13,8 +13,8 @@ class AppErrorBoundary extends Component {
     };
   }
 
-  componentDidCatch(error) {
-    console.error("AppErrorBoundary caught an error:", error);
+  componentDidCatch() {
+    // Log suppressed for production
   }
 
   handleReload = () => {

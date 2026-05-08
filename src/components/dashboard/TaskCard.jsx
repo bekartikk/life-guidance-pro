@@ -18,19 +18,19 @@ function TaskCard({ eyebrow, title, body, meta, tone = "task" }) {
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ scale: 1.02, y: -2 }}
       transition={{ duration: 0.25 }}
-      className="saas-panel flex h-full flex-col gap-4 p-5"
+      className="saas-panel task-card-premium"
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="space-y-2">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">{eyebrow}</p>
-          <h3 className="text-lg font-semibold leading-7 text-slate-100">{title}</h3>
+      <div className="task-card-head">
+        <div className="task-card-copy">
+          <p>{eyebrow}</p>
+          <h3>{title}</h3>
         </div>
-        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/8 text-blue-300">
+        <div className="task-card-icon">
           <Icon className="h-5 w-5" />
         </div>
       </div>
-      <p className="text-sm leading-6 text-slate-400">{body}</p>
-      {meta ? <span className="mt-auto text-xs font-medium uppercase tracking-[0.16em] text-slate-500">{meta}</span> : null}
+      <p className="task-card-body">{body}</p>
+      {meta ? <span className="task-card-meta">{meta}</span> : null}
     </MotionArticle>
   );
 }

@@ -2,14 +2,21 @@ import { Link } from "react-router-dom";
 
 export default function Landing() {
   return (
-    <div className="bg-white text-gray-900">
+<div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-900 text-white overflow-hidden relative">
+      {/* Animated Background */}
+      <div className="absolute inset-0">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,rgba(120,119,198,.3),rgba(255,119,198,.1),transparent)]"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(120,119,198,.3),rgba(255,119,198,.1),transparent)]"></div>
+      </div>
 
       {/* 🔝 NAVBAR */}
       <nav className="flex justify-between items-center px-6 py-4 max-w-7xl mx-auto">
-        <h1 className="font-bold text-xl">Life Guidance Pro</h1>
+        <h1 className="text-2xl font-black bg-gradient-to-r from-white to-gray-200 bg-clip-text text-transparent drop-shadow-lg">
+            Life Guidance Pro
+          </h1>
         <Link
           to="/login"
-          className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition"
+          className="bg-gradient-to-r from-primary-500 to-blue-600 text-white px-6 py-3 rounded-2xl font-semibold shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 hover:from-primary-600 hover:to-blue-700"
         >
           Get Started
         </Link>

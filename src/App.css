@@ -2525,3 +2525,402 @@ body::before {
     border-radius: 18px;
   }
 }
+.planner-flow-shell {
+  display: grid;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.planner-progress-panel--hero {
+  grid-template-columns: minmax(0, 1.1fr) minmax(240px, 0.9fr);
+}
+
+.planner-progress-copy {
+  display: grid;
+  gap: 8px;
+}
+
+.planner-progress-meters {
+  display: grid;
+  gap: 12px;
+}
+
+.planner-meter-card {
+  display: grid;
+  gap: 6px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(22, 50, 59, 0.1);
+  background: rgba(255, 253, 249, 0.84);
+}
+
+.planner-meter-card small {
+  color: var(--lgp-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.planner-meter-card strong {
+  margin: 0;
+}
+
+.form-section-guided {
+  display: grid;
+  gap: 18px;
+}
+
+.section-intent-card {
+  display: grid;
+  gap: 6px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(22, 50, 59, 0.1);
+  background: linear-gradient(180deg, rgba(247, 251, 250, 0.88), rgba(255, 250, 243, 0.88));
+}
+
+.section-intent-card strong {
+  font-size: 0.95rem;
+  color: #16323b;
+}
+
+.section-intent-card p {
+  margin: 0;
+  color: var(--lgp-muted);
+  line-height: 1.6;
+}
+
+.result-toggle-chip {
+  cursor: pointer;
+}
+
+.result-toggle-chip.is-open {
+  background: linear-gradient(135deg, rgba(37, 122, 118, 0.16), rgba(209, 101, 65, 0.16));
+  border-color: rgba(22, 50, 59, 0.14);
+}
+
+.result-section-toggle {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+}
+
+.result-section-toggle span {
+  flex-shrink: 0;
+  color: var(--lgp-accent-dark);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.result-section-card .result-section-body {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(22, 50, 59, 0.08);
+}
+
+/* Phase refinement: consolidated premium dashboard shell */
+.dashboard-shell {
+  display: grid;
+  grid-template-columns: minmax(280px, 332px) minmax(0, 1.08fr) minmax(320px, 0.92fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.dashboard-rail {
+  position: sticky;
+  top: 20px;
+  display: grid;
+  gap: 18px;
+  align-self: start;
+}
+
+.rail-panel,
+.workspace-panel,
+.result-panel,
+.result-section-card,
+.planner-step-card,
+.planner-progress-panel,
+.section-intent-card,
+.goal-card,
+.activity-card,
+.reward-event-card,
+.checkin-panel,
+.adjust-panel,
+.project-map-card,
+.project-map-summary > div {
+  background: rgba(255, 249, 241, 0.82);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(22, 50, 59, 0.12);
+  box-shadow: 0 28px 80px rgba(31, 46, 57, 0.16);
+}
+
+.workspace-panel,
+.result-panel,
+.rail-panel {
+  border-radius: 28px;
+}
+
+.workspace-panel,
+.result-panel {
+  padding: 24px;
+}
+
+.workspace-panel {
+  gap: 20px;
+}
+
+.result-panel {
+  position: sticky;
+  top: 20px;
+  gap: 18px;
+}
+
+.workspace-nav {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 24px;
+  background: rgba(255, 248, 240, 0.74);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(22, 50, 59, 0.08);
+  box-shadow: 0 20px 50px rgba(31, 46, 57, 0.08);
+}
+
+.nav-chip,
+.quick-options button,
+.checkin-actions button,
+.link-button,
+.result-toggle-chip,
+.goal-milestone-chip,
+.badge-chip,
+.primary-button,
+.secondary-button {
+  border-radius: 999px;
+  transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease, color 180ms ease;
+}
+
+.nav-chip,
+.quick-options button,
+.link-button,
+.result-toggle-chip,
+.badge-chip,
+.secondary-button,
+.checkin-actions button {
+  background: rgba(255, 252, 247, 0.92);
+  border: 1px solid rgba(22, 50, 59, 0.12);
+  color: #1d2b32;
+}
+
+.nav-chip:hover,
+.quick-options button:hover,
+.link-button:hover,
+.result-toggle-chip:hover,
+.secondary-button:hover,
+.checkin-actions button:hover,
+.primary-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 40px rgba(31, 46, 57, 0.12);
+}
+
+.nav-chip.active,
+.primary-button,
+.checkin-actions button:first-child {
+  background: linear-gradient(135deg, #d16541, #b64c2a);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 18px 40px rgba(209, 101, 65, 0.26);
+}
+
+.secondary-button {
+  background: linear-gradient(135deg, rgba(37, 122, 118, 0.16), rgba(37, 122, 118, 0.08));
+  color: #1f5d5b;
+}
+
+.planner-form .form-section {
+  padding: 24px;
+  border-radius: 24px;
+  background: rgba(255, 251, 246, 0.88);
+  border: 1px solid rgba(22, 50, 59, 0.1);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.65);
+}
+
+.planner-step-strip {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.planner-step-card {
+  min-height: 150px;
+  padding: 20px;
+}
+
+.planner-step-card span,
+.result-summary-card span,
+.result-section-heading p,
+.planner-meter-card small,
+.section-intent-card strong,
+.project-map-summary span {
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.planner-progress-panel--hero {
+  gap: 16px;
+  padding: 22px 24px;
+  background: linear-gradient(145deg, rgba(255, 247, 238, 0.92), rgba(241, 250, 248, 0.88));
+}
+
+.planner-progress-copy strong {
+  font-size: clamp(1.9rem, 2.8vw, 2.4rem);
+}
+
+.form-header h2,
+.result-header h2,
+.intro-panel h2 {
+  line-height: 0.96;
+  letter-spacing: -0.04em;
+}
+
+input,
+textarea,
+select {
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.76);
+  border: 1px solid rgba(22, 50, 59, 0.12);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
+  transition: box-shadow 180ms ease, border-color 180ms ease, background 180ms ease;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: rgba(37, 122, 118, 0.45);
+  box-shadow: 0 0 0 4px rgba(37, 122, 118, 0.12), inset 0 1px 0 rgba(255,255,255,0.75);
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.result-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.result-summary-card {
+  display: grid;
+  gap: 8px;
+  min-height: 132px;
+  padding: 18px 20px;
+  border-radius: 22px;
+  border: 1px solid rgba(22, 50, 59, 0.1);
+  background: linear-gradient(145deg, rgba(255, 253, 249, 0.94), rgba(240, 249, 246, 0.82));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.78);
+}
+
+.result-summary-card strong {
+  font-size: 1.05rem;
+  color: #1d2b32;
+}
+
+.result-summary-card p,
+.result-section-heading p {
+  margin: 0;
+  color: #5f6f77;
+  line-height: 1.6;
+}
+
+.result-section-heading {
+  display: grid;
+  gap: 8px;
+  padding-right: 12px;
+}
+
+.result-section-heading h3 {
+  margin: 0;
+}
+
+.result-section-toggle span {
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: rgba(37, 122, 118, 0.12);
+}
+
+.reward-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.reward-summary div,
+.reward-grid div,
+.reward-event-card {
+  padding: 16px 18px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.46);
+  border: 1px solid rgba(22, 50, 59, 0.08);
+}
+
+.goal-card,
+.activity-card,
+.reward-event-card {
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.goal-card:hover,
+.activity-card:hover,
+.reward-event-card:hover,
+.result-section-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 26px 56px rgba(31, 46, 57, 0.14);
+}
+
+.section-loading-card {
+  border-radius: 22px;
+  background: rgba(255, 249, 241, 0.72);
+  border: 1px solid rgba(22, 50, 59, 0.1);
+}
+
+@media (max-width: 1420px) {
+  .dashboard-shell {
+    grid-template-columns: minmax(280px, 320px) minmax(0, 1fr);
+  }
+
+  .result-panel {
+    position: static;
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 1040px) {
+  .dashboard-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-rail,
+  .result-panel {
+    position: static;
+  }
+
+  .planner-step-strip,
+  .result-summary-grid,
+  .reward-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .planner-progress-panel--hero {
+    grid-template-columns: 1fr;
+  }
+}

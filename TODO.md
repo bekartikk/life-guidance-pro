@@ -1,21 +1,33 @@
-# Fix Firebase Offline Error
+# Life Guidance Pro - UI/UX Improvement TODO
 
-## Plan
-- [x] Step 1: Enable IndexedDB persistence in `src/firebase.js`
-- [ ] Step 2: Add offline error handling in `src/services/progressData.js`
-- [ ] Step 3: Add offline error handling in `src/services/appData.js`
-- [ ] Step 4: Verify edits compile correctly
+## Current Progress: 0/21 ✅
 
----
+### 1. Global Setup (2 steps)
+- [ ] Install @heroicons/react for icons
+- [ ] Update tailwind.config.js with enhanced shadows/gradients
 
-## Root Cause
-- `src/firebase.js` uses `enableIndexedDbPersistence(db)` which was **removed in Firebase 12**
-- Without working persistence, Firestore throws `"Failed to get document because the client is offline"` on every read while offline
-- `progressData.js` and `appData.js` let these errors propagate uncaught, crashing the Dashboard `Promise.all` load
+### 2. Layout Components (6 steps)
+- [ ] Enhance applayout.jsx: Add mobile sidebar toggle, resizable right panel
+- [x] Upgrade sidebar.jsx: Icons, active states, user profile, collapse btn
+- [x] Improve header.jsx: Search, notifications, user dropdown, theme toggle
+- [x] Expand rightpanel.jsx: Dynamic progress chart, AI tips widget
+- [ ] Update index.css: Add particle bg, enhanced animations, skeletons
 
-## Fixes Applied
-1. **firebase.js**: Replace `getFirestore` + `enableIndexedDbPersistence` with `initializeFirestore(app, { localCache: persistentLocalCache(...) })`
-2. **progressData.js**: Add `handleOfflineError` helper, wrap all read functions to return safe defaults, wrap writes to throw friendly offline messages
-3. **appData.js**: Same pattern — wrap ~25 async functions with offline-aware try/catch
-4. **Verification**: Run `npm run lint` to confirm no syntax/import errors
+### 3. Dashboard Sections (6 steps)
+- [x] overview.jsx: Hero with streak icon, daily focus, quote
+- [x] statsgrid.jsx: Gradient progress bars, trend arrows, sparklines
+- [x] plannersection.jsx: Autocomplete, templates, drag-reorder preview
+- [x] new_dashboard.jsx: Responsive container, loading states, error handling
 
+### 4. Landing & App Integration (4 steps)
+- [x] Landing.jsx: Dark theme match, animated hero, testimonials
+- [ ] App.jsx: Theme provider, smooth transitions
+- [ ] Test responsive design (mobile/tablet/desktop)
+- [ ] Lighthouse audit & accessibility fixes
+
+### 5. Final Polish (3 steps)
+- [ ] Add micro-interactions (hover, click feedback)
+- [ ] Theme persistence (localStorage)
+- [ ] Performance optimizations (lazy load sections)
+
+**Instructions**: Mark [x] as completed. Run `npm run dev` after each major section.

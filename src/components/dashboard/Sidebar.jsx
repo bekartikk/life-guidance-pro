@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import {
+  HiOutlineArchiveBox,
   HiOutlineChartBarSquare,
   HiOutlineClipboardDocumentList,
   HiOutlineFlag,
@@ -8,6 +9,13 @@ import {
   HiOutlineBars3BottomLeft,
   HiOutlineBolt,
   HiOutlineChevronRight,
+  HiOutlineCalendarDays,
+  HiOutlineChatBubbleLeftRight,
+  HiOutlineCog6Tooth,
+  HiOutlineHeart,
+  HiOutlineLightBulb,
+  HiOutlineRocketLaunch,
+  HiOutlineTrophy,
 } from "react-icons/hi2";
 
 const ITEM_META = {
@@ -15,7 +23,24 @@ const ITEM_META = {
   planner: { label: "Planner", icon: HiOutlineClipboardDocumentList },
   goals: { label: "Goals", icon: HiOutlineFlag },
   habits: { label: "Habits", icon: HiOutlineQueueList },
-  analytics: { label: "Analytics", icon: HiOutlineSparkles },
+  daily: { label: "Progress", icon: HiOutlineChartBarSquare },
+  weekly: { label: "Weekly", icon: HiOutlineChartBarSquare },
+  review: { label: "Review", icon: HiOutlineSparkles },
+  monthly: { label: "Monthly", icon: HiOutlineArchiveBox },
+  routine: { label: "Routines", icon: HiOutlineCalendarDays },
+  career: { label: "Career", icon: HiOutlineLightBulb },
+  income: { label: "Income", icon: HiOutlineRocketLaunch },
+  insights: { label: "Insights", icon: HiOutlineSparkles },
+  chat: { label: "AI Coach", icon: HiOutlineChatBubbleLeftRight },
+  achievements: { label: "Achievements", icon: HiOutlineTrophy },
+  missions: { label: "Missions", icon: HiOutlineBolt },
+  history: { label: "History", icon: HiOutlineClipboardDocumentList },
+  feedback: { label: "Feedback", icon: HiOutlineChatBubbleLeftRight },
+  reminders: { label: "Reminders", icon: HiOutlineCalendarDays },
+  support: { label: "Support", icon: HiOutlineHeart },
+  system: { label: "System", icon: HiOutlineArchiveBox },
+  admin: { label: "Admin", icon: HiOutlineChartBarSquare },
+  settings: { label: "Settings", icon: HiOutlineCog6Tooth },
 };
 
 const MotionAside = motion.aside;
@@ -25,7 +50,7 @@ function Sidebar({ items, activeItem, isCollapsed, onToggle, onSelect }) {
     <MotionAside
       animate={{ width: isCollapsed ? 92 : 280 }}
       transition={{ type: "spring", stiffness: 240, damping: 24 }}
-      className="saas-panel sticky top-6 hidden h-[calc(100vh-48px)] shrink-0 overflow-hidden p-4 lg:flex lg:flex-col"
+      className="saas-panel sidebar-shell sticky top-6 hidden h-[calc(100vh-48px)] shrink-0 overflow-hidden p-4 lg:flex lg:flex-col"
     >
       <div className="mb-6 flex items-center justify-between gap-3 border-b border-white/8 pb-5">
         <div className="flex items-center gap-3 overflow-hidden">
@@ -64,42 +89,46 @@ function Sidebar({ items, activeItem, isCollapsed, onToggle, onSelect }) {
         </div>
       )}
 
-      <nav className="flex flex-1 flex-col gap-2" aria-label="Primary navigation">
-        {!isCollapsed ? (
-          <p className="mb-2 px-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">Workspace</p>
-        ) : null}
-        {items.map((item) => {
-          const meta = ITEM_META[item] || ITEM_META.dashboard;
-          const Icon = meta.icon;
-          const isActive = item === activeItem;
+      <nav className="flex flex-1 flex-col gap-4 overflow-y-auto" aria-label="Primary navigation">
+        {items.map((group) => (
+          <div key={group.label} className="flex flex-col gap-2">
+            {!isCollapsed ? (
+              <p className="mb-1 px-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">{group.label}</p>
+            ) : null}
+            {group.items.map((item) => {
+              const meta = ITEM_META[item] || ITEM_META.dashboard;
+              const Icon = meta.icon;
+              const isActive = item === activeItem;
 
-          return (
-            <motion.button
-              key={item}
-              whileHover={{ y: -2 }}
-              whileTap={{ scale: 0.98 }}
-              type="button"
-              onClick={() => onSelect(item)}
-              className={`flex items-center gap-3 rounded-2xl px-3 py-3 text-left transition ${
-                isActive
-                  ? "bg-gradient-to-r from-blue-500 to-violet-500 text-white shadow-[0_18px_36px_rgba(79,70,229,0.35)]"
-                  : "border border-white/5 bg-white/0 text-slate-300 hover:bg-white/5"
-              }`}
-            >
-              <Icon className="h-5 w-5 shrink-0" />
-              {!isCollapsed && (
-                <>
-                  <span className="text-sm font-medium">{meta.label}</span>
-                  <HiOutlineChevronRight
-                    className={`ml-auto h-4 w-4 transition ${
-                      isActive ? "opacity-100" : "opacity-0 group-hover:opacity-60"
-                    }`}
-                  />
-                </>
-              )}
-            </motion.button>
-          );
-        })}
+              return (
+                <motion.button
+                  key={item}
+                  whileHover={{ y: -2 }}
+                  whileTap={{ scale: 0.98 }}
+                  type="button"
+                  onClick={() => onSelect(item)}
+                  className={`group flex items-center gap-3 rounded-2xl px-3 py-3 text-left transition ${
+                    isActive
+                      ? "bg-gradient-to-r from-blue-500 to-violet-500 text-white shadow-[0_18px_36px_rgba(79,70,229,0.35)]"
+                      : "border border-white/5 bg-white/0 text-slate-300 hover:bg-white/5"
+                  }`}
+                >
+                  <Icon className="h-5 w-5 shrink-0" />
+                  {!isCollapsed && (
+                    <>
+                      <span className="text-sm font-medium">{meta.label}</span>
+                      <HiOutlineChevronRight
+                        className={`ml-auto h-4 w-4 transition ${
+                          isActive ? "opacity-100" : "opacity-0 group-hover:opacity-60"
+                        }`}
+                      />
+                    </>
+                  )}
+                </motion.button>
+              );
+            })}
+          </div>
+        ))}
       </nav>
 
       {!isCollapsed && (
