@@ -61,32 +61,35 @@ function AnalyticsChart({ checkins, progress }) {
       initial={{ opacity: 0, x: 16 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: 0.05 }}
-      className="saas-panel p-6"
+      className="saas-panel premium-analytics-widget"
     >
-      <div className="mb-5">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">Weekly insights</p>
-        <h3 className="mt-2 text-lg font-semibold text-slate-100">Productivity pulse</h3>
-        <p className="mt-2 text-sm leading-6 text-slate-400">
-          Average completion is {average}%. Your strongest recent day was {strongestDay.label.toLowerCase()}.
-        </p>
+      <div className="premium-widget-head">
+        <div>
+          <p>Weekly insights</p>
+          <h3>Productivity pulse</h3>
+        </div>
+        <span className="status-chip">Adaptive read</span>
       </div>
+      <p className="premium-analytics-copy">
+        Average completion is {average}%. Your strongest recent day was {strongestDay.label.toLowerCase()}.
+      </p>
 
       <div className="space-y-6">
-        <div className="grid gap-3 md:grid-cols-3">
-          <div className="rounded-[22px] border border-white/8 bg-gradient-to-br from-white/[0.08] to-transparent p-4">
-            <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Peak day</p>
-            <p className="mt-2 text-lg font-semibold text-slate-50">{strongestDay.label}</p>
-            <p className="mt-1 text-sm text-slate-400">{strongestDay.productivity}% completion</p>
+        <div className="premium-insight-grid">
+          <div className="premium-insight-card">
+            <p>Peak day</p>
+            <strong>{strongestDay.label}</strong>
+            <span>{strongestDay.productivity}% completion</span>
           </div>
-          <div className="rounded-[22px] border border-white/8 bg-gradient-to-br from-white/[0.08] to-transparent p-4">
-            <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Needs support</p>
-            <p className="mt-2 text-lg font-semibold text-slate-50">{weakestDay.label}</p>
-            <p className="mt-1 text-sm text-slate-400">{weakestDay.productivity}% completion</p>
+          <div className="premium-insight-card">
+            <p>Needs support</p>
+            <strong>{weakestDay.label}</strong>
+            <span>{weakestDay.productivity}% completion</span>
           </div>
-          <div className="rounded-[22px] border border-white/8 bg-gradient-to-br from-white/[0.08] to-transparent p-4">
-            <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Mood trend</p>
-            <p className="mt-2 text-lg font-semibold text-slate-50">{moodAverage}/5</p>
-            <p className="mt-1 text-sm text-slate-400">Average check-in mood</p>
+          <div className="premium-insight-card">
+            <p>Mood trend</p>
+            <strong>{moodAverage}/5</strong>
+            <span>Average check-in mood</span>
           </div>
         </div>
         <div className="h-44">
@@ -132,18 +135,18 @@ function AnalyticsChart({ checkins, progress }) {
           </ResponsiveContainer>
         </div>
 
-        <div className="grid grid-cols-3 gap-3">
-          <div className="rounded-2xl border border-white/8 bg-white/4 p-4">
-            <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Streak</p>
-            <p className="mt-2 text-xl font-semibold text-slate-100">{progress.activeStreak}</p>
+        <div className="premium-stat-grid premium-stat-grid--triple">
+          <div className="premium-stat-card">
+            <p>Streak</p>
+            <strong>{progress.activeStreak}</strong>
           </div>
-          <div className="rounded-2xl border border-white/8 bg-white/4 p-4">
-            <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Best week</p>
-            <p className="mt-2 text-xl font-semibold text-slate-100">{progress.bestWeekCompletion || 0}%</p>
+          <div className="premium-stat-card">
+            <p>Best week</p>
+            <strong>{progress.bestWeekCompletion || 0}%</strong>
           </div>
-          <div className="rounded-2xl border border-white/8 bg-white/4 p-4">
-            <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Wins</p>
-            <p className="mt-2 text-xl font-semibold text-slate-100">{progress.comebackWins}</p>
+          <div className="premium-stat-card">
+            <p>Wins</p>
+            <strong>{progress.comebackWins}</strong>
           </div>
         </div>
       </div>
