@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import {
+  HiOutlineArchiveBox,
   HiOutlineChartBarSquare,
   HiOutlineClipboardDocumentList,
   HiOutlineFlag,
@@ -11,7 +12,10 @@ import {
   HiOutlineCalendarDays,
   HiOutlineChatBubbleLeftRight,
   HiOutlineCog6Tooth,
+  HiOutlineHeart,
   HiOutlineLightBulb,
+  HiOutlineRocketLaunch,
+  HiOutlineTrophy,
 } from "react-icons/hi2";
 
 const ITEM_META = {
@@ -20,10 +24,22 @@ const ITEM_META = {
   goals: { label: "Goals", icon: HiOutlineFlag },
   habits: { label: "Habits", icon: HiOutlineQueueList },
   daily: { label: "Progress", icon: HiOutlineChartBarSquare },
+  weekly: { label: "Weekly", icon: HiOutlineChartBarSquare },
+  review: { label: "Review", icon: HiOutlineSparkles },
+  monthly: { label: "Monthly", icon: HiOutlineArchiveBox },
   routine: { label: "Routines", icon: HiOutlineCalendarDays },
   career: { label: "Career", icon: HiOutlineLightBulb },
+  income: { label: "Income", icon: HiOutlineRocketLaunch },
   insights: { label: "Insights", icon: HiOutlineSparkles },
   chat: { label: "AI Coach", icon: HiOutlineChatBubbleLeftRight },
+  achievements: { label: "Achievements", icon: HiOutlineTrophy },
+  missions: { label: "Missions", icon: HiOutlineBolt },
+  history: { label: "History", icon: HiOutlineClipboardDocumentList },
+  feedback: { label: "Feedback", icon: HiOutlineChatBubbleLeftRight },
+  reminders: { label: "Reminders", icon: HiOutlineCalendarDays },
+  support: { label: "Support", icon: HiOutlineHeart },
+  system: { label: "System", icon: HiOutlineArchiveBox },
+  admin: { label: "Admin", icon: HiOutlineChartBarSquare },
   settings: { label: "Settings", icon: HiOutlineCog6Tooth },
 };
 

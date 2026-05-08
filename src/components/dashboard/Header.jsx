@@ -1,9 +1,19 @@
 import { motion } from "framer-motion";
-import { HiOutlineMoon, HiOutlinePlus, HiOutlineSparkles } from "react-icons/hi2";
+import { HiOutlineBars3BottomLeft, HiOutlineMoon, HiOutlinePlus, HiOutlineSparkles } from "react-icons/hi2";
 
 const MotionHeader = motion.header;
 
-function Header({ title, description, onQuickAdd, focusMode, onToggleFocus }) {
+function Header({
+  title,
+  description,
+  searchQuery,
+  onSearchChange,
+  streakLabel,
+  onQuickAdd,
+  focusMode,
+  onToggleFocus,
+  onToggleMobileNav,
+}) {
   return (
     <MotionHeader
       initial={{ opacity: 0, y: 12 }}
@@ -23,6 +33,20 @@ function Header({ title, description, onQuickAdd, focusMode, onToggleFocus }) {
       </div>
 
       <div className="hero-header-actions">
+        <button type="button" onClick={onToggleMobileNav} className="saas-button-secondary hero-header-mobile-nav">
+          <HiOutlineBars3BottomLeft className="h-4 w-4" />
+          Menu
+        </button>
+        <label className="hero-search-shell">
+          <span>Search workspace</span>
+          <input
+            className="saas-input"
+            value={searchQuery}
+            onChange={onSearchChange}
+            placeholder="Find goals, plans, routines..."
+          />
+        </label>
+        <span className="hero-header-chip">{streakLabel}</span>
         <button type="button" onClick={onToggleFocus} className="saas-button-secondary">
           <HiOutlineMoon className="h-4 w-4" />
           {focusMode ? "Exit Focus" : "Focus Mode"}
