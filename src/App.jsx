@@ -17,6 +17,11 @@ function PublicRoute({ user, children }) {
   return children;
 }
 
+function HomeRoute({ user }) {
+  if (user) return <Navigate to="/dashboard" replace />;
+  return <Landing />;
+}
+
 function FullScreenLoader() {
   return (
     <div className="h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
@@ -49,7 +54,7 @@ function App() {
     <BrowserRouter>
       <AppErrorBoundary>
         <Routes>
-          <Route path="/" element={<Landing />} />
+          <Route path="/" element={<HomeRoute user={user} />} />
           <Route
             path="/login"
             element={
