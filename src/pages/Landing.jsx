@@ -176,7 +176,11 @@ const landingMetrics = [
 
 function Landing() {
   const [activeDemo, setActiveDemo] = useState("student");
+  const [expandedMobileSection, setExpandedMobileSection] = useState("who");
   const demo = useMemo(() => demoModes[activeDemo], [activeDemo]);
+  const toggleMobileSection = (section) => {
+    setExpandedMobileSection((current) => (current === section ? "" : section));
+  };
 
   return (
     <div className="landing-experience">
@@ -282,6 +286,15 @@ function Landing() {
           <h2>Built for real people dealing with real pressure.</h2>
           <p>The product meets people where they actually are: overwhelmed, ambitious, lonely, stressed, curious, or trying to rebuild momentum without burning out.</p>
         </div>
+        <button
+          type="button"
+          className={`landing-mobile-toggle ${expandedMobileSection === "who" ? "is-open" : ""}`}
+          onClick={() => toggleMobileSection("who")}
+        >
+          <span>See who this helps</span>
+          <strong>{expandedMobileSection === "who" ? "Hide" : "Open"}</strong>
+        </button>
+        <div className={`landing-mobile-panel ${expandedMobileSection === "who" ? "is-open" : ""}`}>
         <div className="landing-audience-grid">
           {audienceCards.map((card) => {
             const Icon = card.icon;
@@ -296,6 +309,7 @@ function Landing() {
             );
           })}
         </div>
+        </div>
       </MotionSection>
 
       <MotionSection id="how" className="landing-section landing-section--workflow">
@@ -303,6 +317,15 @@ function Landing() {
           <p className="landing-eyebrow">How the AI works</p>
           <h2>Not a static planner. A closed-loop guidance engine.</h2>
         </div>
+        <button
+          type="button"
+          className={`landing-mobile-toggle ${expandedMobileSection === "how" ? "is-open" : ""}`}
+          onClick={() => toggleMobileSection("how")}
+        >
+          <span>See the AI workflow</span>
+          <strong>{expandedMobileSection === "how" ? "Hide" : "Open"}</strong>
+        </button>
+        <div className={`landing-mobile-panel ${expandedMobileSection === "how" ? "is-open" : ""}`}>
         <div className="landing-workflow-grid">
           {workflowSteps.map((step) => (
             <article key={step.step} className="landing-workflow-card">
@@ -312,6 +335,7 @@ function Landing() {
             </article>
           ))}
         </div>
+        </div>
       </MotionSection>
 
       <MotionSection className="landing-section">
@@ -320,6 +344,15 @@ function Landing() {
           <h2>The system remembers what helps and what keeps failing.</h2>
           <p>It learns what improves focus, what creates stress, when motivation drops, and which habits actually survive in your real life.</p>
         </div>
+        <button
+          type="button"
+          className={`landing-mobile-toggle ${expandedMobileSection === "memory" ? "is-open" : ""}`}
+          onClick={() => toggleMobileSection("memory")}
+        >
+          <span>See AI memory examples</span>
+          <strong>{expandedMobileSection === "memory" ? "Hide" : "Open"}</strong>
+        </button>
+        <div className={`landing-mobile-panel ${expandedMobileSection === "memory" ? "is-open" : ""}`}>
         <div className="landing-memory-grid">
           {memoryInsights.map((insight) => (
             <article className="landing-memory-card" key={insight}>
@@ -327,6 +360,7 @@ function Landing() {
               <p>{insight}</p>
             </article>
           ))}
+        </div>
         </div>
       </MotionSection>
 
@@ -336,13 +370,23 @@ function Landing() {
           <h2>Turn curiosity into leverage, proof, and future opportunity.</h2>
           <p>The AI helps identify strengths, shape learning loops, and build a path from hobby to visible skill to monetizable work.</p>
         </div>
-        <div className="landing-roadmap">
-          {hobbyRoadmap.map((item) => (
-            <article className="landing-roadmap-step" key={item.label}>
-              <strong>{item.label}</strong>
-              <p>{item.detail}</p>
-            </article>
-          ))}
+        <button
+          type="button"
+          className={`landing-mobile-toggle ${expandedMobileSection === "income" ? "is-open" : ""}`}
+          onClick={() => toggleMobileSection("income")}
+        >
+          <span>See the growth path</span>
+          <strong>{expandedMobileSection === "income" ? "Hide" : "Open"}</strong>
+        </button>
+        <div className={`landing-mobile-panel ${expandedMobileSection === "income" ? "is-open" : ""}`}>
+          <div className="landing-roadmap">
+            {hobbyRoadmap.map((item) => (
+              <article className="landing-roadmap-step" key={item.label}>
+                <strong>{item.label}</strong>
+                <p>{item.detail}</p>
+              </article>
+            ))}
+          </div>
         </div>
       </MotionSection>
 
@@ -352,18 +396,28 @@ function Landing() {
           <h2>A routine that changes when life changes.</h2>
           <p>Each day, users can share mood, stress, motivation, sleep, and energy. The AI responds by adjusting intensity, recovery, and expectations.</p>
         </div>
-        <div className="landing-checkin-card">
-          <div className="landing-checkin-grid">
-            {checkinSignals.map((signal) => (
-              <article key={signal.label} className="landing-checkin-signal">
-                <span>{signal.label}</span>
-                <strong>{signal.value}</strong>
-              </article>
-            ))}
-          </div>
-          <div className="landing-checkin-note">
-            <HiOutlineMoon className="h-5 w-5" />
-            <p>Your energy is lower this week, so the system reduces workload intensity and preserves the most important blocks first.</p>
+        <button
+          type="button"
+          className={`landing-mobile-toggle ${expandedMobileSection === "checkin" ? "is-open" : ""}`}
+          onClick={() => toggleMobileSection("checkin")}
+        >
+          <span>See check-in adaptation</span>
+          <strong>{expandedMobileSection === "checkin" ? "Hide" : "Open"}</strong>
+        </button>
+        <div className={`landing-mobile-panel ${expandedMobileSection === "checkin" ? "is-open" : ""}`}>
+          <div className="landing-checkin-card">
+            <div className="landing-checkin-grid">
+              {checkinSignals.map((signal) => (
+                <article key={signal.label} className="landing-checkin-signal">
+                  <span>{signal.label}</span>
+                  <strong>{signal.value}</strong>
+                </article>
+              ))}
+            </div>
+            <div className="landing-checkin-note">
+              <HiOutlineMoon className="h-5 w-5" />
+              <p>Your energy is lower this week, so the system reduces workload intensity and preserves the most important blocks first.</p>
+            </div>
           </div>
         </div>
       </MotionSection>
@@ -373,14 +427,24 @@ function Landing() {
           <p className="landing-eyebrow">Life balance analytics</p>
           <h2>Watch consistency, emotional balance, creativity, learning, and direction evolve together.</h2>
         </div>
-        <div className="landing-analytics-grid">
-          {analyticsCards.map((card) => (
-            <article className="landing-analytics-card" key={card.title}>
-              <span>{card.title}</span>
-              <strong>{card.value}</strong>
-              <p>{card.note}</p>
-            </article>
-          ))}
+        <button
+          type="button"
+          className={`landing-mobile-toggle ${expandedMobileSection === "analytics" ? "is-open" : ""}`}
+          onClick={() => toggleMobileSection("analytics")}
+        >
+          <span>See balance analytics</span>
+          <strong>{expandedMobileSection === "analytics" ? "Hide" : "Open"}</strong>
+        </button>
+        <div className={`landing-mobile-panel ${expandedMobileSection === "analytics" ? "is-open" : ""}`}>
+          <div className="landing-analytics-grid">
+            {analyticsCards.map((card) => (
+              <article className="landing-analytics-card" key={card.title}>
+                <span>{card.title}</span>
+                <strong>{card.value}</strong>
+                <p>{card.note}</p>
+              </article>
+            ))}
+          </div>
         </div>
       </MotionSection>
 
@@ -389,36 +453,46 @@ function Landing() {
           <p className="landing-eyebrow">Interactive live demo</p>
           <h2>See how the AI behaves before you sign up.</h2>
         </div>
-        <div className="landing-demo-shell">
-          <div className="landing-demo-tabs">
-            {Object.entries(demoModes).map(([key, item]) => (
-              <button
-                key={key}
-                type="button"
-                className={key === activeDemo ? "landing-demo-tab is-active" : "landing-demo-tab"}
-                onClick={() => setActiveDemo(key)}
-              >
-                {item.title}
-              </button>
-            ))}
-          </div>
-          <article className="landing-demo-card">
-            <div className="landing-demo-card__head">
-              <div>
-                <span>{demo.title}</span>
-                <h3>{demo.persona}</h3>
-              </div>
-              <p>{demo.summary}</p>
-            </div>
-            <div className="landing-demo-card__plan">
-              {demo.plan.map((item) => (
-                <div className="landing-demo-line" key={item}>
-                  <HiOutlineArrowTrendingUp className="h-4 w-4" />
-                  <span>{item}</span>
-                </div>
+        <button
+          type="button"
+          className={`landing-mobile-toggle ${expandedMobileSection === "demo" ? "is-open" : ""}`}
+          onClick={() => toggleMobileSection("demo")}
+        >
+          <span>Open the live demo</span>
+          <strong>{expandedMobileSection === "demo" ? "Hide" : "Open"}</strong>
+        </button>
+        <div className={`landing-mobile-panel ${expandedMobileSection === "demo" ? "is-open" : ""}`}>
+          <div className="landing-demo-shell">
+            <div className="landing-demo-tabs">
+              {Object.entries(demoModes).map(([key, item]) => (
+                <button
+                  key={key}
+                  type="button"
+                  className={key === activeDemo ? "landing-demo-tab is-active" : "landing-demo-tab"}
+                  onClick={() => setActiveDemo(key)}
+                >
+                  {item.title}
+                </button>
               ))}
             </div>
-          </article>
+            <article className="landing-demo-card">
+              <div className="landing-demo-card__head">
+                <div>
+                  <span>{demo.title}</span>
+                  <h3>{demo.persona}</h3>
+                </div>
+                <p>{demo.summary}</p>
+              </div>
+              <div className="landing-demo-card__plan">
+                {demo.plan.map((item) => (
+                  <div className="landing-demo-line" key={item}>
+                    <HiOutlineArrowTrendingUp className="h-4 w-4" />
+                    <span>{item}</span>
+                  </div>
+                ))}
+              </div>
+            </article>
+          </div>
         </div>
       </MotionSection>
 
@@ -427,13 +501,23 @@ function Landing() {
           <p className="landing-eyebrow">Real user journeys</p>
           <h2>From confusion and pressure to steadier direction.</h2>
         </div>
-        <div className="landing-journey-grid">
-          {journeys.map((journey) => (
-            <article className="landing-journey-card" key={journey.title}>
-              <h3>{journey.title}</h3>
-              <p>{journey.story}</p>
-            </article>
-          ))}
+        <button
+          type="button"
+          className={`landing-mobile-toggle ${expandedMobileSection === "journeys" ? "is-open" : ""}`}
+          onClick={() => toggleMobileSection("journeys")}
+        >
+          <span>Read real journeys</span>
+          <strong>{expandedMobileSection === "journeys" ? "Hide" : "Open"}</strong>
+        </button>
+        <div className={`landing-mobile-panel ${expandedMobileSection === "journeys" ? "is-open" : ""}`}>
+          <div className="landing-journey-grid">
+            {journeys.map((journey) => (
+              <article className="landing-journey-card" key={journey.title}>
+                <h3>{journey.title}</h3>
+                <p>{journey.story}</p>
+              </article>
+            ))}
+          </div>
         </div>
       </MotionSection>
 
@@ -442,19 +526,29 @@ function Landing() {
           <p className="landing-eyebrow">Trust & safety</p>
           <h2>Supportive, private, and under your control.</h2>
         </div>
-        <div className="landing-trust-grid">
-          <article className="landing-trust-card">
-            <HiOutlineUserGroup className="h-5 w-5" />
-            <p>Your plans are editable, flexible, and designed to support your life, not trap you in one system.</p>
-          </article>
-          <article className="landing-trust-card">
-            <HiOutlineCalendarDays className="h-5 w-5" />
-            <p>The AI gives adaptive guidance, not therapy or emergency support. You stay in control of your routines and choices.</p>
-          </article>
-          <article className="landing-trust-card">
-            <HiOutlineBolt className="h-5 w-5" />
-            <p>The platform uses your inputs to shape routines, roadmaps, and consistency support around real-life conditions.</p>
-          </article>
+        <button
+          type="button"
+          className={`landing-mobile-toggle ${expandedMobileSection === "trust" ? "is-open" : ""}`}
+          onClick={() => toggleMobileSection("trust")}
+        >
+          <span>Read trust and safety</span>
+          <strong>{expandedMobileSection === "trust" ? "Hide" : "Open"}</strong>
+        </button>
+        <div className={`landing-mobile-panel ${expandedMobileSection === "trust" ? "is-open" : ""}`}>
+          <div className="landing-trust-grid">
+            <article className="landing-trust-card">
+              <HiOutlineUserGroup className="h-5 w-5" />
+              <p>Your plans are editable, flexible, and designed to support your life, not trap you in one system.</p>
+            </article>
+            <article className="landing-trust-card">
+              <HiOutlineCalendarDays className="h-5 w-5" />
+              <p>The AI gives adaptive guidance, not therapy or emergency support. You stay in control of your routines and choices.</p>
+            </article>
+            <article className="landing-trust-card">
+              <HiOutlineBolt className="h-5 w-5" />
+              <p>The platform uses your inputs to shape routines, roadmaps, and consistency support around real-life conditions.</p>
+            </article>
+          </div>
         </div>
       </MotionSection>
 
