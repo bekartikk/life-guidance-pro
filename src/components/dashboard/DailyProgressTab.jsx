@@ -40,7 +40,7 @@ function buildRewardTitle(reward) {
   return String(reward.reason || "progress").replace(/-/g, " ");
 }
 
-function DailyProgressTab({ checkins, progress, rewards }) {
+function DailyProgressTab({ checkins, progress, rewards, behavioralInsights }) {
   const today = getDateKey();
   const currentWeekKey = getWeekKey();
 
@@ -110,6 +110,52 @@ function DailyProgressTab({ checkins, progress, rewards }) {
         <div className="summary-stat">
           <span className="stat-label">Points This Week</span>
           <span className="stat-value">{weekSummary.pointsEarned}</span>
+        </div>
+        <div className="summary-stat">
+          <span className="stat-label">Life state</span>
+          <span className="stat-value">{behavioralInsights.lifeState.label}</span>
+        </div>
+      </div>
+
+      <div className="split-progress-grid">
+        <div className="section-card">
+          <div className="section-card-header">
+            <div>
+              <h3>Adaptive AI read</h3>
+              <p className="muted-text">A short interpretation of what your recent days are teaching the system.</p>
+            </div>
+          </div>
+          <div className="goal-list">
+            {behavioralInsights.summaryCards.map((item) => (
+              <article key={item.label} className="goal-card">
+                <strong>{item.label}</strong>
+                <span className="goal-meta">{item.value}</span>
+                <p>{item.detail}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+
+        <div className="section-card">
+          <div className="section-card-header">
+            <div>
+              <h3>Burnout prevention</h3>
+              <p className="muted-text">The system should intervene before pressure becomes collapse.</p>
+            </div>
+          </div>
+          <div className="goal-list">
+            <article className="goal-card">
+              <strong>Burnout risk</strong>
+              <span className="goal-meta">{behavioralInsights.burnoutRisk.score}% · {behavioralInsights.burnoutRisk.label}</span>
+              <p>{behavioralInsights.burnoutRisk.summary}</p>
+            </article>
+            {behavioralInsights.adaptiveRecommendations.map((item) => (
+              <article key={item} className="goal-card">
+                <strong>Recommended adjustment</strong>
+                <p>{item}</p>
+              </article>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -198,13 +244,70 @@ function DailyProgressTab({ checkins, progress, rewards }) {
                         {checkin.loneliness ? ` · Loneliness ${checkin.loneliness}` : ""}
                       </span>
                     ) : null}
+                    {(checkin.stress || checkin.motivation || checkin.sleepQuality || checkin.happiness) ? (
+                      <span className="goal-meta">
+                        {checkin.stress ? `Stress ${checkin.stress}` : ""}
+                        {checkin.motivation ? ` · Motivation ${checkin.motivation}` : ""}
+                        {checkin.sleepQuality ? ` · Sleep ${checkin.sleepQuality}` : ""}
+                        {checkin.happiness ? ` · Happiness ${checkin.happiness}` : ""}
+                      </span>
+                    ) : null}
                     {checkin.difficultyReason ? <span className="goal-meta">Difficult because: {checkin.difficultyReason}</span> : null}
+                    {checkin.wins ? <span className="goal-meta">Micro-win: {checkin.wins}</span> : null}
                     <p>{checkin.note || "No note saved for this day."}</p>
+                    {checkin.reflection ? <p className="day-note">{checkin.reflection}</p> : null}
                   </article>
                 );
               })}
             </div>
           )}
+        </div>
+      </div>
+
+      <div className="split-progress-grid">
+        <div className="section-card">
+          <div className="section-card-header">
+            <div>
+              <h3>Neglected life areas</h3>
+              <p className="muted-text">The AI uses these signals to rebalance routines before things start quietly slipping.</p>
+            </div>
+          </div>
+          <div className="goal-list">
+            {behavioralInsights.neglectedAreas.length === 0 ? (
+              <article className="goal-card">
+                <strong>No major blind spot detected</strong>
+                <p>Your current signals look reasonably balanced. Keep logging honestly so this stays trustworthy.</p>
+              </article>
+            ) : (
+              behavioralInsights.neglectedAreas.map((item) => (
+                <article key={item.area} className="goal-card">
+                  <strong>{item.area}</strong>
+                  <p>{item.reason}</p>
+                </article>
+              ))
+            )}
+          </div>
+        </div>
+
+        <div className="section-card">
+          <div className="section-card-header">
+            <div>
+              <h3>Reflection journal</h3>
+              <p className="muted-text">A calmer read of what you have been feeling, not just what you completed.</p>
+            </div>
+          </div>
+          <div className="goal-list">
+            <article className="goal-card">
+              <strong>{behavioralInsights.journal.headline}</strong>
+              <p>{behavioralInsights.journal.prompt}</p>
+            </article>
+            {behavioralInsights.journal.entries.map((entry) => (
+              <article key={entry} className="goal-card">
+                <strong>Journal echo</strong>
+                <p>{entry}</p>
+              </article>
+            ))}
+          </div>
         </div>
       </div>
 

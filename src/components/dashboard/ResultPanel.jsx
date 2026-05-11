@@ -1,4 +1,10 @@
-﻿import { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import {
+  HiOutlineArrowDownTray,
+  HiOutlineClipboardDocument,
+  HiOutlineShare,
+  HiOutlineSparkles,
+} from "react-icons/hi2";
 
 function formatLabel(value) {
   return String(value || "")
@@ -55,6 +61,68 @@ function pickSection(sections, matcher, fallbackIndex) {
   );
 }
 
+function renderSectionBody(body) {
+  const lines = String(body || "").split("\n").map((line) => line.trimEnd());
+  const blocks = [];
+  let bulletBuffer = [];
+
+  const flushBullets = () => {
+    if (bulletBuffer.length > 0) {
+      blocks.push({ type: "list", items: bulletBuffer });
+      bulletBuffer = [];
+    }
+  };
+
+  lines.forEach((line) => {
+    const trimmed = line.trim();
+    if (!trimmed) {
+      flushBullets();
+      return;
+    }
+
+    if (/^[-*•]\s+/.test(trimmed)) {
+      bulletBuffer.push(trimmed.replace(/^[-*•]\s+/, ""));
+      return;
+    }
+
+    flushBullets();
+    if (/^(today|this week|next week|note|warning|remember)\s*:/i.test(trimmed)) {
+      blocks.push({ type: "callout", text: trimmed });
+      return;
+    }
+
+    blocks.push({ type: "paragraph", text: trimmed });
+  });
+
+  flushBullets();
+
+  return blocks.map((block, index) => {
+    if (block.type === "list") {
+      return (
+        <ul className="result-rich-list" key={`list-${index}`}>
+          {block.items.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      );
+    }
+
+    if (block.type === "callout") {
+      return (
+        <blockquote className="result-rich-callout" key={`callout-${index}`}>
+          {block.text}
+        </blockquote>
+      );
+    }
+
+    return (
+      <p className="result-rich-paragraph" key={`paragraph-${index}`}>
+        {block.text}
+      </p>
+    );
+  });
+}
+
 function ResultPanel({
   currentPlan,
   currentPlanFeedback,
@@ -66,6 +134,7 @@ function ResultPanel({
   progress,
   recentRewards,
   todayCheckin,
+  behavioralInsights,
   formatDate,
   onAdjustChange,
   onAdjust,
@@ -80,6 +149,8 @@ function ResultPanel({
     planId: null,
     headings: new Set(),
   }));
+  const [actionMessage, setActionMessage] = useState("");
+
   const summaryCards = useMemo(() => {
     const keyShift = pickSection(sections, (heading) => heading.includes("assessment") || heading.includes("state") || heading.includes("shift"), 0);
     const todayFocus = pickSection(sections, (heading, body) => heading.includes("routine") || heading.includes("today") || body.includes("today"), 1);
@@ -107,7 +178,6 @@ function ResultPanel({
       ? expandedState.headings
       : new Set(sections[0]?.heading ? [sections[0].heading] : []);
 
-
   function toggleSection(heading) {
     setExpandedState((current) => {
       const baseHeadings =
@@ -127,8 +197,47 @@ function ResultPanel({
     });
   }
 
+  async function handleCopyPlan() {
+    try {
+      await navigator.clipboard.writeText(currentPlan.result || "");
+      setActionMessage("Plan copied to clipboard.");
+    } catch {
+      setActionMessage("Could not copy the plan on this device.");
+    }
+  }
+
+  async function handleSharePlan() {
+    const sharePayload = {
+      title: currentPlan.title,
+      text: currentPlan.result,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(sharePayload);
+        setActionMessage("Plan shared.");
+        return;
+      }
+      await navigator.clipboard.writeText(`${currentPlan.title}\n\n${currentPlan.result}`);
+      setActionMessage("Share is not available here, so the plan was copied instead.");
+    } catch {
+      setActionMessage("Share was cancelled.");
+    }
+  }
+
+  function handleExportPlan() {
+    const blob = new Blob([currentPlan.result || ""], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${currentPlan.title || "life-guidance-plan"}.txt`;
+    link.click();
+    URL.revokeObjectURL(url);
+    setActionMessage("Plan export started.");
+  }
+
   return (
-    <section className="result-panel">
+    <section className="result-panel" id="result-panel">
       <div className="result-header">
         <div>
           <p className="eyebrow">Latest result</p>
@@ -140,6 +249,20 @@ function ResultPanel({
           <button className="secondary-button" type="button" onClick={onRate}>Rate this plan</button>
         </div>
       </div>
+
+      <div className="result-toolbar">
+        <div className="result-toolbar__title">
+          <span><HiOutlineSparkles className="h-4 w-4" /> AI roadmap</span>
+          <p>Use the quick actions to save, share, or revisit this plan without losing momentum.</p>
+        </div>
+        <div className="result-toolbar__actions">
+          <button className="secondary-button" type="button" onClick={handleCopyPlan}><HiOutlineClipboardDocument className="h-4 w-4" /> Copy</button>
+          <button className="secondary-button" type="button" onClick={handleSharePlan}><HiOutlineShare className="h-4 w-4" /> Share</button>
+          <button className="secondary-button" type="button" onClick={handleExportPlan}><HiOutlineArrowDownTray className="h-4 w-4" /> Export</button>
+        </div>
+      </div>
+
+      {actionMessage ? <p className="feedback-badge">{actionMessage}</p> : null}
 
       <div className="reward-summary">
         <div>
@@ -175,7 +298,16 @@ function ResultPanel({
       <div className="checkin-panel">
         <div>
           <h3>Today's check-in</h3>
-          <p>Reward effort, not perfection. Mark how today went for your current plan.</p>
+          <p>Reward effort, not perfection. Give the AI enough emotional context to adapt tomorrow realistically.</p>
+        </div>
+        <div className="result-summary-grid result-summary-grid--compact">
+          {behavioralInsights.summaryCards.slice(0, 2).map((item) => (
+            <article className="result-summary-card" key={`checkin-${item.label}`}>
+              <span>{item.label}</span>
+              <strong>{item.value}</strong>
+              <p>{item.detail}</p>
+            </article>
+          ))}
         </div>
         <div className="checkin-actions">
           <button type="button" onClick={() => onCheckin("completed")} disabled={isSubmittingCheckin}>Completed</button>
@@ -231,6 +363,98 @@ function ResultPanel({
             </select>
           </label>
         </div>
+        <div className="two-column">
+          <label>
+            Stress
+            <select name="stress" value={checkinFields.stress} onChange={onCheckinFieldChange}>
+              <option value="">Choose</option>
+              <option value="1">1 - Light</option>
+              <option value="2">2 - Manageable</option>
+              <option value="3">3 - Present</option>
+              <option value="4">4 - Heavy</option>
+              <option value="5">5 - Overloaded</option>
+            </select>
+          </label>
+          <label>
+            Motivation
+            <select name="motivation" value={checkinFields.motivation} onChange={onCheckinFieldChange}>
+              <option value="">Choose</option>
+              <option value="1">1 - Flat</option>
+              <option value="2">2 - Fragile</option>
+              <option value="3">3 - Mixed</option>
+              <option value="4">4 - Ready</option>
+              <option value="5">5 - Strong</option>
+            </select>
+          </label>
+        </div>
+        <div className="two-column">
+          <label>
+            Sleep quality
+            <select name="sleepQuality" value={checkinFields.sleepQuality} onChange={onCheckinFieldChange}>
+              <option value="">Choose</option>
+              <option value="1">1 - Broken</option>
+              <option value="2">2 - Poor</option>
+              <option value="3">3 - Okay</option>
+              <option value="4">4 - Good</option>
+              <option value="5">5 - Restored</option>
+            </select>
+          </label>
+          <label>
+            Happiness
+            <select name="happiness" value={checkinFields.happiness} onChange={onCheckinFieldChange}>
+              <option value="">Choose</option>
+              <option value="1">1 - Very low</option>
+              <option value="2">2 - Low</option>
+              <option value="3">3 - Steady</option>
+              <option value="4">4 - Good</option>
+              <option value="5">5 - High</option>
+            </select>
+          </label>
+        </div>
+        <div className="two-column">
+          <label>
+            Productivity
+            <select name="productivity" value={checkinFields.productivity} onChange={onCheckinFieldChange}>
+              <option value="">Choose</option>
+              <option value="1">1 - Stalled</option>
+              <option value="2">2 - Low</option>
+              <option value="3">3 - Some progress</option>
+              <option value="4">4 - Strong</option>
+              <option value="5">5 - Excellent</option>
+            </select>
+          </label>
+          <label>
+            Emotional state
+            <select name="emotionalState" value={checkinFields.emotionalState} onChange={onCheckinFieldChange}>
+              <option value="">Choose</option>
+              <option value="calm">Calm</option>
+              <option value="uncertain">Uncertain</option>
+              <option value="drained">Drained</option>
+              <option value="hopeful">Hopeful</option>
+              <option value="anxious">Anxious</option>
+            </select>
+          </label>
+        </div>
+        <div className="two-column">
+          <label>
+            Pressure right now
+            <input
+              name="pressureLevel"
+              value={checkinFields.pressureLevel}
+              onChange={onCheckinFieldChange}
+              placeholder="Exams, deadlines, finances, family..."
+            />
+          </label>
+          <label>
+            Personal issue
+            <input
+              name="personalIssue"
+              value={checkinFields.personalIssue}
+              onChange={onCheckinFieldChange}
+              placeholder="Optional context the AI should respect"
+            />
+          </label>
+        </div>
         <label>
           What made today difficult?
           <input
@@ -238,6 +462,24 @@ function ResultPanel({
             value={checkinFields.difficultyReason}
             onChange={onCheckinFieldChange}
             placeholder="Time pressure, low energy, loneliness, unclear plan..."
+          />
+        </label>
+        <label>
+          Micro-win worth remembering
+          <input
+            name="wins"
+            value={checkinFields.wins}
+            onChange={onCheckinFieldChange}
+            placeholder="A small win, recovery choice, or proof that you still showed up"
+          />
+        </label>
+        <label>
+          Reflection for the AI memory
+          <textarea
+            name="reflection"
+            value={checkinFields.reflection}
+            onChange={onCheckinFieldChange}
+            placeholder="What pattern should the AI remember about today?"
           />
         </label>
         <textarea value={checkinNote} onChange={onCheckinNoteChange} placeholder="Optional note about what helped, what got in the way, or what you want to remember." />
@@ -267,7 +509,7 @@ function ResultPanel({
       <div className="result-outline">
         <div>
           <h3>Plan outline</h3>
-          <p>Open only the sections you need right now so the plan feels calmer to scan.</p>
+          <p>Open only the sections you need right now so the roadmap feels calmer to scan.</p>
         </div>
         <div className="result-outline-chips">
           {sections.map((section) => (
@@ -302,7 +544,11 @@ function ResultPanel({
               </div>
               <span>{activeExpandedSections.has(section.heading) ? "Hide" : "Open"}</span>
             </button>
-            {activeExpandedSections.has(section.heading) ? <div className="result-section-body">{section.body}</div> : null}
+            {activeExpandedSections.has(section.heading) ? (
+              <div className="result-section-body">
+                {renderSectionBody(section.body)}
+              </div>
+            ) : null}
           </article>
         ))}
       </div>
@@ -319,4 +565,3 @@ function ResultPanel({
 }
 
 export default ResultPanel;
-

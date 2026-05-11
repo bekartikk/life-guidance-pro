@@ -1,5 +1,4 @@
-﻿import { useEffect, useMemo, useState } from "react";
-import { sampleProfiles } from "../data/sampleProfiles";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import {
   HiOutlineArrowTrendingUp,
@@ -78,6 +77,7 @@ import {
 import { getDateKey } from "../services/rewards";
 import { applyRewardAction, loadRewardEvents, loadUserCheckins, loadUserProgress, submitDailyCheckin } from "../services/progressData";
 import { logPlanGeneration, logPlanFeedback, logPlanAdjustment, logCheckinPattern } from "../services/dataCollection";
+import { buildBehavioralInsights } from "../services/behavioralInsights";
 
 
 const initialForm = {
@@ -193,6 +193,16 @@ const initialCheckinFields = {
   mood: "",
   energy: "",
   focus: "",
+  stress: "",
+  motivation: "",
+  productivity: "",
+  sleepQuality: "",
+  happiness: "",
+  emotionalState: "",
+  pressureLevel: "",
+  personalIssue: "",
+  wins: "",
+  reflection: "",
   loneliness: "",
   difficultyReason: "",
 };
@@ -665,6 +675,7 @@ function SectionLoadingCard({ title, description }) {
 const MotionSection = motion.section;
 
 function Dashboard({ user }) {
+  const resultPanelRef = useRef(null);
   const [activeTab, setActiveTab] = useState("planner");
   const [form, setForm] = useState(initialForm);
   const [profile, setProfile] = useState(initialProfile);
@@ -915,7 +926,7 @@ function Dashboard({ user }) {
 
     const timer = window.setTimeout(() => {
       const notification = new Notification("Life Guidance Pro", {
-        body: "Time to reconnect with today’s routine. Even the minimum version counts.",
+        body: "Time to reconnect with todayÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢s routine. Even the minimum version counts.",
       });
       window.localStorage.setItem(storageKey, "sent");
       window.setTimeout(() => notification.close(), 7000);
@@ -936,14 +947,18 @@ function Dashboard({ user }) {
     [profile, plans, checkins],
   );
   const missionSummary = useMemo(() => buildMissionSummary(progress), [progress]);
-  const onboardingSteps = useMemo(
-    () => [
-      { label: "Save your profile", done: Boolean(profile.mainGoal || profile.interests || profile.fullName) },
-      { label: "Create your first plan", done: plans.length > 0 },
-      { label: "Add one goal", done: goals.length > 0 },
-      { label: "Track one daily check-in", done: checkins.length > 0 },
-    ],
-    [profile, plans.length, goals.length, checkins.length],
+  const behavioralInsights = useMemo(
+    () =>
+      buildBehavioralInsights({
+        profile,
+        plans,
+        goals,
+        habits,
+        checkins,
+        progress,
+        hobbyPlans,
+      }),
+    [profile, plans, goals, habits, checkins, progress, hobbyPlans],
   );
   const sidebarItems = useMemo(
     () =>
@@ -987,10 +1002,10 @@ function Dashboard({ user }) {
         "balanced",
       recommendation:
         currentPlan
-          ? "Protect one next step from the latest plan, then use the rail to watch your energy and consistency."
+          ? behavioralInsights.adaptiveRecommendations[0] || "Protect one next step from the latest plan, then use the rail to watch your energy and consistency."
           : "Use the planner once with honest answers. The rest of the dashboard gets much smarter after the first plan.",
     }),
-    [currentPlan, profile.fullName, personalizationInsights.bestFocus],
+    [behavioralInsights.adaptiveRecommendations, currentPlan, profile.fullName, personalizationInsights.bestFocus],
   );
 
   const handleTabChange = (nextTab) => {
@@ -1007,6 +1022,16 @@ function Dashboard({ user }) {
       setError(logoutError.message || "Could not sign out right now.");
     }
   };
+
+  useEffect(() => {
+    if (activeTab !== "planner" || !currentPlan?.id) return undefined;
+
+    const timer = window.setTimeout(() => {
+      resultPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 260);
+
+    return () => window.clearTimeout(timer);
+  }, [activeTab, currentPlan?.id]);
 
   const updateField = (event) => setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
   const updateProfileField = (event) => setProfile((current) => ({ ...current, [event.target.name]: event.target.value }));
@@ -1032,13 +1057,6 @@ function Dashboard({ user }) {
     setAdjustmentRequest("");
     setError("");
     setStatusMessage("");
-  };
-
-  const loadSampleProfile = (sample) => {
-    setForm((current) => ({ ...current, ...sample.values }));
-    setActiveTab("planner");
-    setStatusMessage(`Loaded sample: ${sample.label}`);
-    setError("");
   };
 
   const handleQuickAddSubmit = (event) => {
@@ -1247,6 +1265,16 @@ function Dashboard({ user }) {
         mood: result.checkin.mood || "",
         energy: result.checkin.energy || "",
         focus: result.checkin.focus || "",
+        stress: result.checkin.stress || "",
+        motivation: result.checkin.motivation || "",
+        productivity: result.checkin.productivity || "",
+        sleepQuality: result.checkin.sleepQuality || "",
+        happiness: result.checkin.happiness || "",
+        emotionalState: result.checkin.emotionalState || "",
+        pressureLevel: result.checkin.pressureLevel || "",
+        personalIssue: result.checkin.personalIssue || "",
+        wins: result.checkin.wins || "",
+        reflection: result.checkin.reflection || "",
         loneliness: result.checkin.loneliness || "",
         difficultyReason: result.checkin.difficultyReason || "",
       });
@@ -1348,7 +1376,7 @@ function Dashboard({ user }) {
         userId: user.uid,
         userEmail: user.email,
         title: `${hobbyDraft.hobby.trim()} path`,
-        summary: `${hobbyDraft.level} level · ${hobbyDraft.timePerWeek} each week · ${hobbyDraft.incomeStyle} style`,
+        summary: `${hobbyDraft.level} level Ãƒâ€šÃ‚Â· ${hobbyDraft.timePerWeek} each week Ãƒâ€šÃ‚Â· ${hobbyDraft.incomeStyle} style`,
         inputs: hobbyDraft,
         experiments,
       });
@@ -1850,7 +1878,7 @@ function Dashboard({ user }) {
           {plannerBootstrapPending && (
             <SectionLoadingCard
               title="Loading your saved context"
-              description="We’re pulling in your latest plans, profile, and feedback so the planner can start from your real history."
+              description="WeÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢re pulling in your latest plans, profile, and feedback so the planner can start from your real history."
             />
           )}
           <PlannerTab
@@ -1886,7 +1914,7 @@ function Dashboard({ user }) {
       case "habits":
         return <WidgetErrorBoundary title="Habits unavailable" description="The habits workspace hit a rendering problem."><HabitTabDirect habitDraft={habitDraft} habits={habits} isSavingHabit={isSavingHabit} onChange={updateHabitField} onSubmit={handleSaveHabit} onDelete={handleDeleteHabit} onToggle={handleToggleHabit} /></WidgetErrorBoundary>;
       case "daily":
-        return <WidgetErrorBoundary title="Daily progress unavailable" description="Check-in history could not render."><DailyProgressTabDirect checkins={checkins} progress={progress} rewards={rewardEvents} /></WidgetErrorBoundary>;
+        return <WidgetErrorBoundary title="Daily progress unavailable" description="Check-in history could not render."><DailyProgressTabDirect checkins={checkins} progress={progress} rewards={rewardEvents} behavioralInsights={behavioralInsights} /></WidgetErrorBoundary>;
       case "weekly":
         return <WidgetErrorBoundary title="Weekly progress unavailable" description="The weekly progress view could not render."><WeeklyProgressTabDirect checkins={checkins} progress={progress} rewards={rewardEvents} onExportWeeklySummary={handleExportWeeklySummary} onShareWeeklySummary={handleShareWeeklySummary} /></WidgetErrorBoundary>;
       case "review":
@@ -1906,7 +1934,7 @@ function Dashboard({ user }) {
       case "missions":
         return <WidgetErrorBoundary title="Missions unavailable" description="The mission surface could not render."><MissionsTabDirect progress={progress} missionSummary={missionSummary} /></WidgetErrorBoundary>;
       case "insights":
-        return <WidgetErrorBoundary title="Insights unavailable" description="The personalization surface could not render."><PersonalizationTabDirect insights={personalizationInsights} profile={profile} plans={plans} checkins={checkins} /></WidgetErrorBoundary>;
+        return <WidgetErrorBoundary title="Insights unavailable" description="The personalization surface could not render."><PersonalizationTabDirect insights={personalizationInsights} profile={profile} plans={plans} checkins={checkins} behavioralInsights={behavioralInsights} /></WidgetErrorBoundary>;
       case "system":
         return <WidgetErrorBoundary title="System map unavailable" description="The project brain map could not render."><ProjectMapTabDirect /></WidgetErrorBoundary>;
       case "history":
@@ -1929,14 +1957,6 @@ function Dashboard({ user }) {
   };
 
   const renderedTab = renderActiveTab();
-  const filteredSamples = sampleProfiles.filter((sample) => {
-    if (!searchQuery.trim()) return true;
-    const query = searchQuery.trim().toLowerCase();
-    return (
-      sample.label.toLowerCase().includes(query) ||
-      sample.description.toLowerCase().includes(query)
-    );
-  });
   const intelligenceCards = [
     {
       label: "Current focus",
@@ -2042,7 +2062,7 @@ function Dashboard({ user }) {
 
           {statusMessage && <div className={`status-toast ${statusTone === "info" ? "status-toast-info" : "status-toast-success"}`}>{statusMessage}</div>}
           {error && <p className="error-message">{error}</p>}
-          {isLoadingWorkspace && <SectionLoadingCard title="Syncing your workspace" description="We’re warming up your saved planner data section by section so you can keep using the app while it loads." />}
+          {isLoadingWorkspace && <SectionLoadingCard title="Syncing your workspace" description="WeÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢re warming up your saved planner data section by section so you can keep using the app while it loads." />}
 
           <div className="dashboard-content-grid">
             <main className="dashboard-center-column">
@@ -2056,8 +2076,22 @@ function Dashboard({ user }) {
                 {showResultPanel ? (
                   <div className="planner-workspace-grid">
                     <div className="planner-workspace-grid__form">{renderedTab}</div>
-                    <div className="planner-workspace-grid__result">
-                      {currentPlan ? (
+                    <div className="planner-workspace-grid__result" ref={resultPanelRef}>
+                      {isLoading ? (
+                        <section className="saas-panel result-loading-state">
+                          <div className="result-loading-state__pulse" />
+                          <div className="result-loading-state__copy">
+                            <p className="dashboard-eyebrow">AI is thinking</p>
+                            <h3>Building your roadmap</h3>
+                            <p>We&apos;re translating your routine, pressure, energy, and preferences into a calmer plan you can actually use.</p>
+                          </div>
+                          <div className="result-loading-state__skeletons">
+                            <div className="result-skeleton-card" />
+                            <div className="result-skeleton-card" />
+                            <div className="result-skeleton-card" />
+                          </div>
+                        </section>
+                      ) : currentPlan ? (
                         <ResultPanel
                           currentPlan={currentPlan}
                           currentPlanFeedback={currentPlanFeedback}
@@ -2069,6 +2103,7 @@ function Dashboard({ user }) {
                           progress={progress}
                           recentRewards={recentRewards}
                           todayCheckin={todayCheckin}
+                          behavioralInsights={behavioralInsights}
                           formatDate={formatDate}
                           onAdjustChange={(event) => setAdjustmentRequest(event.target.value)}
                           onAdjust={() => adjustmentRequest.trim() ? requestPlan({ adjustment: adjustmentRequest }) : setError("Write what feels difficult or what you want to change.")}
@@ -2110,19 +2145,41 @@ function Dashboard({ user }) {
             </main>
 
             <aside className="dashboard-intelligence-rail">
-              <ProgressWidget completion={completion} progress={progress} plans={plans} goals={goals} habits={habits} />
-              <AnalyticsChart checkins={checkins} progress={progress} />
+              <section className="saas-panel intelligence-panel intelligence-panel--highlight">
+                <div className="intelligence-panel__head">
+                  <p className="dashboard-eyebrow">Adaptive life state</p>
+                  <span className="hero-header-chip">{behavioralInsights.lifeState.label}</span>
+                </div>
+                <div className="intelligence-panel__list intelligence-panel__list--compact">
+                  <article className="intelligence-checkpoint is-done">
+                    <strong>Burnout risk</strong>
+                    <span>{behavioralInsights.burnoutRisk.label}</span>
+                  </article>
+                  <article className="intelligence-checkpoint">
+                    <strong>Coaching mode</strong>
+                    <span>{behavioralInsights.personalityMode.active}</span>
+                  </article>
+                  <article className="intelligence-checkpoint">
+                    <strong>Next shift</strong>
+                    <span>{behavioralInsights.adaptiveRecommendations[0] || formatDisplayLabel(insightNarrative.focus)}</span>
+                  </article>
+                </div>
+              </section>
+
+              <ProgressWidget completion={completion} progress={progress} plans={plans} goals={goals} habits={habits} behavioralInsights={behavioralInsights} />
+              <AnalyticsChart checkins={checkins} progress={progress} behavioralInsights={behavioralInsights} />
 
               <section className="saas-panel intelligence-panel">
                 <div className="intelligence-panel__head">
-                  <p className="dashboard-eyebrow">Onboarding momentum</p>
-                  <span className="hero-header-chip">{onboardingSteps.filter((step) => step.done).length}/{onboardingSteps.length} done</span>
+                  <p className="dashboard-eyebrow">AI memory engine</p>
+                  <span className="hero-header-chip">{behavioralInsights.memoryCards.length} signals</span>
                 </div>
                 <div className="intelligence-panel__list">
-                  {onboardingSteps.map((step) => (
-                    <article key={step.label} className={`intelligence-checkpoint${step.done ? " is-done" : ""}`}>
-                      <strong>{step.label}</strong>
-                      <span>{step.done ? "Complete" : "Still open"}</span>
+                  {behavioralInsights.memoryCards.slice(0, 3).map((item) => (
+                    <article key={item.label} className="intelligence-checkpoint">
+                      <strong>{item.label}</strong>
+                      <span>{item.value}</span>
+                      <small>{item.detail}</small>
                     </article>
                   ))}
                 </div>
@@ -2130,15 +2187,15 @@ function Dashboard({ user }) {
 
               <section className="saas-panel intelligence-panel">
                 <div className="intelligence-panel__head">
-                  <p className="dashboard-eyebrow">Sample profiles</p>
-                  <span className="hero-header-chip">{filteredSamples.length} ready</span>
+                  <p className="dashboard-eyebrow">Future projection</p>
+                  <span className="hero-header-chip">{behavioralInsights.futureProjection.length} paths</span>
                 </div>
                 <div className="intelligence-sample-list">
-                  {filteredSamples.slice(0, 4).map((sample) => (
-                    <button type="button" key={sample.id} className="intelligence-sample-card" onClick={() => loadSampleProfile(sample)}>
-                      <strong>{sample.label}</strong>
-                      <p>{sample.description}</p>
-                    </button>
+                  {behavioralInsights.futureProjection.slice(0, 3).map((projection) => (
+                    <article key={projection} className="intelligence-sample-card">
+                      <strong>Projected growth</strong>
+                      <p>{projection}</p>
+                    </article>
                   ))}
                 </div>
               </section>
@@ -2176,5 +2233,7 @@ function Dashboard({ user }) {
 
 export default Dashboard;
  
+
+
 
 

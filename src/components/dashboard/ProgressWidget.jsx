@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 
 const MotionSection = motion.section;
 
-function ProgressWidget({ completion, progress, plans, goals, habits }) {
+function ProgressWidget({ completion, progress, plans, goals, habits, behavioralInsights }) {
   const radius = 58;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (completion / 100) * circumference;
@@ -28,7 +28,7 @@ function ProgressWidget({ completion, progress, plans, goals, habits }) {
           <h3>Daily completion</h3>
         </div>
         <span className="status-chip">
-          {progress.momentumPoints} pts
+          {behavioralInsights.lifeState.label}
         </span>
       </div>
 
@@ -65,17 +65,17 @@ function ProgressWidget({ completion, progress, plans, goals, habits }) {
             <div>
               <p className="premium-widget-title">Momentum is live</p>
               <p>
-                You have {pendingGoals} active goals, {habitCount} habits in rotation, and a {progress.activeStreak}-day streak.
+                You have {pendingGoals} active goals, {habitCount} habits in rotation, and a {progress.activeStreak}-day streak. {behavioralInsights.burnoutRisk.summary}
               </p>
             </div>
             <div className="premium-widget-mini-grid">
               <div className="premium-mini-card">
-                <p>Best week</p>
-                <strong>{progress.bestWeekCompletion || 0}%</strong>
+                <p>Burnout risk</p>
+                <strong>{behavioralInsights.burnoutRisk.score}%</strong>
               </div>
               <div className="premium-mini-card">
-                <p>Comebacks</p>
-                <strong>{progress.comebackWins}</strong>
+                <p>Coach mode</p>
+                <strong>{behavioralInsights.personalityMode.active}</strong>
               </div>
             </div>
           </div>

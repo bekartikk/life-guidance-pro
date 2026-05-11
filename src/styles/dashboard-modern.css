@@ -241,6 +241,20 @@
   color: #fff;
 }
 
+.dashboard-app-shell .goal-card p,
+.dashboard-app-shell .intelligence-checkpoint p,
+.dashboard-app-shell .intelligence-sample-card p {
+  margin: 0;
+  color: var(--dash-muted-2);
+  line-height: 1.65;
+}
+
+.dashboard-app-shell .intelligence-checkpoint small {
+  color: var(--dash-muted);
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
 .dashboard-hero-metric small {
   color: var(--dash-muted);
   font-size: 0.82rem;
@@ -770,6 +784,10 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.dashboard-app-shell .result-summary-grid--compact {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .dashboard-app-shell .checkin-actions button {
   padding: 12px 16px;
   border-radius: 16px;
@@ -833,6 +851,11 @@
 .dashboard-app-shell .result-section-heading p,
 .dashboard-app-shell .result-section-body {
   color: var(--dash-muted-2);
+}
+
+.dashboard-app-shell .goal-card {
+  display: grid;
+  gap: 0.45rem;
 }
 
 .dashboard-app-shell .result-section-body {
@@ -1096,4 +1119,622 @@
 @keyframes dashboardPulse {
   0%, 100% { transform: scale(1); opacity: 0.8; }
   50% { transform: scale(1.05); opacity: 1; }
+}
+
+.dashboard-app-shell .planner-step-strip--compact {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.dashboard-app-shell .planner-step-card--interactive {
+  position: relative;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease, box-shadow 180ms ease;
+}
+
+.dashboard-app-shell .planner-step-card--interactive.is-active {
+  border-color: rgba(34, 211, 238, 0.42);
+  background: linear-gradient(180deg, rgba(34,211,238,0.1), rgba(255,255,255,0.04));
+}
+
+.dashboard-app-shell .planner-step-card--interactive.is-complete {
+  border-color: rgba(16, 185, 129, 0.28);
+}
+
+.dashboard-app-shell .planner-step-card__icon {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 20px;
+  height: 20px;
+  color: #6ee7b7;
+}
+
+.dashboard-app-shell .planner-header-note {
+  margin: 10px 0 0;
+  max-width: 58ch;
+  color: var(--dash-muted);
+  line-height: 1.7;
+}
+
+.dashboard-app-shell .form-section-accordion {
+  overflow: hidden;
+}
+
+.dashboard-app-shell .planner-accordion-trigger {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: inherit;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0;
+  cursor: pointer;
+}
+
+.dashboard-app-shell .planner-accordion-meta {
+  display: grid;
+  gap: 8px;
+  text-align: left;
+}
+
+.dashboard-app-shell .planner-accordion-meta span {
+  color: #a5b4fc;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.dashboard-app-shell .planner-accordion-meta strong {
+  color: #fff;
+  font-size: 1.15rem;
+}
+
+.dashboard-app-shell .planner-accordion-meta p {
+  margin: 0;
+  color: var(--dash-muted);
+  line-height: 1.65;
+}
+
+.dashboard-app-shell .planner-accordion-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: right;
+}
+
+.dashboard-app-shell .planner-mini-progress {
+  display: grid;
+  gap: 2px;
+}
+
+.dashboard-app-shell .planner-mini-progress strong {
+  color: #fff;
+  font-size: 1rem;
+}
+
+.dashboard-app-shell .planner-mini-progress span {
+  color: var(--dash-muted);
+  font-size: 0.8rem;
+}
+
+.dashboard-app-shell .planner-accordion-chevron {
+  width: 18px;
+  height: 18px;
+  color: #c4b5fd;
+  transition: transform 180ms ease;
+}
+
+.dashboard-app-shell .planner-accordion-chevron.is-open {
+  transform: rotate(180deg);
+}
+
+.dashboard-app-shell .planner-accordion-panel {
+  display: grid;
+  gap: 18px;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 260ms ease, opacity 180ms ease, margin-top 180ms ease;
+}
+
+.dashboard-app-shell .planner-accordion-panel.is-open {
+  max-height: 1400px;
+  opacity: 1;
+  margin-top: 18px;
+}
+
+.dashboard-app-shell .planner-submit-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: center;
+  padding: 20px 22px;
+  border-radius: 24px;
+  border: 1px solid var(--dash-line);
+  background: linear-gradient(135deg, rgba(124,58,237,0.14), rgba(34,211,238,0.05));
+}
+
+.dashboard-app-shell .planner-submit-copy {
+  display: grid;
+  gap: 8px;
+}
+
+.dashboard-app-shell .planner-submit-copy span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #c4b5fd;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.dashboard-app-shell .planner-submit-copy strong {
+  color: #fff;
+  font-size: 1.08rem;
+}
+
+.dashboard-app-shell .planner-submit-copy p {
+  margin: 0;
+  color: var(--dash-muted);
+  line-height: 1.65;
+}
+
+.dashboard-app-shell .result-toolbar {
+  position: sticky;
+  top: 14px;
+  z-index: 2;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px;
+  border-radius: 22px;
+  border: 1px solid var(--dash-line);
+  background: rgba(11, 16, 32, 0.88);
+  backdrop-filter: blur(18px);
+}
+
+.dashboard-app-shell .result-toolbar__title {
+  display: grid;
+  gap: 8px;
+}
+
+.dashboard-app-shell .result-toolbar__title span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #c4b5fd;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.dashboard-app-shell .result-toolbar__title p {
+  margin: 0;
+  color: var(--dash-muted);
+  line-height: 1.6;
+}
+
+.dashboard-app-shell .result-toolbar__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.dashboard-app-shell .result-rich-paragraph {
+  margin: 0 0 14px;
+  color: var(--dash-muted-2);
+  line-height: 1.85;
+}
+
+.dashboard-app-shell .result-rich-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 10px;
+  color: var(--dash-muted-2);
+  line-height: 1.75;
+}
+
+.dashboard-app-shell .result-rich-callout {
+  margin: 0 0 16px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border-left: 3px solid rgba(34, 211, 238, 0.75);
+  background: rgba(34, 211, 238, 0.08);
+  color: #e2e8f0;
+}
+
+.dashboard-app-shell .result-loading-state {
+  display: grid;
+  gap: 18px;
+  padding: 26px;
+}
+
+.dashboard-app-shell .result-loading-state__pulse {
+  width: 58px;
+  height: 58px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(124,58,237,0.95), rgba(34,211,238,0.9));
+  animation: dashboardPulse 1.5s ease-in-out infinite;
+}
+
+.dashboard-app-shell .result-loading-state__copy {
+  display: grid;
+  gap: 10px;
+}
+
+.dashboard-app-shell .result-loading-state__copy h3 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  color: #fff;
+  font-size: 1.8rem;
+}
+
+.dashboard-app-shell .result-loading-state__copy p:last-child {
+  margin: 0;
+  color: var(--dash-muted);
+  line-height: 1.7;
+}
+
+.dashboard-app-shell .result-loading-state__skeletons {
+  display: grid;
+  gap: 12px;
+}
+
+.dashboard-app-shell .result-skeleton-card {
+  height: 84px;
+  border-radius: 20px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.05), rgba(255,255,255,0.09), rgba(255,255,255,0.05));
+  background-size: 200% 100%;
+  animation: dashboardShimmer 1.7s linear infinite;
+}
+
+.dashboard-app-shell .intelligence-panel--highlight {
+  background: linear-gradient(135deg, rgba(124,58,237,0.16), rgba(34,211,238,0.08));
+}
+
+.dashboard-app-shell .intelligence-panel__list--compact .intelligence-checkpoint {
+  padding: 14px 16px;
+}
+
+.status-toast {
+  animation: toastRise 260ms ease;
+}
+
+@media (max-width: 1024px) {
+  .dashboard-app-shell .planner-step-strip--compact {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboard-app-shell .planner-submit-shell,
+  .dashboard-app-shell .result-toolbar {
+    grid-template-columns: 1fr;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-app-shell {
+    gap: 16px;
+    padding: 14px;
+  }
+
+  .dashboard-main-frame {
+    gap: 18px;
+  }
+
+  .dashboard-app-shell .planner-step-strip--compact,
+  .dashboard-app-shell .planner-progress-panel--hero,
+  .dashboard-app-shell .planner-submit-shell,
+  .dashboard-app-shell .reward-summary,
+  .dashboard-app-shell .result-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-app-shell .planner-accordion-trigger,
+  .dashboard-app-shell .result-toolbar,
+  .dashboard-app-shell .planner-submit-shell {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .dashboard-app-shell .planner-accordion-status {
+    justify-content: space-between;
+  }
+
+  .dashboard-app-shell .result-toolbar {
+    position: static;
+  }
+
+  .dashboard-app-shell .checkin-actions button,
+  .dashboard-app-shell .result-toolbar__actions button,
+  .dashboard-app-shell .action-row button,
+  .dashboard-app-shell .quick-options button {
+    width: 100%;
+  }
+}
+
+@keyframes dashboardShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes toastRise {
+  0% { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 768px) {
+  .dashboard-hero-grid {
+    gap: 14px;
+  }
+
+  .dashboard-hero-card--secondary {
+    display: none;
+  }
+
+  .dashboard-hero-card,
+  .hero-header,
+  .dashboard-app-shell .planner-form,
+  .dashboard-app-shell .result-panel,
+  .intelligence-panel,
+  .premium-progress-widget,
+  .premium-analytics-widget {
+    box-shadow: 0 14px 34px rgba(2, 8, 23, 0.2);
+    backdrop-filter: blur(12px);
+  }
+
+  .dashboard-app-shell .planner-form,
+  .dashboard-app-shell .result-panel,
+  .premium-progress-widget,
+  .premium-analytics-widget,
+  .intelligence-panel {
+    padding: 16px;
+    border-radius: 22px;
+  }
+
+  .hero-header-copy h1 {
+    font-size: clamp(1.7rem, 8vw, 2.35rem);
+    line-height: 1;
+  }
+
+  .hero-header-copy p:last-child {
+    font-size: 0.94rem;
+    line-height: 1.6;
+    max-width: none;
+  }
+
+  .hero-header-actions {
+    gap: 10px;
+  }
+
+  .hero-header-chip {
+    padding: 0.65rem 0.9rem;
+    font-size: 0.8rem;
+  }
+
+  .dashboard-mobile-nav {
+    position: sticky;
+    top: 10px;
+    z-index: 5;
+    margin: -4px 0 2px;
+    padding: 4px 0 8px;
+    background: linear-gradient(180deg, rgba(11,16,32,0.92), rgba(11,16,32,0.55), transparent);
+    backdrop-filter: blur(14px);
+  }
+
+  .dashboard-mobile-nav__chip {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    min-height: 2.7rem;
+    padding: 0.7rem 0.95rem;
+  }
+
+  .dashboard-content-grid {
+    gap: 16px;
+  }
+
+  .planner-workspace-grid {
+    gap: 16px;
+  }
+
+  .dashboard-app-shell .quick-options {
+    display: flex;
+    overflow-x: auto;
+    gap: 10px;
+    padding-bottom: 2px;
+    scroll-snap-type: x mandatory;
+  }
+
+  .dashboard-app-shell .quick-options button {
+    width: auto;
+    min-width: max-content;
+    scroll-snap-align: start;
+  }
+
+  .dashboard-app-shell .planner-step-strip--compact {
+    display: flex;
+    overflow-x: auto;
+    gap: 10px;
+    padding-bottom: 2px;
+    scroll-snap-type: x mandatory;
+  }
+
+  .dashboard-app-shell .planner-step-card--interactive {
+    min-width: 15rem;
+    scroll-snap-align: start;
+  }
+
+  .dashboard-app-shell .planner-progress-panel--hero {
+    gap: 14px;
+  }
+
+  .dashboard-app-shell .planner-accordion-panel.is-open {
+    max-height: 1800px;
+  }
+
+  .dashboard-app-shell .result-toolbar__actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .dashboard-app-shell .result-toolbar__actions button {
+    width: 100%;
+    min-height: 2.8rem;
+    padding-inline: 0.8rem;
+    font-size: 0.9rem;
+  }
+
+  .dashboard-app-shell .result-section-card,
+  .dashboard-app-shell .reward-event-card,
+  .dashboard-app-shell .checkin-panel,
+  .dashboard-app-shell .reward-events,
+  .dashboard-app-shell .result-outline,
+  .dashboard-app-shell .adjust-panel,
+  .dashboard-app-shell .section-intent-card,
+  .dashboard-app-shell .consent-box,
+  .dashboard-app-shell .planner-submit-shell {
+    padding: 15px;
+    border-radius: 18px;
+  }
+
+  .dashboard-app-shell .result-section-heading h3 {
+    font-size: 1.05rem;
+  }
+
+  .dashboard-app-shell .result-section-heading p,
+  .dashboard-app-shell .result-rich-paragraph,
+  .dashboard-app-shell .result-rich-list,
+  .dashboard-app-shell .result-toolbar__title p,
+  .dashboard-app-shell .planner-progress-copy p,
+  .dashboard-app-shell .planner-accordion-meta p {
+    font-size: 0.93rem;
+    line-height: 1.65;
+  }
+
+  .dashboard-app-shell .result-rich-list {
+    padding-left: 1rem;
+  }
+
+  .dashboard-app-shell .result-summary-grid--compact {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-intelligence-rail {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(82vw, 1fr);
+    overflow-x: auto;
+    gap: 12px;
+    padding: 2px 0 6px;
+    scroll-snap-type: x mandatory;
+    position: static;
+  }
+
+  .dashboard-intelligence-rail > * {
+    scroll-snap-align: start;
+  }
+
+  .intelligence-panel__list--compact .intelligence-checkpoint,
+  .intelligence-checkpoint {
+    padding: 12px 14px;
+  }
+
+  .premium-widget-head,
+  .intelligence-panel__head {
+    margin-bottom: 12px;
+  }
+
+  .premium-stat-grid,
+  .premium-widget-mini-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .premium-stat-grid--triple,
+  .premium-insight-grid {
+    display: flex;
+    overflow-x: auto;
+    gap: 10px;
+    padding-bottom: 2px;
+    scroll-snap-type: x mandatory;
+  }
+
+  .premium-stat-grid--triple > *,
+  .premium-insight-grid > * {
+    min-width: 12rem;
+    scroll-snap-align: start;
+  }
+
+  .status-toast,
+  .error-message {
+    padding: 14px 15px;
+    border-radius: 18px;
+    font-size: 0.93rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-app-shell {
+    padding: 12px;
+    gap: 14px;
+  }
+
+  .hero-header,
+  .dashboard-app-shell .planner-form,
+  .dashboard-app-shell .result-panel,
+  .premium-progress-widget,
+  .premium-analytics-widget,
+  .intelligence-panel,
+  .dashboard-hero-card {
+    padding: 14px;
+    border-radius: 18px;
+  }
+
+  .hero-header-copy h1 {
+    font-size: clamp(1.5rem, 8vw, 2rem);
+  }
+
+  .dashboard-app-shell .planner-accordion-meta strong,
+  .dashboard-app-shell .planner-submit-copy strong,
+  .dashboard-app-shell .result-loading-state__copy h3 {
+    font-size: 1rem;
+  }
+
+  .dashboard-app-shell input,
+  .dashboard-app-shell textarea,
+  .dashboard-app-shell select,
+  .dashboard-app-shell .checkin-actions button,
+  .dashboard-app-shell .result-toolbar__actions button,
+  .dashboard-app-shell .action-row button,
+  .dashboard-app-shell .secondary-button,
+  .dashboard-app-shell .primary-button {
+    min-height: 3rem;
+    font-size: 0.95rem;
+  }
+
+  .dashboard-app-shell textarea {
+    min-height: 112px;
+  }
+
+  .dashboard-app-shell .result-toolbar__actions {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-intelligence-rail {
+    grid-auto-columns: minmax(88vw, 1fr);
+  }
+
+  .premium-stat-grid {
+    grid-template-columns: 1fr;
+  }
 }

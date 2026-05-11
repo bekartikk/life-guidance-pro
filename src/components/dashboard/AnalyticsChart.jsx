@@ -46,7 +46,7 @@ function buildFallbackData() {
   }));
 }
 
-function AnalyticsChart({ checkins, progress }) {
+function AnalyticsChart({ checkins, progress, behavioralInsights }) {
   const chartData = checkins.length
     ? checkins.slice(0, 7).reverse().map(normalizeDay)
     : buildFallbackData();
@@ -87,9 +87,9 @@ function AnalyticsChart({ checkins, progress }) {
             <span>{weakestDay.productivity}% completion</span>
           </div>
           <div className="premium-insight-card">
-            <p>Mood trend</p>
-            <strong>{moodAverage}/5</strong>
-            <span>Average check-in mood</span>
+            <p>Life state</p>
+            <strong>{behavioralInsights.lifeState.label}</strong>
+            <span>{behavioralInsights.burnoutRisk.score}% burnout risk</span>
           </div>
         </div>
         <div className="h-44">
@@ -137,16 +137,16 @@ function AnalyticsChart({ checkins, progress }) {
 
         <div className="premium-stat-grid premium-stat-grid--triple">
           <div className="premium-stat-card">
+            <p>Mood</p>
+            <strong>{moodAverage}/5</strong>
+          </div>
+          <div className="premium-stat-card">
             <p>Streak</p>
             <strong>{progress.activeStreak}</strong>
           </div>
           <div className="premium-stat-card">
-            <p>Best week</p>
-            <strong>{progress.bestWeekCompletion || 0}%</strong>
-          </div>
-          <div className="premium-stat-card">
-            <p>Wins</p>
-            <strong>{progress.comebackWins}</strong>
+            <p>Recovery</p>
+            <strong>{behavioralInsights.metrics.avgSleep ? behavioralInsights.metrics.avgSleep.toFixed(1) : "—"}/5</strong>
           </div>
         </div>
       </div>
