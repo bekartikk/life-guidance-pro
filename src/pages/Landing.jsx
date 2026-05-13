@@ -16,6 +16,7 @@ import {
   HiOutlineSparkles,
   HiOutlineUserGroup,
 } from "react-icons/hi2";
+import { trackEvent } from "../utils/analytics";
 import "../styles/landing-experience.css";
 
 const MotionSection = motion.section;
@@ -168,6 +169,18 @@ const journeys = [
   },
 ];
 
+const mobileSectionLinks = [
+  { id: "who", label: "Who it helps" },
+  { id: "how", label: "How AI works" },
+  { id: "memory", label: "AI memory" },
+  { id: "income", label: "Income path" },
+  { id: "checkin", label: "Check-ins" },
+  { id: "analytics", label: "Insights" },
+  { id: "demo", label: "Live demo" },
+  { id: "journeys", label: "Stories" },
+  { id: "trust", label: "Trust" },
+];
+
 const landingMetrics = [
   { label: "Life state", value: "Adaptive", note: "Plans shift with stress, energy, and reality." },
   { label: "Guidance depth", value: "Multi-layer", note: "Routine, roadmap, motivation, and recovery." },
@@ -180,6 +193,12 @@ function Landing() {
   const demo = useMemo(() => demoModes[activeDemo], [activeDemo]);
   const toggleMobileSection = (section) => {
     setExpandedMobileSection((current) => (current === section ? "" : section));
+  };
+  const openMobileSection = (section) => {
+    setExpandedMobileSection(section);
+    if (typeof document !== "undefined") {
+      document.getElementById(section)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   };
 
   return (
@@ -205,8 +224,8 @@ function Landing() {
         </div>
 
         <div className="landing-nav__actions">
-          <Link to="/login" className="landing-button landing-button--ghost">Log in</Link>
-          <Link to="/login" className="landing-button landing-button--primary">Start Planning</Link>
+          <Link to="/login" className="landing-button landing-button--ghost" onClick={() => trackEvent("landing_cta_clicked", { cta: "nav_login" })}>Log in</Link>
+          <Link to="/login" className="landing-button landing-button--primary" onClick={() => trackEvent("landing_cta_clicked", { cta: "nav_start_planning" })}>Start Planning</Link>
         </div>
       </nav>
 
@@ -223,9 +242,9 @@ function Landing() {
             Life Guidance Pro is an AI-powered life operating system that helps students, employees, creators, and overwhelmed people build routines, direction, momentum, and balance with intelligent adaptive planning.
           </p>
           <div className="landing-hero__actions">
-            <Link to="/login" className="landing-button landing-button--primary">Start Planning</Link>
-            <a href="#demo" className="landing-button landing-button--secondary">Explore Demo</a>
-            <a href="#how" className="landing-button landing-button--ghost">See How AI Works</a>
+            <Link to="/login" className="landing-button landing-button--primary" onClick={() => trackEvent("landing_cta_clicked", { cta: "hero_start_planning" })}>Start Planning</Link>
+            <a href="#demo" className="landing-button landing-button--secondary" onClick={() => trackEvent("landing_cta_clicked", { cta: "hero_explore_demo" })}>Explore Demo</a>
+            <a href="#how" className="landing-button landing-button--ghost" onClick={() => trackEvent("landing_cta_clicked", { cta: "hero_how_ai_works" })}>See How AI Works</a>
           </div>
           <div className="landing-metrics">
             {landingMetrics.map((metric) => (
@@ -280,11 +299,24 @@ function Landing() {
         </div>
       </MotionSection>
 
+      <div className="landing-mobile-sections-nav" aria-label="Mobile section navigation">
+        {mobileSectionLinks.map((section) => (
+          <button
+            key={section.id}
+            type="button"
+            className={expandedMobileSection === section.id ? "landing-mobile-sections-nav__chip is-active" : "landing-mobile-sections-nav__chip"}
+            onClick={() => openMobileSection(section.id)}
+          >
+            {section.label}
+          </button>
+        ))}
+      </div>
+
       <MotionSection id="who" className="landing-section">
         <div className="landing-section__intro">
           <p className="landing-eyebrow">Who this is for</p>
           <h2>Built for real people dealing with real pressure.</h2>
-          <p>The product meets people where they actually are: overwhelmed, ambitious, lonely, stressed, curious, or trying to rebuild momentum without burning out.</p>
+          <p className="landing-desktop-copy">The product meets people where they actually are: overwhelmed, ambitious, lonely, stressed, curious, or trying to rebuild momentum without burning out.</p>
         </div>
         <button
           type="button"
@@ -295,6 +327,7 @@ function Landing() {
           <strong>{expandedMobileSection === "who" ? "Hide" : "Open"}</strong>
         </button>
         <div className={`landing-mobile-panel ${expandedMobileSection === "who" ? "is-open" : ""}`}>
+        <p className="landing-mobile-summary">Students, employees, creators, and overwhelmed people get a plan that fits real pressure instead of ideal routines.</p>
         <div className="landing-audience-grid">
           {audienceCards.map((card) => {
             const Icon = card.icon;
@@ -326,6 +359,7 @@ function Landing() {
           <strong>{expandedMobileSection === "how" ? "Hide" : "Open"}</strong>
         </button>
         <div className={`landing-mobile-panel ${expandedMobileSection === "how" ? "is-open" : ""}`}>
+        <p className="landing-mobile-summary">You share what life really feels like, the AI reads patterns, then it keeps adapting the plan as your days change.</p>
         <div className="landing-workflow-grid">
           {workflowSteps.map((step) => (
             <article key={step.step} className="landing-workflow-card">
@@ -338,11 +372,11 @@ function Landing() {
         </div>
       </MotionSection>
 
-      <MotionSection className="landing-section">
+      <MotionSection id="memory" className="landing-section">
         <div className="landing-section__intro">
           <p className="landing-eyebrow">AI memory & adaptive intelligence</p>
           <h2>The system remembers what helps and what keeps failing.</h2>
-          <p>It learns what improves focus, what creates stress, when motivation drops, and which habits actually survive in your real life.</p>
+          <p className="landing-desktop-copy">It learns what improves focus, what creates stress, when motivation drops, and which habits actually survive in your real life.</p>
         </div>
         <button
           type="button"
@@ -353,6 +387,7 @@ function Landing() {
           <strong>{expandedMobileSection === "memory" ? "Hide" : "Open"}</strong>
         </button>
         <div className={`landing-mobile-panel ${expandedMobileSection === "memory" ? "is-open" : ""}`}>
+        <p className="landing-mobile-summary">The system notices what improves focus, what creates stress, and which routines actually survive your real week.</p>
         <div className="landing-memory-grid">
           {memoryInsights.map((insight) => (
             <article className="landing-memory-card" key={insight}>
@@ -364,11 +399,11 @@ function Landing() {
         </div>
       </MotionSection>
 
-      <MotionSection className="landing-section landing-section--split">
+      <MotionSection id="income" className="landing-section landing-section--split">
         <div className="landing-section__intro">
           <p className="landing-eyebrow">Hobby to income engine</p>
           <h2>Turn curiosity into leverage, proof, and future opportunity.</h2>
-          <p>The AI helps identify strengths, shape learning loops, and build a path from hobby to visible skill to monetizable work.</p>
+          <p className="landing-desktop-copy">The AI helps identify strengths, shape learning loops, and build a path from hobby to visible skill to monetizable work.</p>
         </div>
         <button
           type="button"
@@ -379,6 +414,7 @@ function Landing() {
           <strong>{expandedMobileSection === "income" ? "Hide" : "Open"}</strong>
         </button>
         <div className={`landing-mobile-panel ${expandedMobileSection === "income" ? "is-open" : ""}`}>
+          <p className="landing-mobile-summary">A simple path from interest to practice, visible proof, and beginner income opportunities.</p>
           <div className="landing-roadmap">
             {hobbyRoadmap.map((item) => (
               <article className="landing-roadmap-step" key={item.label}>
@@ -390,11 +426,11 @@ function Landing() {
         </div>
       </MotionSection>
 
-      <MotionSection className="landing-section landing-section--split">
+      <MotionSection id="checkin" className="landing-section landing-section--split">
         <div className="landing-section__intro">
           <p className="landing-eyebrow">Daily AI check-ins</p>
           <h2>A routine that changes when life changes.</h2>
-          <p>Each day, users can share mood, stress, motivation, sleep, and energy. The AI responds by adjusting intensity, recovery, and expectations.</p>
+          <p className="landing-desktop-copy">Each day, users can share mood, stress, motivation, sleep, and energy. The AI responds by adjusting intensity, recovery, and expectations.</p>
         </div>
         <button
           type="button"
@@ -405,6 +441,7 @@ function Landing() {
           <strong>{expandedMobileSection === "checkin" ? "Hide" : "Open"}</strong>
         </button>
         <div className={`landing-mobile-panel ${expandedMobileSection === "checkin" ? "is-open" : ""}`}>
+          <p className="landing-mobile-summary">Short daily updates help the AI lower pressure, protect recovery, and keep momentum realistic.</p>
           <div className="landing-checkin-card">
             <div className="landing-checkin-grid">
               {checkinSignals.map((signal) => (
@@ -422,7 +459,7 @@ function Landing() {
         </div>
       </MotionSection>
 
-      <MotionSection className="landing-section">
+      <MotionSection id="analytics" className="landing-section">
         <div className="landing-section__intro">
           <p className="landing-eyebrow">Life balance analytics</p>
           <h2>Watch consistency, emotional balance, creativity, learning, and direction evolve together.</h2>
@@ -436,6 +473,7 @@ function Landing() {
           <strong>{expandedMobileSection === "analytics" ? "Hide" : "Open"}</strong>
         </button>
         <div className={`landing-mobile-panel ${expandedMobileSection === "analytics" ? "is-open" : ""}`}>
+          <p className="landing-mobile-summary">See the few signals that matter most first: consistency, emotional balance, skill growth, and direction.</p>
           <div className="landing-analytics-grid">
             {analyticsCards.map((card) => (
               <article className="landing-analytics-card" key={card.title}>
@@ -462,6 +500,7 @@ function Landing() {
           <strong>{expandedMobileSection === "demo" ? "Hide" : "Open"}</strong>
         </button>
         <div className={`landing-mobile-panel ${expandedMobileSection === "demo" ? "is-open" : ""}`}>
+          <p className="landing-mobile-summary">Try a sample student, employee, or creator plan before signing up.</p>
           <div className="landing-demo-shell">
             <div className="landing-demo-tabs">
               {Object.entries(demoModes).map(([key, item]) => (
@@ -469,7 +508,10 @@ function Landing() {
                   key={key}
                   type="button"
                   className={key === activeDemo ? "landing-demo-tab is-active" : "landing-demo-tab"}
-                  onClick={() => setActiveDemo(key)}
+                  onClick={() => {
+                    setActiveDemo(key);
+                    trackEvent("landing_demo_mode_selected", { mode: key });
+                  }}
                 >
                   {item.title}
                 </button>
@@ -496,7 +538,7 @@ function Landing() {
         </div>
       </MotionSection>
 
-      <MotionSection className="landing-section">
+      <MotionSection id="journeys" className="landing-section">
         <div className="landing-section__intro">
           <p className="landing-eyebrow">Real user journeys</p>
           <h2>From confusion and pressure to steadier direction.</h2>
@@ -510,6 +552,7 @@ function Landing() {
           <strong>{expandedMobileSection === "journeys" ? "Hide" : "Open"}</strong>
         </button>
         <div className={`landing-mobile-panel ${expandedMobileSection === "journeys" ? "is-open" : ""}`}>
+          <p className="landing-mobile-summary">A few grounded examples of how the system helps different people rebuild direction and balance.</p>
           <div className="landing-journey-grid">
             {journeys.map((journey) => (
               <article className="landing-journey-card" key={journey.title}>
@@ -535,6 +578,7 @@ function Landing() {
           <strong>{expandedMobileSection === "trust" ? "Hide" : "Open"}</strong>
         </button>
         <div className={`landing-mobile-panel ${expandedMobileSection === "trust" ? "is-open" : ""}`}>
+          <p className="landing-mobile-summary">Your plans stay editable, private, and under your control. The AI supports you without trying to replace your judgment.</p>
           <div className="landing-trust-grid">
             <article className="landing-trust-card">
               <HiOutlineUserGroup className="h-5 w-5" />
@@ -557,9 +601,9 @@ function Landing() {
         <h2>You do not need to figure everything out alone.</h2>
         <p>Build a life system that adapts with you, understands your pressure, and helps turn confusion into direction.</p>
         <div className="landing-final-cta__actions">
-          <Link to="/login" className="landing-button landing-button--primary">Start Your AI Plan</Link>
-          <Link to="/login" className="landing-button landing-button--secondary">Create Your Profile</Link>
-          <Link to="/login" className="landing-button landing-button--ghost">Build My Routine</Link>
+          <Link to="/login" className="landing-button landing-button--primary" onClick={() => trackEvent("landing_cta_clicked", { cta: "final_start_ai_plan" })}>Start Your AI Plan</Link>
+          <Link to="/login" className="landing-button landing-button--secondary" onClick={() => trackEvent("landing_cta_clicked", { cta: "final_create_profile" })}>Create Your Profile</Link>
+          <Link to="/login" className="landing-button landing-button--ghost" onClick={() => trackEvent("landing_cta_clicked", { cta: "final_build_routine" })}>Build My Routine</Link>
         </div>
       </MotionSection>
     </div>

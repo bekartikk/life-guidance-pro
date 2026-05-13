@@ -122,6 +122,11 @@
   display: none;
 }
 
+.landing-mobile-sections-nav,
+.landing-mobile-summary {
+  display: none;
+}
+
 .landing-mobile-panel {
   display: block;
 }
@@ -572,6 +577,46 @@
     flex: 1 1 100%;
   }
 
+  .landing-mobile-sections-nav {
+    position: sticky;
+    top: 0.25rem;
+    z-index: 3;
+    display: flex;
+    gap: 0.65rem;
+    width: min(100% - 1.25rem, 1180px);
+    margin: 0 auto 0.5rem;
+    padding: 0.2rem 0 0.65rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    background: linear-gradient(180deg, rgba(11, 16, 32, 0.96), rgba(11, 16, 32, 0.72));
+    backdrop-filter: blur(16px);
+  }
+
+  .landing-mobile-sections-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .landing-mobile-sections-nav__chip {
+    flex: 0 0 auto;
+    min-height: 2.5rem;
+    padding: 0.65rem 0.95rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.09);
+    background: rgba(255,255,255,0.04);
+    color: #cbd5e1;
+    font: inherit;
+    font-size: 0.84rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .landing-mobile-sections-nav__chip.is-active {
+    color: #fff;
+    background: linear-gradient(135deg, rgba(124,58,237,0.7), rgba(34,211,238,0.3));
+    border-color: rgba(196, 181, 253, 0.32);
+  }
+
   .landing-hero {
     min-height: auto;
     padding-top: 1.25rem;
@@ -633,6 +678,18 @@
 
   .landing-mobile-panel.is-open {
     display: block;
+  }
+
+  .landing-desktop-copy {
+    display: none;
+  }
+
+  .landing-mobile-summary {
+    display: block;
+    margin: 0 0 0.9rem;
+    color: #94a3b8;
+    font-size: 0.9rem;
+    line-height: 1.6;
   }
 }
 
@@ -733,12 +790,12 @@
   }
 
   .landing-section {
-    padding: 2.15rem 0;
+    padding: 1.35rem 0;
   }
 
   .landing-section__intro {
-    gap: 0.6rem;
-    margin-bottom: 0.8rem;
+    gap: 0.35rem;
+    margin-bottom: 0.45rem;
   }
 
   .landing-section__intro h2 {
@@ -892,6 +949,11 @@
   .landing-section,
   .landing-final-cta {
     width: min(100% - 1rem, 1180px);
+  }
+
+  .landing-mobile-sections-nav {
+    width: min(100% - 1rem, 1180px);
+    top: 0;
   }
 
   .landing-button {
