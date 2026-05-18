@@ -10,7 +10,7 @@ import {
   setDoc,
   where,
 } from "firebase/firestore";
-import { db } from "../firebase";
+import { db } from "../firebase-db";
 import { deleteAllProgressData } from "./progressData";
 import { safeRead } from "./safeFirestore";
 
@@ -32,6 +32,19 @@ function sortByNewest(items) {
     const rightValue = typeof right.createdAt?.toDate === "function" ? right.createdAt.toDate().getTime() : new Date(right.createdAt || 0).getTime();
     return rightValue - leftValue;
   });
+}
+
+function createClientTimestamp() {
+  return new Date().toISOString();
+}
+
+function buildSavedRecord(id, payload, timestamp = createClientTimestamp()) {
+  return {
+    id,
+    ...payload,
+    createdAt: payload.createdAt ?? timestamp,
+    updatedAt: timestamp,
+  };
 }
 
 export async function loadUserPlans(userId) {
@@ -143,82 +156,87 @@ export async function loadReminderSettings(userId) {
 }
 
 export async function savePlanRecord(payload) {
-  const planRef = await addDoc(plansCollection, { ...payload, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
-  const savedPlan = await getDoc(planRef);
-  return { id: savedPlan.id, ...savedPlan.data() };
+  const timestamp = createClientTimestamp();
+  const planRef = await addDoc(plansCollection, {
+    ...payload,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+  return buildSavedRecord(planRef.id, payload, timestamp);
 }
 
 export async function saveGoalRecord(payload) {
+  const timestamp = createClientTimestamp();
   const goalRef = await addDoc(goalsCollection, {
     ...payload,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
-  const savedGoal = await getDoc(goalRef);
-  return { id: savedGoal.id, ...savedGoal.data() };
+  return buildSavedRecord(goalRef.id, payload, timestamp);
 }
 
 export async function saveHabitRecord(payload) {
+  const timestamp = createClientTimestamp();
   const habitRef = await addDoc(habitsCollection, {
     ...payload,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
-  const savedHabit = await getDoc(habitRef);
-  return { id: savedHabit.id, ...savedHabit.data() };
+  return buildSavedRecord(habitRef.id, payload, timestamp);
 }
 
 export async function saveWeeklyReviewRecord(payload) {
+  const timestamp = createClientTimestamp();
   const reviewRef = await addDoc(reviewsCollection, {
     ...payload,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
-  const savedReview = await getDoc(reviewRef);
-  return { id: savedReview.id, ...savedReview.data() };
+  return buildSavedRecord(reviewRef.id, payload, timestamp);
 }
 
 export async function saveMonthlyReviewRecord(payload) {
+  const timestamp = createClientTimestamp();
   const reviewRef = await addDoc(monthlyReviewsCollection, {
     ...payload,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
-  const savedReview = await getDoc(reviewRef);
-  return { id: savedReview.id, ...savedReview.data() };
+  return buildSavedRecord(reviewRef.id, payload, timestamp);
 }
 
 export async function saveCareerExplorationRecord(payload) {
+  const timestamp = createClientTimestamp();
   const itemRef = await addDoc(careerExplorationsCollection, {
     ...payload,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
-  const savedItem = await getDoc(itemRef);
-  return { id: savedItem.id, ...savedItem.data() };
+  return buildSavedRecord(itemRef.id, payload, timestamp);
 }
 
 export async function saveHobbyPlanRecord(payload) {
+  const timestamp = createClientTimestamp();
   const itemRef = await addDoc(hobbyPlansCollection, {
     ...payload,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
-  const savedItem = await getDoc(itemRef);
-  return { id: savedItem.id, ...savedItem.data() };
+  return buildSavedRecord(itemRef.id, payload, timestamp);
 }
 
 export async function saveRoutineBuilderRecord(payload) {
+  const timestamp = createClientTimestamp();
   const itemRef = await addDoc(routineBuildersCollection, {
     ...payload,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
-  const savedItem = await getDoc(itemRef);
-  return { id: savedItem.id, ...savedItem.data() };
+  return buildSavedRecord(itemRef.id, payload, timestamp);
 }
 
-export async function updateGoalRecord(goalId, payload) {
+export async function updateGoalRecord(goalId, payload, currentGoal = {}) {
+  const timestamp = createClientTimestamp();
   await setDoc(
     doc(db, "goals", goalId),
     {
@@ -227,11 +245,11 @@ export async function updateGoalRecord(goalId, payload) {
     },
     { merge: true },
   );
-  const updatedGoal = await getDoc(doc(db, "goals", goalId));
-  return { id: updatedGoal.id, ...updatedGoal.data() };
+  return { ...currentGoal, ...payload, id: goalId, updatedAt: timestamp };
 }
 
-export async function updateHabitRecord(habitId, payload) {
+export async function updateHabitRecord(habitId, payload, currentHabit = {}) {
+  const timestamp = createClientTimestamp();
   await setDoc(
     doc(db, "habits", habitId),
     {
@@ -240,8 +258,7 @@ export async function updateHabitRecord(habitId, payload) {
     },
     { merge: true },
   );
-  const updatedHabit = await getDoc(doc(db, "habits", habitId));
-  return { id: updatedHabit.id, ...updatedHabit.data() };
+  return { ...currentHabit, ...payload, id: habitId, updatedAt: timestamp };
 }
 
 export async function saveReminderSettings(userId, payload) {
@@ -289,9 +306,9 @@ export async function saveUserProfile(userId, payload) {
 }
 
 export async function submitFeedbackRecord(payload) {
+  const timestamp = createClientTimestamp();
   const feedbackRef = await addDoc(feedbackCollection, { ...payload, createdAt: serverTimestamp() });
-  const savedFeedback = await getDoc(feedbackRef);
-  return { id: savedFeedback.id, ...savedFeedback.data() };
+  return buildSavedRecord(feedbackRef.id, payload, timestamp);
 }
 
 export async function loadUserFeedback(userId) {

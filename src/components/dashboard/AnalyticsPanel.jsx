@@ -1,6 +1,6 @@
 ﻿import { useCallback, useEffect, useState } from "react";
 import { collection, getDocs, query } from "firebase/firestore";
-import { db } from "../../firebase";
+import { db } from "../../firebase-db";
 
 function AnalyticsPanel({ userId }) {
   const [adjustmentPatterns, setAdjustmentPatterns] = useState([]);

@@ -1096,10 +1096,6 @@ body {
   font-size: 0.92rem;
 }
 
-.workspace-nav {
-  gap: 10px;
-}
-
 .nav-chip,
 .sample-list button,
 .quick-options button,
@@ -2150,14 +2146,6 @@ body::before {
   background: linear-gradient(135deg, #1f6864, var(--lgp-highlight));
 }
 
-.workspace-nav {
-  padding: 10px;
-  border-radius: 24px;
-  background: rgba(255, 253, 249, 0.68);
-  border: 1px solid var(--lgp-line);
-  box-shadow: 0 10px 40px rgba(31, 46, 57, 0.08);
-}
-
 .nav-chip {
   padding: 12px 16px;
 }
@@ -2435,12 +2423,6 @@ body::before {
   gap: 24px;
 }
 
-.workspace-nav {
-  position: sticky;
-  top: 8px;
-  z-index: 2;
-}
-
 .nav-chip {
   min-height: 42px;
   font-size: 0.82rem;
@@ -2685,21 +2667,6 @@ body::before {
   gap: 18px;
 }
 
-.workspace-nav {
-  position: sticky;
-  top: 0;
-  z-index: 4;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  padding: 16px;
-  border-radius: 24px;
-  background: rgba(255, 248, 240, 0.74);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(22, 50, 59, 0.08);
-  box-shadow: 0 20px 50px rgba(31, 46, 57, 0.08);
-}
-
 .nav-chip,
 .quick-options button,
 .checkin-actions button,
@@ -2885,12 +2852,6 @@ select:focus {
 .result-section-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 26px 56px rgba(31, 46, 57, 0.14);
-}
-
-.section-loading-card {
-  border-radius: 22px;
-  background: rgba(255, 249, 241, 0.72);
-  border: 1px solid rgba(22, 50, 59, 0.1);
 }
 
 @media (max-width: 1420px) {

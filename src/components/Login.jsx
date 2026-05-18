@@ -17,6 +17,7 @@ import {
   HiOutlineSparkles,
 } from "react-icons/hi2";
 import { auth } from "../firebase";
+import { trackEvent } from "../utils/analytics";
 import "../styles/auth-onboarding.css";
 
 const trustSignals = [
@@ -70,10 +71,15 @@ function Login() {
     try {
       if (mode === "login") {
         await signInWithEmailAndPassword(auth, email, password);
+        trackEvent("login_completed", { method: "email" });
         navigate("/dashboard");
       } else {
         const credential = await createUserWithEmailAndPassword(auth, email, password);
         await sendEmailVerification(credential.user);
+        trackEvent("signup_completed", {
+          method: "email",
+          coach_mode: selectedMode,
+        });
         setMessage("Account created. Verification email sent.");
       }
     } catch (error) {
@@ -94,6 +100,7 @@ function Login() {
 
     try {
       await sendPasswordResetEmail(auth, email.trim());
+      trackEvent("password_reset_requested");
       setMessage("Password reset email sent.");
     } catch (error) {
       setMessage(error.message.replace("Firebase: ", ""));
@@ -109,6 +116,10 @@ function Login() {
     try {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
+      trackEvent(mode === "login" ? "login_completed" : "signup_completed", {
+        method: "google",
+        coach_mode: selectedMode,
+      });
       navigate("/dashboard");
     } catch (error) {
       setMessage(error.message.replace("Firebase: ", ""));
@@ -176,7 +187,10 @@ function Login() {
                     key={item.title}
                     type="button"
                     className={item.title === selectedMode ? "auth-coach-option is-active" : "auth-coach-option"}
-                    onClick={() => setSelectedMode(item.title)}
+                    onClick={() => {
+                      setSelectedMode(item.title);
+                      trackEvent("onboarding_coach_mode_selected", { mode: item.title });
+                    }}
                   >
                     <Icon className="h-4.5 w-4.5" />
                     <span>{item.title}</span>

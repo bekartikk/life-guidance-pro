@@ -46,19 +46,20 @@ function Header({
             value={searchQuery}
             onChange={onSearchChange}
             placeholder="Find goals, plans, routines..."
+            aria-label="Search workspace"
           />
         </label>
         {userEmail ? <span className="hero-header-chip">{userEmail}</span> : null}
         <span className="hero-header-chip">{streakLabel}</span>
-        <button type="button" onClick={onToggleFocus} className="saas-button-secondary">
+        <button type="button" onClick={onToggleFocus} className="saas-button-secondary" aria-label={focusMode ? "Exit focus mode" : "Enable focus mode"}>
           <HiOutlineMoon className="h-4 w-4" />
           {focusMode ? "Exit Focus" : "Focus Mode"}
         </button>
-        <button type="button" onClick={onQuickAdd} className="saas-button-primary">
+        <button type="button" onClick={onQuickAdd} className="saas-button-primary" aria-label="Open quick add task dialog">
           <HiOutlinePlus className="h-4 w-4" />
           Add Task
         </button>
-        <button type="button" onClick={onLogout} className="saas-button-secondary">
+        <button type="button" onClick={onLogout} className="saas-button-secondary" aria-label="Log out">
           <HiOutlineArrowLeftOnRectangle className="h-4 w-4" />
           Logout
         </button>

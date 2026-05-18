@@ -40,7 +40,7 @@ function buildRewardTitle(reward) {
   return String(reward.reason || "progress").replace(/-/g, " ");
 }
 
-function DailyProgressTab({ checkins, progress, rewards, behavioralInsights }) {
+function DailyProgressTab({ checkins, progress, rewards, behavioralInsights, adaptiveWorkspace }) {
   const today = getDateKey();
   const currentWeekKey = getWeekKey();
 
@@ -115,6 +115,10 @@ function DailyProgressTab({ checkins, progress, rewards, behavioralInsights }) {
           <span className="stat-label">Life state</span>
           <span className="stat-value">{behavioralInsights.lifeState.label}</span>
         </div>
+        <div className="summary-stat">
+          <span className="stat-label">Workspace mode</span>
+          <span className="stat-value">{adaptiveWorkspace.workspaceMode.label}</span>
+        </div>
       </div>
 
       <div className="split-progress-grid">
@@ -156,6 +160,24 @@ function DailyProgressTab({ checkins, progress, rewards, behavioralInsights }) {
               </article>
             ))}
           </div>
+        </div>
+      </div>
+
+      <div className="section-card">
+        <div className="section-card-header">
+          <div>
+            <h3>Adaptive insight feed</h3>
+            <p className="muted-text">A quieter stream of what the system is learning from your recent days.</p>
+          </div>
+        </div>
+        <div className="goal-list">
+          {adaptiveWorkspace.insightFeed.slice(0, 4).map((item) => (
+            <article key={item.id} className="goal-card">
+              <strong>{item.title}</strong>
+              <span className="goal-meta">{item.kind}</span>
+              <p>{item.detail}</p>
+            </article>
+          ))}
         </div>
       </div>
 

@@ -107,6 +107,8 @@ function Sidebar({ items, activeItem, isCollapsed, onToggle, onSelect }) {
                   whileTap={{ scale: 0.98 }}
                   type="button"
                   onClick={() => onSelect(item)}
+                  aria-label={meta.label}
+                  aria-current={isActive ? "page" : undefined}
                   className={`group flex items-center gap-3 rounded-2xl px-3 py-3 text-left transition ${
                     isActive
                       ? "bg-gradient-to-r from-blue-500 to-violet-500 text-white shadow-[0_18px_36px_rgba(79,70,229,0.35)]"

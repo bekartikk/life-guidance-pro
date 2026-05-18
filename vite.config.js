@@ -1,6 +1,5 @@
 import { defineConfig } from 'vite'
-import react, { reactCompilerPreset } from '@vitejs/plugin-react'
-import babel from '@rolldown/plugin-babel'
+import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { generateProjectMap } from './scripts/generate-project-map.mjs'
 
@@ -41,11 +40,31 @@ export default defineConfig({
     projectBrainMapPlugin(),
     tailwindcss(),
     react(),
-    babel({ presets: [reactCompilerPreset()] })
   ],
   server: {
     proxy: {
       "/api": "http://localhost:5000",
+    },
+  },
+  build: {
+    sourcemap: true,
+    cssCodeSplit: true,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("node_modules")) {
+            if (id.includes("posthog-js")) return "analytics";
+            if (id.includes("firebase/firestore")) return "firebase-db";
+            if (id.includes("firebase/auth")) return "firebase-auth";
+            if (id.includes("firebase/app")) return "firebase-core";
+            if (id.includes("firebase")) return "firebase";
+            if (id.includes("recharts")) return "charts";
+            if (id.includes("framer-motion")) return "motion";
+            if (id.includes("react-router-dom")) return "router";
+            return "vendor";
+          }
+        },
+      },
     },
   },
 })

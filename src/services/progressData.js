@@ -6,7 +6,7 @@ import {
   getDocs,
   runTransaction,
 } from "firebase/firestore";
-import { db } from "../firebase";
+import { db } from "../firebase-db";
 import { applyProgressAction as runRewardAction, defaultProgress, getDateKey } from "./rewards";
 import { safeRead } from "./safeFirestore";
 

@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+/* eslint-disable react-refresh/only-export-components */
+import { Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import {
   HiOutlineArrowTrendingUp,
@@ -13,32 +14,12 @@ import { sendEmailVerification, signOut } from "firebase/auth";
 import Header from "./dashboard/Header";
 import PlannerBoard from "./dashboard/PlannerBoard";
 import PlannerTab from "./dashboard/PlannerTab";
-import ProgressWidget from "./dashboard/ProgressWidget";
-import AnalyticsChart from "./dashboard/AnalyticsChart";
 import QuickAddModal from "./dashboard/QuickAddModal";
 import ResultPanel from "./dashboard/ResultPanel";
 import Sidebar from "./dashboard/Sidebar";
-import GoalTabDirect from "./dashboard/GoalTab";
-import HabitTabDirect from "./dashboard/HabitTab";
-import DailyProgressTabDirect from "./dashboard/DailyProgressTab";
-import WeeklyProgressTabDirect from "./dashboard/WeeklyProgressTab";
-import WeeklyReviewTabDirect from "./dashboard/WeeklyReviewTab";
-import MonthlyReviewTabDirect from "./dashboard/MonthlyReviewTab";
-import CareerExplorerTabDirect from "./dashboard/CareerExplorerTab";
-import HobbyIncomeTabDirect from "./dashboard/HobbyIncomeTab";
-import RoutineBuilderTabDirect from "./dashboard/RoutineBuilderTab";
-import ChatExtensionTabDirect from "./dashboard/ChatExtensionTab";
-import AchievementTabDirect from "./dashboard/AchievementTab";
-import MissionsTabDirect from "./dashboard/MissionsTab";
-import PersonalizationTabDirect from "./dashboard/PersonalizationTab";
-import ProjectMapTabDirect from "./dashboard/ProjectMapTab";
-import HistoryTabDirect from "./dashboard/HistoryTab";
-import ProfileTabDirect from "./dashboard/ProfileTab";
-import FeedbackTabDirect from "./dashboard/FeedbackTab";
-import ReminderTabDirect from "./dashboard/ReminderTab";
-import SupportTabDirect from "./dashboard/SupportTab";
-import SettingsTabDirect from "./dashboard/SettingsTab";
-import AdminTabDirect from "./dashboard/AdminTab";
+
+
+
 import { WidgetErrorBoundary } from "./AppErrorBoundary";
 import "../styles/dashboard-modern.css";
 import { auth } from "../firebase";
@@ -78,6 +59,33 @@ import { getDateKey } from "../services/rewards";
 import { applyRewardAction, loadRewardEvents, loadUserCheckins, loadUserProgress, submitDailyCheckin } from "../services/progressData";
 import { logPlanGeneration, logPlanFeedback, logPlanAdjustment, logCheckinPattern } from "../services/dataCollection";
 import { buildBehavioralInsights } from "../services/behavioralInsights";
+import { buildAdaptiveIntelligence } from "../ai/orchestration/adaptiveIntelligence";
+import { trackEvent } from "../utils/analytics";
+import { captureException } from "../monitoring/sentry";
+
+const GoalTabDirect = lazy(() => import("./dashboard/GoalTab"));
+const HabitTabDirect = lazy(() => import("./dashboard/HabitTab"));
+const DailyProgressTabDirect = lazy(() => import("./dashboard/DailyProgressTab"));
+const ProgressWidget = lazy(() => import("./dashboard/ProgressWidget"));
+const AnalyticsChart = lazy(() => import("./dashboard/AnalyticsChart"));
+const WeeklyProgressTabDirect = lazy(() => import("./dashboard/WeeklyProgressTab"));
+const WeeklyReviewTabDirect = lazy(() => import("./dashboard/WeeklyReviewTab"));
+const MonthlyReviewTabDirect = lazy(() => import("./dashboard/MonthlyReviewTab"));
+const CareerExplorerTabDirect = lazy(() => import("./dashboard/CareerExplorerTab"));
+const HobbyIncomeTabDirect = lazy(() => import("./dashboard/HobbyIncomeTab"));
+const RoutineBuilderTabDirect = lazy(() => import("./dashboard/RoutineBuilderTab"));
+const ChatExtensionTabDirect = lazy(() => import("./dashboard/ChatExtensionTab"));
+const AchievementTabDirect = lazy(() => import("./dashboard/AchievementTab"));
+const MissionsTabDirect = lazy(() => import("./dashboard/MissionsTab"));
+const PersonalizationTabDirect = lazy(() => import("./dashboard/PersonalizationTab"));
+const ProjectMapTabDirect = lazy(() => import("./dashboard/ProjectMapTab"));
+const HistoryTabDirect = lazy(() => import("./dashboard/HistoryTab"));
+const ProfileTabDirect = lazy(() => import("./dashboard/ProfileTab"));
+const FeedbackTabDirect = lazy(() => import("./dashboard/FeedbackTab"));
+const ReminderTabDirect = lazy(() => import("./dashboard/ReminderTab"));
+const SupportTabDirect = lazy(() => import("./dashboard/SupportTab"));
+const SettingsTabDirect = lazy(() => import("./dashboard/SettingsTab"));
+const AdminTabDirect = lazy(() => import("./dashboard/AdminTab"));
 
 
 const initialForm = {
@@ -358,6 +366,9 @@ const initialSectionLoading = {
   rewardEvents: true,
   checkins: true,
 };
+const resolvedSectionLoading = Object.fromEntries(
+  Object.keys(initialSectionLoading).map((key) => [key, false]),
+);
 
 function formatDate(value) {
   if (!value) return "Just now";
@@ -660,6 +671,27 @@ function formatDisplayLabel(value) {
     .replace(/\b\w/g, (character) => character.toUpperCase());
 }
 
+function buildCheckinFields(entry) {
+  if (!entry) return initialCheckinFields;
+  return {
+    mood: entry.mood || "",
+    energy: entry.energy || "",
+    focus: entry.focus || "",
+    stress: entry.stress || "",
+    motivation: entry.motivation || "",
+    productivity: entry.productivity || "",
+    sleepQuality: entry.sleepQuality || "",
+    happiness: entry.happiness || "",
+    emotionalState: entry.emotionalState || "",
+    pressureLevel: entry.pressureLevel || "",
+    personalIssue: entry.personalIssue || "",
+    wins: entry.wins || "",
+    reflection: entry.reflection || "",
+    loneliness: entry.loneliness || "",
+    difficultyReason: entry.difficultyReason || "",
+  };
+}
+
 function SectionLoadingCard({ title, description }) {
   return (
     <section className="section-loading-card">
@@ -669,6 +701,30 @@ function SectionLoadingCard({ title, description }) {
         <p>{description}</p>
       </div>
     </section>
+  );
+}
+
+function CompactLoadingSkeleton({ title, lines = 2 }) {
+  return (
+    <section className="dashboard-compact-skeleton" aria-hidden="true">
+      <div className="dashboard-compact-skeleton__pulse" />
+      <div className="dashboard-compact-skeleton__body">
+        <strong>{title}</strong>
+        <div className="dashboard-compact-skeleton__lines">
+          {Array.from({ length: lines }).map((_, index) => (
+            <span key={`${title}-${index}`} />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function LazySection({ title, description, children }) {
+  return (
+    <Suspense fallback={<SectionLoadingCard title={title} description={description} />}>
+      {children}
+    </Suspense>
   );
 }
 
@@ -738,6 +794,10 @@ function Dashboard({ user }) {
   const [focusMode, setFocusMode] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
+  const [isCompactMobile, setIsCompactMobile] = useState(
+    typeof window !== "undefined" ? window.innerWidth <= 768 : false,
+  );
+  const [showMobileAnalytics, setShowMobileAnalytics] = useState(false);
   const [quickAddDraft, setQuickAddDraft] = useState({
     type: "goal",
     title: "",
@@ -758,6 +818,16 @@ function Dashboard({ user }) {
   }, [statusMessage, statusTone]);
 
   useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    const mediaQuery = window.matchMedia("(max-width: 768px)");
+    const handleChange = (event) => setIsCompactMobile(event.matches);
+
+    mediaQuery.addEventListener("change", handleChange);
+
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, []);
+
+  useEffect(() => {
     let isMounted = true;
     async function loadWorkspace() {
       setIsLoadingWorkspace(true);
@@ -768,29 +838,25 @@ function Dashboard({ user }) {
             return { key, status: "fulfilled", value: await loader() };
           } catch (reason) {
             return { key, status: "rejected", reason, value: fallback };
-          } finally {
-            if (isMounted) {
-              setSectionLoading((current) => ({ ...current, [key]: false }));
-            }
           }
         };
 
-        const results = [
-          await safeLoad("plans", () => loadUserPlans(user.uid), []),
-          await safeLoad("profile", () => loadUserProfile(user.uid), null),
-          await safeLoad("feedback", () => loadUserFeedback(user.uid), []),
-          await safeLoad("goals", () => loadUserGoals(user.uid), []),
-          await safeLoad("habits", () => loadUserHabits(user.uid), []),
-          await safeLoad("reviews", () => loadWeeklyReviews(user.uid), []),
-          await safeLoad("monthlyReviews", () => loadMonthlyReviews(user.uid), []),
-          await safeLoad("careerExplorations", () => loadUserCareerExplorations(user.uid), []),
-          await safeLoad("hobbyPlans", () => loadUserHobbyPlans(user.uid), []),
-          await safeLoad("routineBuilders", () => loadUserRoutineBuilders(user.uid), []),
-          await safeLoad("reminders", () => loadReminderSettings(user.uid), null),
-          await safeLoad("progress", () => loadUserProgress(user.uid), emptyProgress),
-          await safeLoad("rewardEvents", () => loadRewardEvents(user.uid), []),
-          await safeLoad("checkins", () => loadUserCheckins(user.uid), []),
-        ];
+        const results = await Promise.all([
+          safeLoad("plans", () => loadUserPlans(user.uid), []),
+          safeLoad("profile", () => loadUserProfile(user.uid), null),
+          safeLoad("feedback", () => loadUserFeedback(user.uid), []),
+          safeLoad("goals", () => loadUserGoals(user.uid), []),
+          safeLoad("habits", () => loadUserHabits(user.uid), []),
+          safeLoad("reviews", () => loadWeeklyReviews(user.uid), []),
+          safeLoad("monthlyReviews", () => loadMonthlyReviews(user.uid), []),
+          safeLoad("careerExplorations", () => loadUserCareerExplorations(user.uid), []),
+          safeLoad("hobbyPlans", () => loadUserHobbyPlans(user.uid), []),
+          safeLoad("routineBuilders", () => loadUserRoutineBuilders(user.uid), []),
+          safeLoad("reminders", () => loadReminderSettings(user.uid), null),
+          safeLoad("progress", () => loadUserProgress(user.uid), emptyProgress),
+          safeLoad("rewardEvents", () => loadRewardEvents(user.uid), []),
+          safeLoad("checkins", () => loadUserCheckins(user.uid), []),
+        ]);
         if (!isMounted) return;
         const resultMap = Object.fromEntries(results.map((item) => [item.key, item]));
         const getValue = (key, fallback) =>
@@ -828,13 +894,7 @@ function Dashboard({ user }) {
         const today = loadedCheckins.find((item) => item.date === getDateKey());
         setTodayCheckin(today || null);
         setCheckinNote(today?.note || "");
-        setCheckinFields(today ? {
-          mood: today.mood || "",
-          energy: today.energy || "",
-          focus: today.focus || "",
-          loneliness: today.loneliness || "",
-          difficultyReason: today.difficultyReason || "",
-        } : initialCheckinFields);
+        setCheckinFields(buildCheckinFields(today));
         if (loadedProfile) setProfile({ ...initialProfile, ...loadedProfile });
         setError("");
 
@@ -857,6 +917,10 @@ function Dashboard({ user }) {
           }
         }
       } catch (workspaceError) {
+        captureException(workspaceError, {
+          tags: { surface: "dashboard_workspace_load" },
+          extra: { userId: user.uid },
+        });
         if (isMounted) {
           const message = String(workspaceError?.message || "");
           if (
@@ -874,9 +938,7 @@ function Dashboard({ user }) {
       } finally {
         if (isMounted) {
           setIsLoadingWorkspace(false);
-          setSectionLoading((current) =>
-            Object.fromEntries(Object.keys(current).map((key) => [key, false])),
-          );
+          setSectionLoading(resolvedSectionLoading);
         }
       }
     }
@@ -894,12 +956,16 @@ function Dashboard({ user }) {
         const snapshot = await loadAdminSnapshot();
         if (!ignore) setAdminSnapshot(snapshot);
       } catch (adminError) {
+        captureException(adminError, {
+          tags: { surface: "dashboard_admin_load" },
+          extra: { userId: user.uid },
+        });
         if (!ignore) setError(adminError.message || "Could not load admin dashboard.");
       }
     }
     loadAdminData();
     return () => { ignore = true; };
-  }, [activeTab, isAdmin]);
+  }, [activeTab, isAdmin, user.uid]);
 
   useEffect(() => {
     if (
@@ -960,6 +1026,22 @@ function Dashboard({ user }) {
       }),
     [profile, plans, goals, habits, checkins, progress, hobbyPlans],
   );
+  const adaptiveWorkspace = useMemo(
+    () =>
+      buildAdaptiveIntelligence({
+        userId: user.uid,
+        profile,
+        plans,
+        goals,
+        habits,
+        checkins,
+        progress,
+        hobbyPlans,
+        currentPlan,
+        behavioralInsights,
+      }),
+    [user.uid, profile, plans, goals, habits, checkins, progress, hobbyPlans, currentPlan, behavioralInsights],
+  );
   const sidebarItems = useMemo(
     () =>
       sidebarGroups
@@ -1011,10 +1093,12 @@ function Dashboard({ user }) {
   const handleTabChange = (nextTab) => {
     setActiveTab(nextTab);
     setIsMobileNavOpen(false);
+    trackEvent("dashboard_tab_viewed", { tab: nextTab });
   };
 
   const handleLogout = async () => {
     try {
+      trackEvent("logout_clicked", { surface: "dashboard_header" });
       await signOut(auth);
       setStatusMessage("Signed out successfully.");
       setError("");
@@ -1075,6 +1159,7 @@ function Dashboard({ user }) {
         reason: note || current.reason,
       }));
       setActiveTab("goals");
+      trackEvent("quick_add_used", { type: "goal" });
       setStatusMessage("Goal draft prepared. Finish the details and save it when ready.");
     } else if (quickAddDraft.type === "habit") {
       setHabitDraft((current) => ({
@@ -1083,6 +1168,7 @@ function Dashboard({ user }) {
         standardVersion: note || current.standardVersion,
       }));
       setActiveTab("habits");
+      trackEvent("quick_add_used", { type: "habit" });
       setStatusMessage("Habit draft prepared. You can save it from the habits tab.");
     } else {
       setForm((current) => ({
@@ -1178,6 +1264,12 @@ function Dashboard({ user }) {
           adjustmentRequest: null,
         });
       }
+      trackEvent(adjustment ? "plan_adjusted" : "plan_generated", {
+        roadmap_focus: form.roadmapFocus,
+        duration: form.planDuration,
+        preferred_tone: form.preferredTone,
+        has_profile_context: Boolean(profile.fullName || profile.mainGoal),
+      });
       
       setPlans((current) => [savedPlan, ...current]);
       setCurrentPlan(savedPlan);
@@ -1185,6 +1277,10 @@ function Dashboard({ user }) {
       setActiveTab("planner");
       setStatusMessage(adjustment ? "Plan updated successfully. Your revised plan is ready below." : "Plan generated successfully. Your new guidance plan is ready below.");
     } catch (requestError) {
+      captureException(requestError, {
+        tags: { surface: "plan_generation" },
+        extra: { roadmapFocus: form.roadmapFocus, planDuration: form.planDuration, adjusted: Boolean(adjustment) },
+      });
       setError(requestError.message || "Something went wrong while creating your plan.");
     } finally {
       setIsLoading(false);
@@ -1200,8 +1296,17 @@ function Dashboard({ user }) {
       await saveUserProfile(user.uid, { ...profile, userEmail: user.email });
       const rewardResult = await applyRewardAction(user.uid, { type: "profile-saved" });
       mergeRewardResult(rewardResult);
+      trackEvent("profile_completed", {
+        role: profile.role,
+        working_style: profile.workingStyle,
+        has_vision: Boolean(profile.longTermVision),
+      });
       setStatusMessage("Profile saved. You can now use it to autofill the planner.");
     } catch (profileError) {
+      captureException(profileError, {
+        tags: { surface: "profile_save" },
+        extra: { role: profile.role, userId: user.uid },
+      });
       setError(profileError.message || "Could not save your profile.");
     } finally {
       setIsSavingProfile(false);
@@ -1232,12 +1337,20 @@ function Dashboard({ user }) {
         rating: Number(feedbackRating),
         message: feedbackMessage,
       });
+      trackEvent("feedback_submitted", {
+        rating: Number(feedbackRating),
+        plan_id: currentPlan.id,
+      });
       
       setFeedbackItems((current) => [savedFeedback, ...current]);
       setFeedbackMessage("");
       setFeedbackRating(5);
       setStatusMessage("Feedback saved and added to your momentum.");
     } catch (feedbackError) {
+      captureException(feedbackError, {
+        tags: { surface: "feedback_submit" },
+        extra: { planId: currentPlan?.id, rating: feedbackRating },
+      });
       setError(feedbackError.message || "Could not save feedback.");
     } finally {
       setIsSubmittingFeedback(false);
@@ -1285,9 +1398,19 @@ function Dashboard({ user }) {
       
       // Log checkin pattern for engagement tracking
       await logCheckinPattern(user.uid, result.progress);
+      trackEvent("daily_checkin_saved", {
+        status,
+        mood: checkinFields.mood,
+        energy: checkinFields.energy,
+        mobile: typeof window !== "undefined" ? window.innerWidth <= 768 : false,
+      });
       
       setStatusMessage(`Today's progress was saved as ${status.replace(/-/g, " ")}.`);
     } catch (checkinError) {
+      captureException(checkinError, {
+        tags: { surface: "daily_checkin" },
+        extra: { planId: currentPlan?.id, status },
+      });
       setError(checkinError.message || "Could not save today's check-in.");
     } finally {
       setIsSubmittingCheckin(false);
@@ -1629,6 +1752,10 @@ function Dashboard({ user }) {
       setChatPrompt("");
       setStatusMessage("Follow-up guidance added.");
     } catch (chatError) {
+      captureException(chatError, {
+        tags: { surface: "ai_chat_followup" },
+        extra: { planId: currentPlan?.id },
+      });
       setError(chatError.message || "Could not send the follow-up request.");
     } finally {
       setIsSendingChat(false);
@@ -1702,7 +1829,7 @@ function Dashboard({ user }) {
       const updatedGoal = await updateGoalRecord(goal.id, {
         status: nextStatus,
         completedAt: nextStatus === "completed" ? getDateKey() : null,
-      });
+      }, goal);
 
       setGoals((current) =>
         current.map((item) => (item.id === goal.id ? updatedGoal : item)),
@@ -1764,7 +1891,7 @@ function Dashboard({ user }) {
         currentStreak: nextCurrentStreak,
         bestStreak: Math.max(habit.bestStreak || 0, nextCurrentStreak),
         lastCompletedDate: nextComplete ? getDateKey() : habit.lastCompletedDate || null,
-      });
+      }, habit);
       setHabits((current) => current.map((item) => (item.id === habit.id ? updatedHabit : item)));
       setStatusMessage(nextComplete ? "Habit marked for today." : "Habit mark removed for today.");
     } catch (habitError) {
@@ -1910,47 +2037,47 @@ function Dashboard({ user }) {
 
     switch (activeTab) {
       case "goals":
-        return <WidgetErrorBoundary title="Goals unavailable" description="The goals workspace hit a rendering problem."><GoalTabDirect goalDraft={goalDraft} goals={goals} isSavingGoal={isSavingGoal} onChange={updateGoalField} onSubmit={handleSaveGoal} onDelete={handleDeleteGoal} onStatusChange={handleGoalStatusChange} /></WidgetErrorBoundary>;
+        return <WidgetErrorBoundary title="Goals unavailable" description="The goals workspace hit a rendering problem."><LazySection title="Loading goals" description="Opening your goals and milestone workspace."><GoalTabDirect goalDraft={goalDraft} goals={goals} isSavingGoal={isSavingGoal} onChange={updateGoalField} onSubmit={handleSaveGoal} onDelete={handleDeleteGoal} onStatusChange={handleGoalStatusChange} /></LazySection></WidgetErrorBoundary>;
       case "habits":
-        return <WidgetErrorBoundary title="Habits unavailable" description="The habits workspace hit a rendering problem."><HabitTabDirect habitDraft={habitDraft} habits={habits} isSavingHabit={isSavingHabit} onChange={updateHabitField} onSubmit={handleSaveHabit} onDelete={handleDeleteHabit} onToggle={handleToggleHabit} /></WidgetErrorBoundary>;
+        return <WidgetErrorBoundary title="Habits unavailable" description="The habits workspace hit a rendering problem."><LazySection title="Loading habits" description="Opening your consistency and habit tracking workspace."><HabitTabDirect habitDraft={habitDraft} habits={habits} isSavingHabit={isSavingHabit} onChange={updateHabitField} onSubmit={handleSaveHabit} onDelete={handleDeleteHabit} onToggle={handleToggleHabit} /></LazySection></WidgetErrorBoundary>;
       case "daily":
-        return <WidgetErrorBoundary title="Daily progress unavailable" description="Check-in history could not render."><DailyProgressTabDirect checkins={checkins} progress={progress} rewards={rewardEvents} behavioralInsights={behavioralInsights} /></WidgetErrorBoundary>;
+        return <WidgetErrorBoundary title="Daily progress unavailable" description="Check-in history could not render."><LazySection title="Loading daily progress" description="Preparing your check-ins, rewards, and adaptive signals."><DailyProgressTabDirect checkins={checkins} progress={progress} rewards={rewardEvents} behavioralInsights={behavioralInsights} adaptiveWorkspace={adaptiveWorkspace} /></LazySection></WidgetErrorBoundary>;
       case "weekly":
-        return <WidgetErrorBoundary title="Weekly progress unavailable" description="The weekly progress view could not render."><WeeklyProgressTabDirect checkins={checkins} progress={progress} rewards={rewardEvents} onExportWeeklySummary={handleExportWeeklySummary} onShareWeeklySummary={handleShareWeeklySummary} /></WidgetErrorBoundary>;
+        return <WidgetErrorBoundary title="Weekly progress unavailable" description="The weekly progress view could not render."><LazySection title="Loading weekly progress" description="Pulling in the weekly view and performance summaries."><WeeklyProgressTabDirect checkins={checkins} progress={progress} rewards={rewardEvents} onExportWeeklySummary={handleExportWeeklySummary} onShareWeeklySummary={handleShareWeeklySummary} /></LazySection></WidgetErrorBoundary>;
       case "review":
-        return <WidgetErrorBoundary title="Weekly review unavailable" description="The weekly reflection surface could not render."><WeeklyReviewTabDirect reviewDraft={reviewDraft} reviews={reviews} goals={goals} isSavingReview={isSavingReview} onChange={updateReviewField} onSubmit={handleSaveWeeklyReview} /></WidgetErrorBoundary>;
+        return <WidgetErrorBoundary title="Weekly review unavailable" description="The weekly reflection surface could not render."><LazySection title="Loading weekly review" description="Preparing your weekly reflection and review history."><WeeklyReviewTabDirect reviewDraft={reviewDraft} reviews={reviews} goals={goals} isSavingReview={isSavingReview} onChange={updateReviewField} onSubmit={handleSaveWeeklyReview} /></LazySection></WidgetErrorBoundary>;
       case "monthly":
-        return <WidgetErrorBoundary title="Monthly review unavailable" description="The monthly review surface could not render."><MonthlyReviewTabDirect monthlyReviewDraft={monthlyReviewDraft} monthlyReviews={monthlyReviews} goals={goals} isSavingMonthlyReview={isSavingMonthlyReview} onChange={updateMonthlyReviewField} onSubmit={handleSaveMonthlyReview} /></WidgetErrorBoundary>;
+        return <WidgetErrorBoundary title="Monthly review unavailable" description="The monthly review surface could not render."><LazySection title="Loading monthly review" description="Preparing the longer-view reflection surface."><MonthlyReviewTabDirect monthlyReviewDraft={monthlyReviewDraft} monthlyReviews={monthlyReviews} goals={goals} isSavingMonthlyReview={isSavingMonthlyReview} onChange={updateMonthlyReviewField} onSubmit={handleSaveMonthlyReview} /></LazySection></WidgetErrorBoundary>;
       case "career":
-        return <WidgetErrorBoundary title="Career explorer unavailable" description="The career direction surface could not render."><CareerExplorerTabDirect draft={careerDraft} savedItems={careerExplorations} isSaving={isSavingCareer} onChange={updateCareerField} onSubmit={handleSaveCareerExploration} /></WidgetErrorBoundary>;
+        return <WidgetErrorBoundary title="Career explorer unavailable" description="The career direction surface could not render."><LazySection title="Loading career explorer" description="Pulling in the direction and pathfinding workspace."><CareerExplorerTabDirect draft={careerDraft} savedItems={careerExplorations} isSaving={isSavingCareer} onChange={updateCareerField} onSubmit={handleSaveCareerExploration} /></LazySection></WidgetErrorBoundary>;
       case "income":
-        return <WidgetErrorBoundary title="Income paths unavailable" description="The hobby income surface could not render."><HobbyIncomeTabDirect draft={hobbyDraft} savedItems={hobbyPlans} isSaving={isSavingHobbyPath} onChange={updateHobbyField} onSubmit={handleSaveHobbyPath} /></WidgetErrorBoundary>;
+        return <WidgetErrorBoundary title="Income paths unavailable" description="The hobby income surface could not render."><LazySection title="Loading hobby income paths" description="Opening the growth and monetization workspace."><HobbyIncomeTabDirect draft={hobbyDraft} savedItems={hobbyPlans} isSaving={isSavingHobbyPath} onChange={updateHobbyField} onSubmit={handleSaveHobbyPath} /></LazySection></WidgetErrorBoundary>;
       case "routine":
-        return <WidgetErrorBoundary title="Routine builder unavailable" description="The routine builder could not render."><RoutineBuilderTabDirect builderDraft={routineBuilderDraft} blockDraft={routineBlockDraft} savedItems={routineBuilders} isSaving={isSavingRoutineBuilder} onBuilderChange={updateRoutineBuilderField} onBlockChange={updateRoutineBlockField} onAddBlock={handleAddRoutineBlock} onRemoveBlock={handleRemoveRoutineBlock} onToggleLock={handleToggleRoutineBlockLock} onSave={handleSaveRoutineBuilder} onDelete={handleDeleteRoutineBuilder} onExportCalendar={handleExportRoutineCalendar} /></WidgetErrorBoundary>;
+        return <WidgetErrorBoundary title="Routine builder unavailable" description="The routine builder could not render."><LazySection title="Loading routine builder" description="Preparing the routine system and calendar tools."><RoutineBuilderTabDirect builderDraft={routineBuilderDraft} blockDraft={routineBlockDraft} savedItems={routineBuilders} isSaving={isSavingRoutineBuilder} onBuilderChange={updateRoutineBuilderField} onBlockChange={updateRoutineBlockField} onAddBlock={handleAddRoutineBlock} onRemoveBlock={handleRemoveRoutineBlock} onToggleLock={handleToggleRoutineBlockLock} onSave={handleSaveRoutineBuilder} onDelete={handleDeleteRoutineBuilder} onExportCalendar={handleExportRoutineCalendar} /></LazySection></WidgetErrorBoundary>;
       case "chat":
-        return <WidgetErrorBoundary title="AI coach unavailable" description="The follow-up coach surface could not render."><ChatExtensionTabDirect currentPlan={currentPlan} chatPrompt={chatPrompt} chatMessages={chatMessages} isSendingChat={isSendingChat} onPromptChange={(event) => setChatPrompt(event.target.value)} onQuickPrompt={setChatPrompt} onSubmit={handleSendChat} /></WidgetErrorBoundary>;
+        return <WidgetErrorBoundary title="AI coach unavailable" description="The follow-up coach surface could not render."><LazySection title="Loading AI coach" description="Opening the conversational follow-up workspace."><ChatExtensionTabDirect currentPlan={currentPlan} chatPrompt={chatPrompt} chatMessages={chatMessages} isSendingChat={isSendingChat} onPromptChange={(event) => setChatPrompt(event.target.value)} onQuickPrompt={setChatPrompt} onSubmit={handleSendChat} /></LazySection></WidgetErrorBoundary>;
       case "achievements":
-        return <WidgetErrorBoundary title="Achievements unavailable" description="The achievement surface could not render."><AchievementTabDirect progress={progress} rewardEvents={rewardEvents} /></WidgetErrorBoundary>;
+        return <WidgetErrorBoundary title="Achievements unavailable" description="The achievement surface could not render."><LazySection title="Loading achievements" description="Preparing achievement and reward history."><AchievementTabDirect progress={progress} rewardEvents={rewardEvents} /></LazySection></WidgetErrorBoundary>;
       case "missions":
-        return <WidgetErrorBoundary title="Missions unavailable" description="The mission surface could not render."><MissionsTabDirect progress={progress} missionSummary={missionSummary} /></WidgetErrorBoundary>;
+        return <WidgetErrorBoundary title="Missions unavailable" description="The mission surface could not render."><LazySection title="Loading missions" description="Preparing daily and weekly progression goals."><MissionsTabDirect progress={progress} missionSummary={missionSummary} /></LazySection></WidgetErrorBoundary>;
       case "insights":
-        return <WidgetErrorBoundary title="Insights unavailable" description="The personalization surface could not render."><PersonalizationTabDirect insights={personalizationInsights} profile={profile} plans={plans} checkins={checkins} behavioralInsights={behavioralInsights} /></WidgetErrorBoundary>;
+        return <WidgetErrorBoundary title="Insights unavailable" description="The personalization surface could not render."><LazySection title="Loading insights" description="Reading your memory, patterns, and adaptive signals."><PersonalizationTabDirect insights={personalizationInsights} profile={profile} plans={plans} checkins={checkins} behavioralInsights={behavioralInsights} adaptiveWorkspace={adaptiveWorkspace} /></LazySection></WidgetErrorBoundary>;
       case "system":
-        return <WidgetErrorBoundary title="System map unavailable" description="The project brain map could not render."><ProjectMapTabDirect /></WidgetErrorBoundary>;
+        return <WidgetErrorBoundary title="System map unavailable" description="The project brain map could not render."><LazySection title="Loading system map" description="Opening the project memory and system overview."><ProjectMapTabDirect /></LazySection></WidgetErrorBoundary>;
       case "history":
-        return <WidgetErrorBoundary title="History unavailable" description="The plan history surface could not render."><HistoryTabDirect plans={plans} onView={setCurrentPlan} onUseAnswers={(item) => { setForm(item.profileSnapshot); handleTabChange("planner"); }} onDelete={handleDeletePlan} formatDate={formatDate} /></WidgetErrorBoundary>;
+        return <WidgetErrorBoundary title="History unavailable" description="The plan history surface could not render."><LazySection title="Loading history" description="Opening saved plans and reusable answers."><HistoryTabDirect plans={plans} onView={setCurrentPlan} onUseAnswers={(item) => { setForm(item.profileSnapshot); handleTabChange("planner"); }} onDelete={handleDeletePlan} formatDate={formatDate} /></LazySection></WidgetErrorBoundary>;
       case "profile":
-        return <WidgetErrorBoundary title="Profile unavailable" description="The profile surface could not render."><ProfileTabDirect profile={profile} isSavingProfile={isSavingProfile} onChange={updateProfileField} onSubmit={handleSaveProfile} onApplyToPlanner={applyProfileToPlanner} /></WidgetErrorBoundary>;
+        return <WidgetErrorBoundary title="Profile unavailable" description="The profile surface could not render."><LazySection title="Loading profile" description="Opening profile and onboarding context."><ProfileTabDirect profile={profile} isSavingProfile={isSavingProfile} onChange={updateProfileField} onSubmit={handleSaveProfile} onApplyToPlanner={applyProfileToPlanner} /></LazySection></WidgetErrorBoundary>;
       case "feedback":
-        return <WidgetErrorBoundary title="Feedback unavailable" description="The feedback surface could not render."><FeedbackTabDirect currentPlan={currentPlan} feedbackItems={feedbackItems} feedbackMessage={feedbackMessage} feedbackRating={feedbackRating} isSubmittingFeedback={isSubmittingFeedback} formatDate={formatDate} onMessageChange={(event) => setFeedbackMessage(event.target.value)} onRatingChange={(event) => setFeedbackRating(event.target.value)} onSubmit={handleSubmitFeedback} /></WidgetErrorBoundary>;
+        return <WidgetErrorBoundary title="Feedback unavailable" description="The feedback surface could not render."><LazySection title="Loading feedback" description="Opening plan feedback and quality signals."><FeedbackTabDirect currentPlan={currentPlan} feedbackItems={feedbackItems} feedbackMessage={feedbackMessage} feedbackRating={feedbackRating} isSubmittingFeedback={isSubmittingFeedback} formatDate={formatDate} onMessageChange={(event) => setFeedbackMessage(event.target.value)} onRatingChange={(event) => setFeedbackRating(event.target.value)} onSubmit={handleSubmitFeedback} /></LazySection></WidgetErrorBoundary>;
       case "reminders":
-        return <WidgetErrorBoundary title="Reminders unavailable" description="The reminder surface could not render."><ReminderTabDirect reminderSettings={reminderSettings} isSaving={isSavingReminderSettings} notificationState={notificationState} onChange={updateReminderField} onEnableNotifications={handleEnableNotifications} onSendTestReminder={handleSendTestReminder} onSubmit={handleSaveReminderSettings} /></WidgetErrorBoundary>;
+        return <WidgetErrorBoundary title="Reminders unavailable" description="The reminder surface could not render."><LazySection title="Loading reminders" description="Opening adaptive reminder settings and notification tools."><ReminderTabDirect reminderSettings={reminderSettings} isSaving={isSavingReminderSettings} notificationState={notificationState} onChange={updateReminderField} onEnableNotifications={handleEnableNotifications} onSendTestReminder={handleSendTestReminder} onSubmit={handleSaveReminderSettings} /></LazySection></WidgetErrorBoundary>;
       case "support":
-        return <WidgetErrorBoundary title="Support unavailable" description="The support surface could not render."><SupportTabDirect /></WidgetErrorBoundary>;
+        return <WidgetErrorBoundary title="Support unavailable" description="The support surface could not render."><LazySection title="Loading support" description="Opening support guidance and help content."><SupportTabDirect /></LazySection></WidgetErrorBoundary>;
       case "settings":
-        return <WidgetErrorBoundary title="Settings unavailable" description="The settings surface could not render."><SettingsTabDirect user={user} profile={profile} plans={plans} goals={goals} habits={habits} reviews={reviews} monthlyReviews={monthlyReviews} checkins={checkins} rewardEvents={rewardEvents} careerExplorations={careerExplorations} hobbyPlans={hobbyPlans} routineBuilders={routineBuilders} reminderSettings={reminderSettings} onDeleteMyData={handleDeleteMyData} onExportData={handleExportData} onResendVerification={handleResendVerification} onShareProgress={handleShareProgress} /></WidgetErrorBoundary>;
+        return <WidgetErrorBoundary title="Settings unavailable" description="The settings surface could not render."><LazySection title="Loading settings" description="Opening account, export, and privacy controls."><SettingsTabDirect user={user} profile={profile} plans={plans} goals={goals} habits={habits} reviews={reviews} monthlyReviews={monthlyReviews} checkins={checkins} rewardEvents={rewardEvents} careerExplorations={careerExplorations} hobbyPlans={hobbyPlans} routineBuilders={routineBuilders} reminderSettings={reminderSettings} onDeleteMyData={handleDeleteMyData} onExportData={handleExportData} onResendVerification={handleResendVerification} onShareProgress={handleShareProgress} /></LazySection></WidgetErrorBoundary>;
       case "admin":
-        return isAdmin ? <WidgetErrorBoundary title="Admin dashboard unavailable" description="The admin surface could not render."><AdminTabDirect adminSnapshot={adminSnapshot} userId={user.uid} /></WidgetErrorBoundary> : null;
+        return isAdmin ? <WidgetErrorBoundary title="Admin dashboard unavailable" description="The admin surface could not render."><LazySection title="Loading admin dashboard" description="Preparing usage and analytics administration."><AdminTabDirect adminSnapshot={adminSnapshot} userId={user.uid} /></LazySection></WidgetErrorBoundary> : null;
       default:
         return null;
     }
@@ -1975,6 +2102,11 @@ function Dashboard({ user }) {
     },
   ];
   const showResultPanel = activeTab === "planner";
+  const showMobilePlannerSkeleton = showResultPanel && (plannerBootstrapPending || isLoading || isAdjusting);
+  const showMobileInsightSkeleton = progressPanelPending || sectionLoading.profile;
+  const mobileBottomNavItems = ["planner", "daily", "insights", "settings"];
+  const shouldRenderAnalyticsChart =
+    !isCompactMobile || showMobileAnalytics || ["daily", "weekly", "insights"].includes(activeTab);
 
   return (
     <>
@@ -2075,7 +2207,14 @@ function Dashboard({ user }) {
               >
                 {showResultPanel ? (
                   <div className="planner-workspace-grid">
-                    <div className="planner-workspace-grid__form">{renderedTab}</div>
+                    <div className="planner-workspace-grid__form">
+                      {showMobilePlannerSkeleton && (
+                        <div className="dashboard-mobile-skeletons dashboard-mobile-skeletons--planner">
+                          <CompactLoadingSkeleton title="Preparing planner context" lines={3} />
+                        </div>
+                      )}
+                      {renderedTab}
+                    </div>
                     <div className="planner-workspace-grid__result" ref={resultPanelRef}>
                       {isLoading ? (
                         <section className="saas-panel result-loading-state">
@@ -2145,10 +2284,16 @@ function Dashboard({ user }) {
             </main>
 
             <aside className="dashboard-intelligence-rail">
+              {showMobileInsightSkeleton && (
+                <div className="dashboard-mobile-skeletons dashboard-mobile-skeletons--insights">
+                  <CompactLoadingSkeleton title="Syncing insight rail" lines={2} />
+                  <CompactLoadingSkeleton title="Warming up progress cards" lines={3} />
+                </div>
+              )}
               <section className="saas-panel intelligence-panel intelligence-panel--highlight">
                 <div className="intelligence-panel__head">
                   <p className="dashboard-eyebrow">Adaptive life state</p>
-                  <span className="hero-header-chip">{behavioralInsights.lifeState.label}</span>
+                  <span className="hero-header-chip">{adaptiveWorkspace.workspaceMode.label}</span>
                 </div>
                 <div className="intelligence-panel__list intelligence-panel__list--compact">
                   <article className="intelligence-checkpoint is-done">
@@ -2156,18 +2301,53 @@ function Dashboard({ user }) {
                     <span>{behavioralInsights.burnoutRisk.label}</span>
                   </article>
                   <article className="intelligence-checkpoint">
-                    <strong>Coaching mode</strong>
-                    <span>{behavioralInsights.personalityMode.active}</span>
+                    <strong>Mode</strong>
+                    <span>{adaptiveWorkspace.workspaceMode.summary}</span>
                   </article>
                   <article className="intelligence-checkpoint">
                     <strong>Next shift</strong>
-                    <span>{behavioralInsights.adaptiveRecommendations[0] || formatDisplayLabel(insightNarrative.focus)}</span>
+                    <span>{adaptiveWorkspace.roadmapIntelligence.nextShift || formatDisplayLabel(insightNarrative.focus)}</span>
                   </article>
                 </div>
               </section>
 
-              <ProgressWidget completion={completion} progress={progress} plans={plans} goals={goals} habits={habits} behavioralInsights={behavioralInsights} />
-              <AnalyticsChart checkins={checkins} progress={progress} behavioralInsights={behavioralInsights} />
+              <LazySection title="Loading progress overview" description="Preparing the progress and momentum widget.">
+                <ProgressWidget completion={completion} progress={progress} plans={plans} goals={goals} habits={habits} behavioralInsights={behavioralInsights} />
+              </LazySection>
+              {shouldRenderAnalyticsChart ? (
+                <LazySection title="Loading analytics insights" description="Preparing productivity and mood charts.">
+                  <AnalyticsChart checkins={checkins} progress={progress} behavioralInsights={behavioralInsights} />
+                </LazySection>
+              ) : (
+                <section className="saas-panel intelligence-panel intelligence-panel--compact-action">
+                  <div className="intelligence-panel__head">
+                    <p className="dashboard-eyebrow">Chart insights</p>
+                    <span className="hero-header-chip">Deferred on mobile</span>
+                  </div>
+                  <p className="intelligence-panel__body">
+                    The full analytics surface is available when you open progress or insights, or you can load it here if you want the deeper read now.
+                  </p>
+                  <button className="saas-button-secondary" type="button" onClick={() => setShowMobileAnalytics(true)}>
+                    Load analytics
+                  </button>
+                </section>
+              )}
+
+              <section className="saas-panel intelligence-panel">
+                <div className="intelligence-panel__head">
+                  <p className="dashboard-eyebrow">AI insight feed</p>
+                  <span className="hero-header-chip">{adaptiveWorkspace.insightFeed.length} live reads</span>
+                </div>
+                <div className="intelligence-panel__list">
+                  {adaptiveWorkspace.insightFeed.slice(0, 4).map((item) => (
+                    <article key={item.id} className="intelligence-checkpoint">
+                      <strong>{item.title}</strong>
+                      <span>{item.kind}</span>
+                      <small>{item.detail}</small>
+                    </article>
+                  ))}
+                </div>
+              </section>
 
               <section className="saas-panel intelligence-panel">
                 <div className="intelligence-panel__head">
@@ -2227,11 +2407,31 @@ function Dashboard({ user }) {
         onClose={() => setIsQuickAddOpen(false)}
         onSubmit={handleQuickAddSubmit}
       />
+
+      <nav className="dashboard-bottom-nav" aria-label="Mobile primary navigation">
+        {mobileBottomNavItems.map((item) => {
+          const meta = tabMeta[item];
+          const Icon = meta.icon;
+          const isActive = item === activeTab;
+
+          return (
+            <button
+              key={item}
+              type="button"
+              className={`dashboard-bottom-nav__item${isActive ? " active" : ""}`}
+              onClick={() => handleTabChange(item)}
+            >
+              <Icon className="h-4 w-4" />
+              <span>{meta.label}</span>
+            </button>
+          );
+        })}
+      </nav>
+
     </>
   );
 }
 
-export default Dashboard;
  
 
 

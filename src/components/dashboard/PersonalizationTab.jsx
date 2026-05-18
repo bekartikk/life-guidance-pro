@@ -1,4 +1,4 @@
-function PersonalizationTab({ insights, profile, plans, checkins, behavioralInsights }) {
+function PersonalizationTab({ insights, profile, plans, checkins, behavioralInsights, adaptiveWorkspace }) {
   return (
     <section className="goals-panel in-workspace">
       <div className="form-header">
@@ -32,6 +32,44 @@ function PersonalizationTab({ insights, profile, plans, checkins, behavioralInsi
           <span className="stat-label">Life state</span>
           <span className="stat-value">{behavioralInsights.lifeState.label}</span>
         </div>
+      </div>
+
+      <div className="split-progress-grid">
+        <section className="section-card">
+          <div className="section-card-header">
+            <div>
+              <h3>Workspace modes</h3>
+              <p className="muted-text">The AI shifts how it guides you based on pressure, momentum, and direction.</p>
+            </div>
+          </div>
+          <div className="goal-list">
+            {adaptiveWorkspace.workspaceModes.map((mode) => (
+              <article className={`goal-card${mode.active ? " completed" : ""}`} key={mode.id}>
+                <strong>{mode.label}</strong>
+                <span className="goal-meta">{mode.active ? "Active now" : "Standby mode"}</span>
+                <p>{mode.summary}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="section-card">
+          <div className="section-card-header">
+            <div>
+              <h3>AI insight feed</h3>
+              <p className="muted-text">This is the living feed that explains what the system is noticing and why plans are shifting.</p>
+            </div>
+          </div>
+          <div className="goal-list">
+            {adaptiveWorkspace.insightFeed.map((item) => (
+              <article className="goal-card" key={item.id}>
+                <strong>{item.title}</strong>
+                <span className="goal-meta">{item.kind}</span>
+                <p>{item.detail}</p>
+              </article>
+            ))}
+          </div>
+        </section>
       </div>
 
       <div className="split-progress-grid">
@@ -198,6 +236,13 @@ function PersonalizationTab({ insights, profile, plans, checkins, behavioralInsi
           <article className="goal-card">
             <strong>Adaptive, not punitive</strong>
             <p>The system is designed to reduce shame-based productivity pressure by simplifying routines when life becomes heavy.</p>
+          </article>
+          <article className="goal-card">
+            <strong>Future-ready architecture</strong>
+            <p>
+              Cache provider: {adaptiveWorkspace.orchestration.cache.provider} ({adaptiveWorkspace.orchestration.cache.status}) ·
+              Vector memory: {adaptiveWorkspace.orchestration.vectorMemory.provider} ({adaptiveWorkspace.orchestration.vectorMemory.status})
+            </p>
           </article>
         </div>
       </section>

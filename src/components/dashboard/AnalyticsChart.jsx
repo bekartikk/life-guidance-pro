@@ -1,3 +1,4 @@
+import { memo, useMemo } from "react";
 import {
   Bar,
   BarChart,
@@ -47,14 +48,26 @@ function buildFallbackData() {
 }
 
 function AnalyticsChart({ checkins, progress, behavioralInsights }) {
-  const chartData = checkins.length
-    ? checkins.slice(0, 7).reverse().map(normalizeDay)
-    : buildFallbackData();
-
-  const strongestDay = [...chartData].sort((left, right) => right.productivity - left.productivity)[0];
-  const average = Math.round(chartData.reduce((sum, item) => sum + item.productivity, 0) / chartData.length);
-  const weakestDay = [...chartData].sort((left, right) => left.productivity - right.productivity)[0];
-  const moodAverage = (chartData.reduce((sum, item) => sum + item.mood, 0) / chartData.length).toFixed(1);
+  const chartData = useMemo(
+    () => (checkins.length ? checkins.slice(0, 7).reverse().map(normalizeDay) : buildFallbackData()),
+    [checkins],
+  );
+  const strongestDay = useMemo(
+    () => [...chartData].sort((left, right) => right.productivity - left.productivity)[0],
+    [chartData],
+  );
+  const average = useMemo(
+    () => Math.round(chartData.reduce((sum, item) => sum + item.productivity, 0) / chartData.length),
+    [chartData],
+  );
+  const weakestDay = useMemo(
+    () => [...chartData].sort((left, right) => left.productivity - right.productivity)[0],
+    [chartData],
+  );
+  const moodAverage = useMemo(
+    () => (chartData.reduce((sum, item) => sum + item.mood, 0) / chartData.length).toFixed(1),
+    [chartData],
+  );
 
   return (
     <MotionSection
@@ -154,4 +167,4 @@ function AnalyticsChart({ checkins, progress, behavioralInsights }) {
   );
 }
 
-export default AnalyticsChart;
+export default memo(AnalyticsChart);

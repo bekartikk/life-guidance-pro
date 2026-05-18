@@ -1,12 +1,11 @@
 import { collection, doc, getDocs, query, runTransaction, where } from "firebase/firestore";
-import { db } from "../firebase";
+import { db } from "../firebase-db";
 
 async function runSafeAnalyticsWrite(writeOperation) {
   try {
     await writeOperation();
     return true;
-  } catch (error) {
-    console.warn("Analytics write skipped:", error?.message || error);
+  } catch {
     return false;
   }
 }

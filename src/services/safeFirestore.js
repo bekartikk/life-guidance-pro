@@ -7,14 +7,13 @@ export function isRecoverableFirestoreError(error) {
   );
 }
 
-export async function safeRead(operation, fallback, label = "read") {
+export async function safeRead(operation, fallback) {
   try {
     return await operation();
   } catch (error) {
     if (isRecoverableFirestoreError(error)) {
       return fallback;
     }
-    console.error(`safeFirestore ${label} failed:`, error);
     return fallback;
   }
 }

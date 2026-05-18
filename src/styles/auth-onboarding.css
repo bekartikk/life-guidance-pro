@@ -356,3 +356,156 @@
     align-items: stretch;
   }
 }
+
+@media (max-width: 768px) {
+  .auth-experience__orb--violet {
+    width: 11rem;
+    height: 11rem;
+    top: -4rem;
+    left: -3rem;
+    filter: blur(78px);
+  }
+
+  .auth-experience__orb--teal {
+    width: 13rem;
+    height: 13rem;
+    top: 8rem;
+    right: -4rem;
+    filter: blur(88px);
+  }
+
+  .auth-layout {
+    gap: 0.9rem;
+  }
+
+  .auth-form-panel {
+    order: 1;
+    gap: 0.95rem;
+    padding: 1rem;
+  }
+
+  .auth-story-panel {
+    order: 2;
+    gap: 0.95rem;
+    padding: 1rem;
+  }
+
+  .auth-story-panel__copy h1 {
+    font-size: clamp(2rem, 9vw, 3rem);
+    line-height: 0.98;
+  }
+
+  .auth-story-panel__copy p,
+  .auth-form-panel__head p,
+  .auth-onboarding-step p,
+  .auth-coach-preview p {
+    font-size: 0.94rem;
+    line-height: 1.7;
+  }
+
+  .auth-form-panel__head {
+    gap: 0.7rem;
+  }
+
+  .auth-form-panel__head h2 {
+    font-size: clamp(1.9rem, 7.8vw, 2.45rem);
+    line-height: 1.02;
+  }
+
+  .auth-trust-list {
+    display: none;
+  }
+
+  .auth-onboarding-card {
+    padding: 1rem;
+  }
+
+  .auth-onboarding-steps {
+    gap: 0.7rem;
+  }
+
+  .auth-onboarding-step {
+    padding: 0.85rem 0.95rem;
+  }
+
+  .auth-coach-card {
+    padding: 1rem;
+  }
+
+  .auth-coach-grid {
+    display: flex;
+    overflow-x: auto;
+    gap: 0.7rem;
+    padding-bottom: 0.2rem;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .auth-coach-option {
+    flex: 0 0 82%;
+    min-height: 3.1rem;
+    scroll-snap-align: start;
+    justify-content: flex-start;
+  }
+
+  .auth-input-grid {
+    gap: 0.75rem;
+  }
+
+  .auth-input-grid label {
+    gap: 0.45rem;
+    font-size: 0.95rem;
+  }
+
+  .auth-input-grid input {
+    min-height: 3.2rem;
+    padding: 0.85rem 0.95rem;
+    font-size: 1rem;
+  }
+
+  .auth-primary-button,
+  .auth-secondary-button {
+    min-height: 3.25rem;
+    font-size: 0.98rem;
+  }
+
+  .auth-primary-button {
+    position: sticky;
+    bottom: 0.4rem;
+    z-index: 2;
+    box-shadow: 0 20px 36px rgba(124, 58, 237, 0.26);
+  }
+
+  .auth-form-actions button {
+    width: 100%;
+    text-align: left;
+    padding: 0.1rem 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-experience {
+    padding: 0.85rem 0.75rem 1.25rem;
+  }
+
+  .auth-back-link {
+    margin-inline: 0;
+    font-size: 0.92rem;
+  }
+
+  .auth-layout {
+    margin-top: 0.75rem;
+  }
+
+  .auth-story-panel,
+  .auth-form-panel,
+  .auth-onboarding-card,
+  .auth-coach-card {
+    padding: 0.95rem;
+    border-radius: 1.45rem;
+  }
+
+  .auth-coach-option {
+    flex-basis: 88%;
+  }
+}

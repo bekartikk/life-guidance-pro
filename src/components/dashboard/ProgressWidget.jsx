@@ -1,20 +1,27 @@
+import { memo, useMemo } from "react";
 import { motion } from "framer-motion";
 
 const MotionSection = motion.section;
 
 function ProgressWidget({ completion, progress, plans, goals, habits, behavioralInsights }) {
   const radius = 58;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (completion / 100) * circumference;
-  const pendingGoals = goals.filter((goal) => goal.status !== "completed").length;
+  const circumference = useMemo(() => 2 * Math.PI * radius, [radius]);
+  const offset = useMemo(() => circumference - (completion / 100) * circumference, [circumference, completion]);
+  const pendingGoals = useMemo(
+    () => goals.filter((goal) => goal.status !== "completed").length,
+    [goals],
+  );
   const habitCount = habits.length;
 
-  const stats = [
-    { label: "Plans", value: plans.length },
-    { label: "Goals", value: pendingGoals },
-    { label: "Habits", value: habitCount },
-    { label: "Streak", value: progress.activeStreak },
-  ];
+  const stats = useMemo(
+    () => [
+      { label: "Plans", value: plans.length },
+      { label: "Goals", value: pendingGoals },
+      { label: "Habits", value: habitCount },
+      { label: "Streak", value: progress.activeStreak },
+    ],
+    [plans.length, pendingGoals, habitCount, progress.activeStreak],
+  );
 
   return (
     <MotionSection
@@ -94,4 +101,4 @@ function ProgressWidget({ completion, progress, plans, goals, habits, behavioral
   );
 }
 
-export default ProgressWidget;
+export default memo(ProgressWidget);
