@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.4",
+    "@vercel/speed-insights": "^2.0.0",
     "firebase": "^12.7.0",
     "framer-motion": "^12.38.0",
     "posthog-js": "^1.373.4",

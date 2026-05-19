@@ -1,6 +1,6 @@
 # Project Brain Map
 
-_Auto-generated on 8 May 2026, 2:08 pm. This file updates from the repo structure and app/server entry points._
+_Auto-generated on 19 May 2026, 7:44 pm. This file updates from the repo structure and app/server entry points._
 
 ## What This Project Is
 
@@ -286,6 +286,10 @@ const routineBuildersCollection = collection(db, `
 - `VITE_FIREBASE_MEASUREMENT_ID`
 - `VITE_API_BASE_URL`
 - `VITE_ADMIN_EMAILS`
+- `VITE_POSTHOG_KEY`
+- `VITE_POSTHOG_HOST`
+- `VITE_APP_VERSION`
+- `VITE_COMMIT_SHA`
 
 ## Tooling
 
@@ -304,12 +308,29 @@ const routineBuildersCollection = collection(db, `
 ### src/
 - `src/App.css`
 - `src/App.jsx`
+- `src/ai`
+- `src/ai/cache`
+- `src/ai/cache/upstashAdapter.js`
+- `src/ai/memory`
+- `src/ai/memory/memorySchema.js`
+- `src/ai/memory/memoryService.js`
+- `src/ai/memory/providers`
+- `src/ai/memory/providers/pineconeAdapter.js`
+- `src/ai/orchestration`
+- `src/ai/orchestration/adaptiveIntelligence.js`
+- `src/ai/orchestration/runtimeConfig.js`
+- `src/analytics`
+- `src/analytics/posthog.js`
 - `src/assets`
 - `src/assets/hero.png`
 - `src/assets/react.svg`
 - `src/assets/vite.svg`
 - `src/components`
 - `src/components/AppErrorBoundary.jsx`
+- `src/components/Dashboard.jsx`
+- `src/components/Login.jsx`
+- `src/components/ai`
+- `src/components/ai/useAdaptiveInsightsFeed.js`
 - `src/components/dashboard`
 - `src/components/dashboard/AchievementTab.jsx`
 - `src/components/dashboard/AdminTab.jsx`
@@ -325,36 +346,27 @@ const routineBuildersCollection = collection(db, `
 - `src/components/dashboard/HistoryTab.jsx`
 - `src/components/dashboard/HobbyIncomeTab.jsx`
 - `src/components/dashboard/MissionsTab.jsx`
-- `src/components/dashboard/MonthlyReviewTab.jsx`
-- `src/components/dashboard/PersonalizationTab.jsx`
-- `src/components/dashboard/PlannerBoard.jsx`
-- `src/components/dashboard/PlannerTab.jsx`
-- `src/components/dashboard/ProfileTab.jsx`
-- `src/components/dashboard/ProgressWidget.jsx`
-- `src/components/dashboard/ProjectMapTab.jsx`
-- `src/components/dashboard/QuickAddModal.jsx`
-- `src/components/dashboard/ReminderTab.jsx`
-- `src/components/dashboard/ResultPanel.jsx`
-- `src/components/dashboard/RoutineBuilderTab.jsx`
-- `src/components/dashboard/SettingsTab.jsx`
-- `src/components/dashboard/Sidebar.jsx`
-- `src/components/dashboard/SupportTab.jsx`
-- `src/components/dashboard/TaskCard.jsx`
-- `src/components/dashboard/WeeklyProgressTab.jsx`
-- `src/components/dashboard/WeeklyReviewTab.jsx`
 
 ### server/
-- `server/.env`
 - `server/.env.example`
 - `server/package-lock.json`
 - `server/package.json`
 - `server/server.js`
 
 ### docs and config
-- `.env`
 - `.env.example`
 - `.gitignore`
 - `AI_IMPROVEMENT_GUIDE.md`
+- `DATA_COLLECTION_SUMMARY.md`
+- `DEPLOYMENT_CHECKLIST.md`
+- `FIGMA_REDESIGN_EXECUTION_PLAN.md`
+- `MODERN_UI_REDESIGN.md`
+- `PROJECT_BRAIN_MAP.md`
+- `QUICK_START_GUIDE.md`
+- `README.md`
+- `TAILWIND_SETUP_GUIDE.md`
+- `TODO.md`
+- `TRAINING_DATA_GUIDE.md`
 - `archive/new_components_prototype/dashboard_new/new_dashboard.jsx`
 - `archive/new_components_prototype/new_layout/applayout.jsx`
 - `archive/new_components_prototype/new_layout/header.jsx`
@@ -363,16 +375,7 @@ const routineBuildersCollection = collection(db, `
 - `archive/new_components_prototype/sections/overview.jsx`
 - `archive/new_components_prototype/sections/plannersection.jsx`
 - `archive/new_components_prototype/sections/statsgrid.jsx`
-- `DATA_COLLECTION_SUMMARY.md`
-- `DEPLOYMENT_CHECKLIST.md`
 - `eslint.config.js`
 - `firestore.rules`
 - `index.html`
-- `MODERN_UI_REDESIGN.md`
 - `package-lock.json`
-- `package.json`
-- `postcss.config.js`
-- `PROJECT_BRAIN_MAP.md`
-- `public/favicon.svg`
-- `public/icons.svg`
-- `public/PROJECT_BRAIN_MAP.md`
