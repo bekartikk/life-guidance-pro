@@ -7,7 +7,25 @@ const ICONS = {
   completed: HiOutlineCheckBadge,
 };
 
-const MotionArticle = motion.article;
+function createMotionFallback(Tag) {
+  return function MotionFallback({ children, ...props }) {
+    const ComponentTag = Tag;
+    const rest = { ...props };
+    delete rest.initial;
+    delete rest.animate;
+    delete rest.exit;
+    delete rest.whileHover;
+    delete rest.whileTap;
+    delete rest.transition;
+    delete rest.variants;
+    delete rest.layout;
+    delete rest.layoutId;
+
+    return <ComponentTag {...rest}>{children}</ComponentTag>;
+  };
+}
+
+const MotionArticle = motion?.article || createMotionFallback("article");
 
 function TaskCard({ eyebrow, title, body, meta, tone = "task" }) {
   const Icon = ICONS[tone] || ICONS.task;

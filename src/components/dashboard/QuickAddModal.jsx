@@ -1,7 +1,42 @@
+import { Fragment } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { HiOutlineXMark } from "react-icons/hi2";
 
-const MotionDiv = motion.div;
+function isComponentLike(value) {
+  if (typeof value === "function") {
+    return true;
+  }
+
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const reactType = value.$$typeof;
+  const description = typeof reactType === "symbol" ? reactType.description : "";
+
+  return description === "react.memo" || description === "react.forward_ref";
+}
+
+function createMotionFallback(Tag) {
+  return function MotionFallback({ children, ...props }) {
+    const ComponentTag = Tag;
+    const rest = { ...props };
+    delete rest.initial;
+    delete rest.animate;
+    delete rest.exit;
+    delete rest.whileHover;
+    delete rest.whileTap;
+    delete rest.transition;
+    delete rest.variants;
+    delete rest.layout;
+    delete rest.layoutId;
+
+    return <ComponentTag {...rest}>{children}</ComponentTag>;
+  };
+}
+
+const SafeAnimatePresence = isComponentLike(AnimatePresence) ? AnimatePresence : Fragment;
+const MotionDiv = motion?.div || createMotionFallback("div");
 
 function QuickAddModal({
   isOpen,
@@ -15,7 +50,7 @@ function QuickAddModal({
   onSubmit,
 }) {
   return (
-    <AnimatePresence>
+    <SafeAnimatePresence>
       {isOpen ? (
         <MotionDiv
           initial={{ opacity: 0 }}
@@ -92,7 +127,7 @@ function QuickAddModal({
           </MotionDiv>
         </MotionDiv>
       ) : null}
-    </AnimatePresence>
+    </SafeAnimatePresence>
   );
 }
 

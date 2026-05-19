@@ -1,7 +1,25 @@
 import { motion } from "framer-motion";
 import { HiOutlineArrowLeftOnRectangle, HiOutlineBars3BottomLeft, HiOutlineMoon, HiOutlinePlus, HiOutlineSparkles } from "react-icons/hi2";
 
-const MotionHeader = motion.header;
+function createMotionFallback(Tag) {
+  return function MotionFallback({ children, ...props }) {
+    const ComponentTag = Tag;
+    const rest = { ...props };
+    delete rest.initial;
+    delete rest.animate;
+    delete rest.exit;
+    delete rest.whileHover;
+    delete rest.whileTap;
+    delete rest.transition;
+    delete rest.variants;
+    delete rest.layout;
+    delete rest.layoutId;
+
+    return <ComponentTag {...rest}>{children}</ComponentTag>;
+  };
+}
+
+const MotionHeader = motion?.header || createMotionFallback("header");
 
 function Header({
   title,

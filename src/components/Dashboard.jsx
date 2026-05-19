@@ -1,4 +1,3 @@
-/* eslint-disable react-refresh/only-export-components */
 import { Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import {
@@ -17,6 +16,8 @@ import PlannerTab from "./dashboard/PlannerTab";
 import QuickAddModal from "./dashboard/QuickAddModal";
 import ResultPanel from "./dashboard/ResultPanel";
 import Sidebar from "./dashboard/Sidebar";
+import AdaptiveWidgetSkeleton from "./ai/AdaptiveWidgetSkeleton";
+import { useAdaptiveInsightsFeed } from "./ai/useAdaptiveInsightsFeed";
 
 
 
@@ -60,32 +61,149 @@ import { applyRewardAction, loadRewardEvents, loadUserCheckins, loadUserProgress
 import { logPlanGeneration, logPlanFeedback, logPlanAdjustment, logCheckinPattern } from "../services/dataCollection";
 import { buildBehavioralInsights } from "../services/behavioralInsights";
 import { buildAdaptiveIntelligence } from "../ai/orchestration/adaptiveIntelligence";
+import { buildAiRequestContext } from "../ai/orchestration/buildAiRequestContext";
 import { trackEvent } from "../utils/analytics";
 import { captureException } from "../monitoring/sentry";
 
-const GoalTabDirect = lazy(() => import("./dashboard/GoalTab"));
-const HabitTabDirect = lazy(() => import("./dashboard/HabitTab"));
-const DailyProgressTabDirect = lazy(() => import("./dashboard/DailyProgressTab"));
-const ProgressWidget = lazy(() => import("./dashboard/ProgressWidget"));
-const AnalyticsChart = lazy(() => import("./dashboard/AnalyticsChart"));
-const WeeklyProgressTabDirect = lazy(() => import("./dashboard/WeeklyProgressTab"));
-const WeeklyReviewTabDirect = lazy(() => import("./dashboard/WeeklyReviewTab"));
-const MonthlyReviewTabDirect = lazy(() => import("./dashboard/MonthlyReviewTab"));
-const CareerExplorerTabDirect = lazy(() => import("./dashboard/CareerExplorerTab"));
-const HobbyIncomeTabDirect = lazy(() => import("./dashboard/HobbyIncomeTab"));
-const RoutineBuilderTabDirect = lazy(() => import("./dashboard/RoutineBuilderTab"));
-const ChatExtensionTabDirect = lazy(() => import("./dashboard/ChatExtensionTab"));
-const AchievementTabDirect = lazy(() => import("./dashboard/AchievementTab"));
-const MissionsTabDirect = lazy(() => import("./dashboard/MissionsTab"));
-const PersonalizationTabDirect = lazy(() => import("./dashboard/PersonalizationTab"));
-const ProjectMapTabDirect = lazy(() => import("./dashboard/ProjectMapTab"));
-const HistoryTabDirect = lazy(() => import("./dashboard/HistoryTab"));
-const ProfileTabDirect = lazy(() => import("./dashboard/ProfileTab"));
-const FeedbackTabDirect = lazy(() => import("./dashboard/FeedbackTab"));
-const ReminderTabDirect = lazy(() => import("./dashboard/ReminderTab"));
-const SupportTabDirect = lazy(() => import("./dashboard/SupportTab"));
-const SettingsTabDirect = lazy(() => import("./dashboard/SettingsTab"));
-const AdminTabDirect = lazy(() => import("./dashboard/AdminTab"));
+const LAZY_IMPORT_TIMEOUT_MS = 8000;
+const WORKSPACE_SECTION_TIMEOUT_MS = 12000;
+const WORKSPACE_BOOT_TIMEOUT_MS = 15000;
+
+function LazyImportFallback({ title }) {
+  return (
+    <section className="section-loading-card widget-fallback-card">
+      <div>
+        <strong>{title}</strong>
+        <p>This section could not load right now. Try switching tabs or refreshing the workspace.</p>
+      </div>
+    </section>
+  );
+}
+
+function isComponentLike(value) {
+  if (typeof value === "function") {
+    return true;
+  }
+
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const reactType = value.$$typeof;
+  const description = typeof reactType === "symbol" ? reactType.description : "";
+
+  return description === "react.memo" || description === "react.forward_ref";
+}
+
+function resolveLazyComponent(module) {
+  const directDefault = module?.default;
+  if (isComponentLike(directDefault)) {
+    return directDefault;
+  }
+
+  const nestedDefault = directDefault?.default;
+  if (isComponentLike(nestedDefault)) {
+    return nestedDefault;
+  }
+
+  return null;
+}
+
+function safeLazy(loader, title) {
+  const wrappedLoader = () => {
+    let timeoutId = null;
+
+    return Promise.race([
+      loader(),
+      new Promise((_, reject) => {
+        timeoutId = window.setTimeout(() => reject(new Error(`Lazy import timed out for ${title}.`)), LAZY_IMPORT_TIMEOUT_MS);
+      }),
+    ])
+      .then((module) => {
+        const component = resolveLazyComponent(module);
+        if (import.meta.env.DEV) {
+          console.log("loaded:", title, component?.displayName || component?.name || component?.$$typeof?.description || typeof component);
+        }
+        if (!component) {
+          console.error("Invalid lazy component:", title, module);
+          throw new Error(`Invalid lazy component export for ${title}.`);
+        }
+        return { default: component };
+      })
+      .catch((error) => {
+        captureException(error, {
+          tags: { boundary: "lazy-import", widget_title: title },
+        });
+        return {
+          default: function LazyModuleFallback() {
+            return <LazyImportFallback title={title} />;
+          },
+        };
+      })
+      .finally(() => {
+        if (timeoutId) {
+          window.clearTimeout(timeoutId);
+        }
+      });
+  };
+
+  const LazyComponent = lazy(wrappedLoader);
+  LazyComponent.preload = () => wrappedLoader().then(() => null).catch(() => null);
+  return LazyComponent;
+}
+
+function withTimeout(promise, timeoutMs, message) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => {
+      const timeoutId = window.setTimeout(() => reject(new Error(message)), timeoutMs);
+      Promise.resolve(promise).finally(() => window.clearTimeout(timeoutId));
+    }),
+  ]);
+}
+
+function toDisplayText(value, fallback = "Unavailable") {
+  if (value == null) return fallback;
+  if (typeof value === "string" || typeof value === "number") return String(value);
+  if (typeof value === "boolean") return value ? "Yes" : "No";
+  if (Array.isArray(value)) {
+    const joined = value
+      .map((item) => toDisplayText(item, ""))
+      .filter(Boolean)
+      .join(", ");
+    return joined || fallback;
+  }
+  if (typeof value === "object") {
+    return value.label || value.title || value.name || value.summary || value.detail || fallback;
+  }
+  return fallback;
+}
+
+const GoalTabDirect = safeLazy(() => import("./dashboard/GoalTab"), "Goals");
+const HabitTabDirect = safeLazy(() => import("./dashboard/HabitTab"), "Habits");
+const DailyProgressTabDirect = safeLazy(() => import("./dashboard/DailyProgressTab"), "Daily progress");
+const AdaptiveIntelligenceRail = safeLazy(() => import("./ai/AdaptiveIntelligenceRail"), "AI intelligence");
+const AdaptiveHistorySurface = safeLazy(() => import("./ai/AdaptiveHistorySurface"), "Adaptive history");
+const ProgressWidget = safeLazy(() => import("./dashboard/ProgressWidget"), "Progress overview");
+const AnalyticsChart = safeLazy(() => import("./dashboard/AnalyticsChart"), "Analytics chart");
+const WeeklyProgressTabDirect = safeLazy(() => import("./dashboard/WeeklyProgressTab"), "Weekly progress");
+const WeeklyReviewTabDirect = safeLazy(() => import("./dashboard/WeeklyReviewTab"), "Weekly review");
+const MonthlyReviewTabDirect = safeLazy(() => import("./dashboard/MonthlyReviewTab"), "Monthly review");
+const CareerExplorerTabDirect = safeLazy(() => import("./dashboard/CareerExplorerTab"), "Career explorer");
+const HobbyIncomeTabDirect = safeLazy(() => import("./dashboard/HobbyIncomeTab"), "Income paths");
+const RoutineBuilderTabDirect = safeLazy(() => import("./dashboard/RoutineBuilderTab"), "Routine builder");
+const ChatExtensionTabDirect = safeLazy(() => import("./dashboard/ChatExtensionTab"), "AI coach");
+const AchievementTabDirect = safeLazy(() => import("./dashboard/AchievementTab"), "Achievements");
+const MissionsTabDirect = safeLazy(() => import("./dashboard/MissionsTab"), "Missions");
+const PersonalizationTabDirect = safeLazy(() => import("./dashboard/PersonalizationTab"), "Insights");
+const ProjectMapTabDirect = safeLazy(() => import("./dashboard/ProjectMapTab"), "System map");
+const HistoryTabDirect = safeLazy(() => import("./dashboard/HistoryTab"), "History");
+const ProfileTabDirect = safeLazy(() => import("./dashboard/ProfileTab"), "Profile");
+const FeedbackTabDirect = safeLazy(() => import("./dashboard/FeedbackTab"), "Feedback");
+const ReminderTabDirect = safeLazy(() => import("./dashboard/ReminderTab"), "Reminders");
+const SupportTabDirect = safeLazy(() => import("./dashboard/SupportTab"), "Support");
+const SettingsTabDirect = safeLazy(() => import("./dashboard/SettingsTab"), "Settings");
+const AdminTabDirect = safeLazy(() => import("./dashboard/AdminTab"), "Admin");
 
 
 const initialForm = {
@@ -728,9 +846,33 @@ function LazySection({ title, description, children }) {
   );
 }
 
-const MotionSection = motion.section;
+function createMotionFallback(Tag) {
+  return function MotionFallback({ children, ...props }) {
+    const ComponentTag = Tag;
+    const rest = { ...props };
+    delete rest.initial;
+    delete rest.animate;
+    delete rest.exit;
+    delete rest.whileHover;
+    delete rest.whileTap;
+    delete rest.transition;
+    delete rest.variants;
+    delete rest.layout;
+    delete rest.layoutId;
+    delete rest.drag;
+    delete rest.dragConstraints;
+    delete rest.dragElastic;
+    delete rest.dragMomentum;
+
+    return <ComponentTag {...rest}>{children}</ComponentTag>;
+  };
+}
+
+const MotionSection = motion?.section || createMotionFallback("section");
 
 function Dashboard({ user }) {
+  const userId = typeof user?.uid === "string" ? user.uid : "";
+  const userEmail = typeof user?.email === "string" ? user.email : "";
   const resultPanelRef = useRef(null);
   const [activeTab, setActiveTab] = useState("planner");
   const [form, setForm] = useState(initialForm);
@@ -738,6 +880,7 @@ function Dashboard({ user }) {
   const [consentChecked, setConsentChecked] = useState(false);
   const [plans, setPlans] = useState([]);
   const [currentPlan, setCurrentPlan] = useState(null);
+  const [followupAiMeta, setFollowupAiMeta] = useState(null);
   const [feedbackItems, setFeedbackItems] = useState([]);
   const [goals, setGoals] = useState([]);
   const [goalDraft, setGoalDraft] = useState(initialGoalDraft);
@@ -804,7 +947,7 @@ function Dashboard({ user }) {
     note: "",
   });
 
-  const isAdmin = adminEmails.includes(String(user?.email || "").toLowerCase());
+  const isAdmin = adminEmails.includes(String(userEmail || "").toLowerCase());
   const statusTone =
     statusMessage.startsWith("Some ") || statusMessage.startsWith("Cloud data")
       ? "info"
@@ -828,34 +971,57 @@ function Dashboard({ user }) {
   }, []);
 
   useEffect(() => {
+    if (!userId) {
+      const resetTimer = window.setTimeout(() => {
+        setIsLoadingWorkspace(false);
+        setSectionLoading(resolvedSectionLoading);
+      }, 0);
+      return () => window.clearTimeout(resetTimer);
+    }
+
     let isMounted = true;
+    let bootTimeoutId = null;
     async function loadWorkspace() {
       setIsLoadingWorkspace(true);
       setSectionLoading(initialSectionLoading);
+      bootTimeoutId = window.setTimeout(() => {
+        if (!isMounted) return;
+        setIsLoadingWorkspace(false);
+        setSectionLoading(resolvedSectionLoading);
+        setStatusMessage("Workspace sync is taking longer than usual, but the dashboard is still available.");
+      }, WORKSPACE_BOOT_TIMEOUT_MS);
       try {
         const safeLoad = async (key, loader, fallback) => {
           try {
-            return { key, status: "fulfilled", value: await loader() };
+            return {
+              key,
+              status: "fulfilled",
+              value: await withTimeout(
+                loader(),
+                WORKSPACE_SECTION_TIMEOUT_MS,
+                `${key} load timed out`,
+              ),
+            };
           } catch (reason) {
             return { key, status: "rejected", reason, value: fallback };
           }
         };
 
         const results = await Promise.all([
-          safeLoad("plans", () => loadUserPlans(user.uid), []),
-          safeLoad("profile", () => loadUserProfile(user.uid), null),
-          safeLoad("feedback", () => loadUserFeedback(user.uid), []),
-          safeLoad("goals", () => loadUserGoals(user.uid), []),
-          safeLoad("habits", () => loadUserHabits(user.uid), []),
-          safeLoad("reviews", () => loadWeeklyReviews(user.uid), []),
-          safeLoad("monthlyReviews", () => loadMonthlyReviews(user.uid), []),
-          safeLoad("careerExplorations", () => loadUserCareerExplorations(user.uid), []),
-          safeLoad("hobbyPlans", () => loadUserHobbyPlans(user.uid), []),
-          safeLoad("routineBuilders", () => loadUserRoutineBuilders(user.uid), []),
-          safeLoad("reminders", () => loadReminderSettings(user.uid), null),
-          safeLoad("progress", () => loadUserProgress(user.uid), emptyProgress),
-          safeLoad("rewardEvents", () => loadRewardEvents(user.uid), []),
-          safeLoad("checkins", () => loadUserCheckins(user.uid), []),
+          safeLoad("plans", () => loadUserPlans(userId), []),
+          safeLoad("profile", () => loadUserProfile(userId), null),
+          safeLoad("feedback", () => loadUserFeedback(userId), []),
+          safeLoad("goals", () => loadUserGoals(userId), []),
+          safeLoad("habits", () => loadUserHabits(userId), []),
+          safeLoad("reviews", () => loadWeeklyReviews(userId), []),
+          safeLoad("monthlyReviews", () => loadMonthlyReviews(userId), []),
+          safeLoad("careerExplorations", () => loadUserCareerExplorations(userId), []),
+          safeLoad("hobbyPlans", () => loadUserHobbyPlans(userId), []),
+          safeLoad("routineBuilders", () => loadUserRoutineBuilders(userId), []),
+          safeLoad("reminders", () => loadReminderSettings(userId), null),
+          safeLoad("progress", () => loadUserProgress(userId), emptyProgress),
+          safeLoad("rewardEvents", () => loadRewardEvents(userId), []),
+          safeLoad("checkins", () => loadUserCheckins(userId), []),
         ]);
         if (!isMounted) return;
         const resultMap = Object.fromEntries(results.map((item) => [item.key, item]));
@@ -879,6 +1045,7 @@ function Dashboard({ user }) {
 
         setPlans(loadedPlans);
         setCurrentPlan(loadedPlans[0] || null);
+        setFollowupAiMeta(null);
         setFeedbackItems(loadedFeedback);
         setGoals(loadedGoals);
         setHabits(loadedHabits);
@@ -919,7 +1086,7 @@ function Dashboard({ user }) {
       } catch (workspaceError) {
         captureException(workspaceError, {
           tags: { surface: "dashboard_workspace_load" },
-          extra: { userId: user.uid },
+          extra: { userId },
         });
         if (isMounted) {
           const message = String(workspaceError?.message || "");
@@ -936,6 +1103,9 @@ function Dashboard({ user }) {
           }
         }
       } finally {
+        if (bootTimeoutId) {
+          window.clearTimeout(bootTimeoutId);
+        }
         if (isMounted) {
           setIsLoadingWorkspace(false);
           setSectionLoading(resolvedSectionLoading);
@@ -945,27 +1115,30 @@ function Dashboard({ user }) {
     loadWorkspace();
     return () => {
       isMounted = false;
+      if (bootTimeoutId) {
+        window.clearTimeout(bootTimeoutId);
+      }
     };
-  }, [user.uid]);
+  }, [userId]);
 
   useEffect(() => {
     let ignore = false;
     async function loadAdminData() {
-      if (!isAdmin || activeTab !== "admin") return;
+      if (!userId || !isAdmin || activeTab !== "admin") return;
       try {
         const snapshot = await loadAdminSnapshot();
         if (!ignore) setAdminSnapshot(snapshot);
       } catch (adminError) {
         captureException(adminError, {
           tags: { surface: "dashboard_admin_load" },
-          extra: { userId: user.uid },
+          extra: { userId },
         });
         if (!ignore) setError(adminError.message || "Could not load admin dashboard.");
       }
     }
     loadAdminData();
     return () => { ignore = true; };
-  }, [activeTab, isAdmin, user.uid]);
+  }, [activeTab, isAdmin, userId]);
 
   useEffect(() => {
     if (
@@ -1014,34 +1187,103 @@ function Dashboard({ user }) {
   );
   const missionSummary = useMemo(() => buildMissionSummary(progress), [progress]);
   const behavioralInsights = useMemo(
-    () =>
-      buildBehavioralInsights({
-        profile,
-        plans,
-        goals,
-        habits,
-        checkins,
-        progress,
-        hobbyPlans,
-      }),
-    [profile, plans, goals, habits, checkins, progress, hobbyPlans],
+    () => {
+      try {
+        return buildBehavioralInsights({
+          profile,
+          plans,
+          goals,
+          habits,
+          checkins,
+          progress,
+          hobbyPlans,
+        });
+      } catch (error) {
+        captureException(error, {
+          tags: { surface: "dashboard_behavioral_insights" },
+          extra: { userId },
+        });
+        return buildBehavioralInsights({
+          profile: initialProfile,
+          plans: [],
+          goals: [],
+          habits: [],
+          checkins: [],
+          progress: emptyProgress,
+          hobbyPlans: [],
+        });
+      }
+    },
+    [profile, plans, goals, habits, checkins, progress, hobbyPlans, userId],
   );
   const adaptiveWorkspace = useMemo(
-    () =>
-      buildAdaptiveIntelligence({
-        userId: user.uid,
-        profile,
-        plans,
-        goals,
-        habits,
-        checkins,
-        progress,
-        hobbyPlans,
-        currentPlan,
-        behavioralInsights,
-      }),
-    [user.uid, profile, plans, goals, habits, checkins, progress, hobbyPlans, currentPlan, behavioralInsights],
+    () => {
+      try {
+        return buildAdaptiveIntelligence({
+          userId,
+          profile,
+          plans,
+          goals,
+          habits,
+          checkins,
+          progress,
+          hobbyPlans,
+          currentPlan,
+          behavioralInsights,
+        });
+      } catch (error) {
+        captureException(error, {
+          tags: { surface: "dashboard_adaptive_intelligence" },
+          extra: { userId },
+        });
+        return buildAdaptiveIntelligence({
+          userId,
+          profile: initialProfile,
+          plans: [],
+          goals: [],
+          habits: [],
+          checkins: [],
+          progress: emptyProgress,
+          hobbyPlans: [],
+          currentPlan: null,
+          behavioralInsights,
+        });
+      }
+    },
+    [userId, profile, plans, goals, habits, checkins, progress, hobbyPlans, currentPlan, behavioralInsights],
   );
+  const aiRequestContext = useMemo(
+    () => {
+      try {
+        return buildAiRequestContext({
+          behavioralInsights,
+          adaptiveWorkspace,
+          progress,
+          checkins,
+        });
+      } catch (error) {
+        captureException(error, {
+          tags: { surface: "dashboard_ai_request_context" },
+          extra: { userId },
+        });
+        return buildAiRequestContext({
+          behavioralInsights,
+          adaptiveWorkspace,
+          progress: emptyProgress,
+          checkins: [],
+        });
+      }
+    },
+    [adaptiveWorkspace, behavioralInsights, checkins, progress, userId],
+  );
+  const activeAiMeta = followupAiMeta || currentPlan?.aiMeta || null;
+  const { adaptiveInsights, isLoadingAdaptiveInsights } = useAdaptiveInsightsFeed({
+    userId,
+    activeAiMeta,
+    adaptiveWorkspace,
+    behavioralInsights,
+    checkins,
+  });
   const sidebarItems = useMemo(
     () =>
       sidebarGroups
@@ -1138,6 +1380,7 @@ function Dashboard({ user }) {
     setForm(initialForm);
     setConsentChecked(false);
     setCurrentPlan(null);
+    setFollowupAiMeta(null);
     setAdjustmentRequest("");
     setError("");
     setStatusMessage("");
@@ -1227,23 +1470,27 @@ function Dashboard({ user }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           profile: buildPlannerProfile(form, profile),
-          userEmail: user.email,
+          userEmail,
+          userId,
+          planId: currentPlan?.id || null,
           previousPlan: currentPlan?.result || "",
           adjustmentRequest: adjustment,
+          aiContext: aiRequestContext,
         }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || "Could not create your plan.");
       const savedPlan = await savePlanRecord({
-        userId: user.uid,
-        userEmail: user.email,
+        userId,
+        userEmail,
         title: createPlanTitle(form),
         profileSnapshot: form,
         profileSummary: profile,
         result: data.plan,
+        aiMeta: data.aiMeta || null,
         adjustment,
       });
-      const rewardResult = await applyRewardAction(user.uid, {
+      const rewardResult = await applyRewardAction(userId, {
         type: adjustment ? "plan-adjusted" : "plan-created",
         planId: savedPlan.id,
         roadmapFocus: form.roadmapFocus,
@@ -1252,13 +1499,13 @@ function Dashboard({ user }) {
       
       // Log data for AI improvement
       if (adjustment) {
-        await logPlanAdjustment(user.uid, {
+        await logPlanAdjustment(userId, {
           originalFocus: currentPlan?.profileSnapshot?.roadmapFocus,
           adjustmentRequest: adjustment,
           planDuration: form.planDuration,
         });
       } else {
-        await logPlanGeneration(user.uid, {
+        await logPlanGeneration(userId, {
           profile: buildPlannerProfile(form, profile),
           plan: data.plan,
           adjustmentRequest: null,
@@ -1273,6 +1520,7 @@ function Dashboard({ user }) {
       
       setPlans((current) => [savedPlan, ...current]);
       setCurrentPlan(savedPlan);
+      setFollowupAiMeta(null);
       setAdjustmentRequest("");
       setActiveTab("planner");
       setStatusMessage(adjustment ? "Plan updated successfully. Your revised plan is ready below." : "Plan generated successfully. Your new guidance plan is ready below.");
@@ -1293,8 +1541,8 @@ function Dashboard({ user }) {
     setIsSavingProfile(true);
     setError("");
     try {
-      await saveUserProfile(user.uid, { ...profile, userEmail: user.email });
-      const rewardResult = await applyRewardAction(user.uid, { type: "profile-saved" });
+      await saveUserProfile(userId, { ...profile, userEmail });
+      const rewardResult = await applyRewardAction(userId, { type: "profile-saved" });
       mergeRewardResult(rewardResult);
       trackEvent("profile_completed", {
         role: profile.role,
@@ -1305,7 +1553,7 @@ function Dashboard({ user }) {
     } catch (profileError) {
       captureException(profileError, {
         tags: { surface: "profile_save" },
-        extra: { role: profile.role, userId: user.uid },
+        extra: { role: profile.role, userId },
       });
       setError(profileError.message || "Could not save your profile.");
     } finally {
@@ -1322,18 +1570,18 @@ function Dashboard({ user }) {
     setIsSubmittingFeedback(true);
     try {
       const savedFeedback = await submitFeedbackRecord({
-        userId: user.uid,
-        userEmail: user.email,
+        userId,
+        userEmail,
         planId: currentPlan.id,
         rating: Number(feedbackRating),
         message: feedbackMessage,
         planTitle: currentPlan.title,
       });
-      const rewardResult = await applyRewardAction(user.uid, { type: "feedback-submitted", planId: currentPlan.id });
+      const rewardResult = await applyRewardAction(userId, { type: "feedback-submitted", planId: currentPlan.id });
       mergeRewardResult(rewardResult);
       
       // Log feedback for AI learning
-      await logPlanFeedback(user.uid, currentPlan.id, {
+      await logPlanFeedback(userId, currentPlan.id, {
         rating: Number(feedbackRating),
         message: feedbackMessage,
       });
@@ -1365,7 +1613,7 @@ function Dashboard({ user }) {
     setIsSubmittingCheckin(true);
     setError("");
     try {
-      const result = await submitDailyCheckin(user.uid, {
+      const result = await submitDailyCheckin(userId, {
         dateKey: getDateKey(),
         status,
         note: checkinNote,
@@ -1397,7 +1645,7 @@ function Dashboard({ user }) {
       });
       
       // Log checkin pattern for engagement tracking
-      await logCheckinPattern(user.uid, result.progress);
+      await logCheckinPattern(userId, result.progress);
       trackEvent("daily_checkin_saved", {
         status,
         mood: checkinFields.mood,
@@ -1422,7 +1670,10 @@ function Dashboard({ user }) {
       await deletePlanRecord(planId);
       const nextPlans = plans.filter((plan) => plan.id !== planId);
       setPlans(nextPlans);
-      if (currentPlan?.id === planId) setCurrentPlan(nextPlans[0] || null);
+      if (currentPlan?.id === planId) {
+        setCurrentPlan(nextPlans[0] || null);
+        setFollowupAiMeta(null);
+      }
       setStatusMessage("Plan deleted.");
     } catch (planError) {
       setError(planError.message || "Could not delete the plan.");
@@ -1440,8 +1691,8 @@ function Dashboard({ user }) {
     setError("");
     try {
       const savedReview = await saveMonthlyReviewRecord({
-        userId: user.uid,
-        userEmail: user.email,
+        userId,
+        userEmail,
         monthLabel: new Intl.DateTimeFormat("en", { month: "long", year: "numeric" }).format(new Date()),
         ...monthlyReviewDraft,
       });
@@ -1467,8 +1718,8 @@ function Dashboard({ user }) {
     try {
       const suggestions = buildCareerSuggestions({ draft: careerDraft, profile, form });
       const savedItem = await saveCareerExplorationRecord({
-        userId: user.uid,
-        userEmail: user.email,
+        userId,
+        userEmail,
         title: suggestions[0]?.title || "Career exploration",
         summary: `Environment: ${careerDraft.environment}. Constraint: ${careerDraft.constraint}.`,
         inputs: careerDraft,
@@ -1496,8 +1747,8 @@ function Dashboard({ user }) {
     try {
       const experiments = buildHobbyIncomeIdeas(hobbyDraft);
       const savedItem = await saveHobbyPlanRecord({
-        userId: user.uid,
-        userEmail: user.email,
+        userId,
+        userEmail,
         title: `${hobbyDraft.hobby.trim()} path`,
         summary: `${hobbyDraft.level} level Ãƒâ€šÃ‚Â· ${hobbyDraft.timePerWeek} each week Ãƒâ€šÃ‚Â· ${hobbyDraft.incomeStyle} style`,
         inputs: hobbyDraft,
@@ -1558,8 +1809,8 @@ function Dashboard({ user }) {
     setError("");
     try {
       const savedItem = await saveRoutineBuilderRecord({
-        userId: user.uid,
-        userEmail: user.email,
+        userId,
+        userEmail,
         ...routineBuilderDraft,
       });
       setRoutineBuilders((current) => [savedItem, ...current]);
@@ -1604,7 +1855,7 @@ function Dashboard({ user }) {
     setIsSavingReminderSettings(true);
     setError("");
     try {
-      await saveReminderSettings(user.uid, { ...reminderSettings, userEmail: user.email });
+      await saveReminderSettings(userId, { ...reminderSettings, userEmail });
       setStatusMessage("Reminder settings saved. We can connect these preferences to real delivery later.");
     } catch (itemError) {
       setError(itemError.message || "Could not save reminder settings.");
@@ -1743,12 +1994,17 @@ function Dashboard({ user }) {
           profile: buildPlannerProfile(form, profile),
           currentPlan: currentPlan.result,
           followUpPrompt: chatPrompt.trim(),
+          userEmail,
+          userId,
+          planId: currentPlan.id,
+          aiContext: aiRequestContext,
         }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || "Could not get follow-up guidance.");
 
       setChatMessages((current) => [...current, userMessage, { role: "assistant", content: data.reply }]);
+      setFollowupAiMeta(data.aiMeta || currentPlan?.aiMeta || null);
       setChatPrompt("");
       setStatusMessage("Follow-up guidance added.");
     } catch (chatError) {
@@ -1801,8 +2057,8 @@ function Dashboard({ user }) {
     setError("");
     try {
       const savedGoal = await saveGoalRecord({
-        userId: user.uid,
-        userEmail: user.email,
+        userId,
+        userEmail,
         title: goalDraft.title.trim(),
         category: goalDraft.category,
         targetDate: goalDraft.targetDate || null,
@@ -1861,8 +2117,8 @@ function Dashboard({ user }) {
     setError("");
     try {
       const savedHabit = await saveHabitRecord({
-        userId: user.uid,
-        userEmail: user.email,
+        userId,
+        userEmail,
         title: habitDraft.title.trim(),
         difficulty: habitDraft.difficulty,
         anchor: habitDraft.anchor.trim(),
@@ -1920,8 +2176,8 @@ function Dashboard({ user }) {
     setError("");
     try {
       const savedReview = await saveWeeklyReviewRecord({
-        userId: user.uid,
-        userEmail: user.email,
+        userId,
+        userEmail,
         weekLabel: `Week of ${getDateKey()}`,
         ...reviewDraft,
       });
@@ -1939,9 +2195,10 @@ function Dashboard({ user }) {
     if (!window.confirm("Delete your saved profile, plan history, feedback, progress, and reward history from the app database?")) return;
     setIsDeletingData(true);
     try {
-      await deleteAllUserData(user.uid);
+      await deleteAllUserData(userId);
       setPlans([]);
       setCurrentPlan(null);
+      setFollowupAiMeta(null);
       setFeedbackItems([]);
       setGoals([]);
       setGoalDraft(initialGoalDraft);
@@ -2077,7 +2334,7 @@ function Dashboard({ user }) {
       case "settings":
         return <WidgetErrorBoundary title="Settings unavailable" description="The settings surface could not render."><LazySection title="Loading settings" description="Opening account, export, and privacy controls."><SettingsTabDirect user={user} profile={profile} plans={plans} goals={goals} habits={habits} reviews={reviews} monthlyReviews={monthlyReviews} checkins={checkins} rewardEvents={rewardEvents} careerExplorations={careerExplorations} hobbyPlans={hobbyPlans} routineBuilders={routineBuilders} reminderSettings={reminderSettings} onDeleteMyData={handleDeleteMyData} onExportData={handleExportData} onResendVerification={handleResendVerification} onShareProgress={handleShareProgress} /></LazySection></WidgetErrorBoundary>;
       case "admin":
-        return isAdmin ? <WidgetErrorBoundary title="Admin dashboard unavailable" description="The admin surface could not render."><LazySection title="Loading admin dashboard" description="Preparing usage and analytics administration."><AdminTabDirect adminSnapshot={adminSnapshot} userId={user.uid} /></LazySection></WidgetErrorBoundary> : null;
+        return isAdmin ? <WidgetErrorBoundary title="Admin dashboard unavailable" description="The admin surface could not render."><LazySection title="Loading admin dashboard" description="Preparing usage and analytics administration."><AdminTabDirect adminSnapshot={adminSnapshot} userId={userId} /></LazySection></WidgetErrorBoundary> : null;
       default:
         return null;
     }
@@ -2233,6 +2490,7 @@ function Dashboard({ user }) {
                       ) : currentPlan ? (
                         <ResultPanel
                           currentPlan={currentPlan}
+                          aiMeta={activeAiMeta}
                           currentPlanFeedback={currentPlanFeedback}
                           adjustmentRequest={adjustmentRequest}
                           checkinNote={checkinNote}
@@ -2293,23 +2551,47 @@ function Dashboard({ user }) {
               <section className="saas-panel intelligence-panel intelligence-panel--highlight">
                 <div className="intelligence-panel__head">
                   <p className="dashboard-eyebrow">Adaptive life state</p>
-                  <span className="hero-header-chip">{adaptiveWorkspace.workspaceMode.label}</span>
+                  <span className="hero-header-chip">{toDisplayText(adaptiveWorkspace?.workspaceMode?.label, "Focus")}</span>
                 </div>
                 <div className="intelligence-panel__list intelligence-panel__list--compact">
                   <article className="intelligence-checkpoint is-done">
                     <strong>Burnout risk</strong>
-                    <span>{behavioralInsights.burnoutRisk.label}</span>
+                    <span>{toDisplayText(behavioralInsights?.burnoutRisk?.label, "Manage closely")}</span>
                   </article>
                   <article className="intelligence-checkpoint">
                     <strong>Mode</strong>
-                    <span>{adaptiveWorkspace.workspaceMode.summary}</span>
+                    <span>{toDisplayText(adaptiveWorkspace?.workspaceMode?.summary, "Adaptive guidance is still loading.")}</span>
                   </article>
                   <article className="intelligence-checkpoint">
                     <strong>Next shift</strong>
-                    <span>{adaptiveWorkspace.roadmapIntelligence.nextShift || formatDisplayLabel(insightNarrative.focus)}</span>
+                    <span>{toDisplayText(adaptiveWorkspace?.roadmapIntelligence?.nextShift, formatDisplayLabel(insightNarrative.focus))}</span>
                   </article>
                 </div>
               </section>
+
+              <Suspense fallback={<AdaptiveWidgetSkeleton />}>
+                <WidgetErrorBoundary title="AI intelligence unavailable" description="The adaptive AI summary surface could not render.">
+                  <AdaptiveIntelligenceRail
+                    aiMeta={activeAiMeta}
+                    behavioralInsights={behavioralInsights}
+                    checkins={checkins}
+                  />
+                </WidgetErrorBoundary>
+              </Suspense>
+
+              <Suspense fallback={<AdaptiveWidgetSkeleton />}>
+                <WidgetErrorBoundary title="Adaptive history unavailable" description="The mirrored AI history surface could not render.">
+                  {isLoadingAdaptiveInsights ? (
+                    <AdaptiveWidgetSkeleton />
+                  ) : (
+                    <AdaptiveHistorySurface
+                      adaptiveInsights={adaptiveInsights}
+                      activeAiMeta={activeAiMeta}
+                      behavioralInsights={behavioralInsights}
+                    />
+                  )}
+                </WidgetErrorBoundary>
+              </Suspense>
 
               <LazySection title="Loading progress overview" description="Preparing the progress and momentum widget.">
                 <ProgressWidget completion={completion} progress={progress} plans={plans} goals={goals} habits={habits} behavioralInsights={behavioralInsights} />
@@ -2335,31 +2617,15 @@ function Dashboard({ user }) {
 
               <section className="saas-panel intelligence-panel">
                 <div className="intelligence-panel__head">
-                  <p className="dashboard-eyebrow">AI insight feed</p>
-                  <span className="hero-header-chip">{adaptiveWorkspace.insightFeed.length} live reads</span>
-                </div>
-                <div className="intelligence-panel__list">
-                  {adaptiveWorkspace.insightFeed.slice(0, 4).map((item) => (
-                    <article key={item.id} className="intelligence-checkpoint">
-                      <strong>{item.title}</strong>
-                      <span>{item.kind}</span>
-                      <small>{item.detail}</small>
-                    </article>
-                  ))}
-                </div>
-              </section>
-
-              <section className="saas-panel intelligence-panel">
-                <div className="intelligence-panel__head">
                   <p className="dashboard-eyebrow">AI memory engine</p>
-                  <span className="hero-header-chip">{behavioralInsights.memoryCards.length} signals</span>
+                  <span className="hero-header-chip">{Array.isArray(behavioralInsights?.memoryCards) ? behavioralInsights.memoryCards.length : 0} signals</span>
                 </div>
                 <div className="intelligence-panel__list">
-                  {behavioralInsights.memoryCards.slice(0, 3).map((item) => (
-                    <article key={item.label} className="intelligence-checkpoint">
-                      <strong>{item.label}</strong>
-                      <span>{item.value}</span>
-                      <small>{item.detail}</small>
+                  {(Array.isArray(behavioralInsights?.memoryCards) ? behavioralInsights.memoryCards : []).slice(0, 3).map((item, index) => (
+                    <article key={`${toDisplayText(item?.label, "memory")}-${index}`} className="intelligence-checkpoint">
+                      <strong>{toDisplayText(item?.label, "Memory signal")}</strong>
+                      <span>{toDisplayText(item?.value, "Unavailable")}</span>
+                      <small>{toDisplayText(item?.detail, "Adaptive memory is still warming up.")}</small>
                     </article>
                   ))}
                 </div>
@@ -2368,13 +2634,13 @@ function Dashboard({ user }) {
               <section className="saas-panel intelligence-panel">
                 <div className="intelligence-panel__head">
                   <p className="dashboard-eyebrow">Future projection</p>
-                  <span className="hero-header-chip">{behavioralInsights.futureProjection.length} paths</span>
+                  <span className="hero-header-chip">{Array.isArray(behavioralInsights?.futureProjection) ? behavioralInsights.futureProjection.length : 0} paths</span>
                 </div>
                 <div className="intelligence-sample-list">
-                  {behavioralInsights.futureProjection.slice(0, 3).map((projection) => (
-                    <article key={projection} className="intelligence-sample-card">
+                  {(Array.isArray(behavioralInsights?.futureProjection) ? behavioralInsights.futureProjection : []).slice(0, 3).map((projection, index) => (
+                    <article key={`${toDisplayText(projection, "projection")}-${index}`} className="intelligence-sample-card">
                       <strong>Projected growth</strong>
-                      <p>{projection}</p>
+                      <p>{toDisplayText(projection, "A clearer projection will appear as more behavior data arrives.")}</p>
                     </article>
                   ))}
                 </div>
@@ -2432,8 +2698,5 @@ function Dashboard({ user }) {
   );
 }
 
- 
-
-
-
+export default Dashboard;
 

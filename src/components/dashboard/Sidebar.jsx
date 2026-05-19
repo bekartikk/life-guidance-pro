@@ -18,6 +18,24 @@ import {
   HiOutlineTrophy,
 } from "react-icons/hi2";
 
+function createMotionFallback(Tag) {
+  return function MotionFallback({ children, ...props }) {
+    const ComponentTag = Tag;
+    const rest = { ...props };
+    delete rest.initial;
+    delete rest.animate;
+    delete rest.exit;
+    delete rest.whileHover;
+    delete rest.whileTap;
+    delete rest.transition;
+    delete rest.variants;
+    delete rest.layout;
+    delete rest.layoutId;
+
+    return <ComponentTag {...rest}>{children}</ComponentTag>;
+  };
+}
+
 const ITEM_META = {
   dashboard: { label: "Dashboard", icon: HiOutlineChartBarSquare },
   planner: { label: "Planner", icon: HiOutlineClipboardDocumentList },
@@ -43,7 +61,8 @@ const ITEM_META = {
   settings: { label: "Settings", icon: HiOutlineCog6Tooth },
 };
 
-const MotionAside = motion.aside;
+const MotionAside = motion?.aside || createMotionFallback("aside");
+const MotionButton = motion?.button || createMotionFallback("button");
 
 function Sidebar({ items, activeItem, isCollapsed, onToggle, onSelect }) {
   return (
@@ -101,7 +120,7 @@ function Sidebar({ items, activeItem, isCollapsed, onToggle, onSelect }) {
               const isActive = item === activeItem;
 
               return (
-                <motion.button
+                <MotionButton
                   key={item}
                   whileHover={{ y: -2 }}
                   whileTap={{ scale: 0.98 }}
@@ -126,7 +145,7 @@ function Sidebar({ items, activeItem, isCollapsed, onToggle, onSelect }) {
                       />
                     </>
                   )}
-                </motion.button>
+                </MotionButton>
               );
             })}
           </div>
