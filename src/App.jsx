@@ -1,10 +1,10 @@
 import { Suspense, lazy, useEffect, useRef, useState } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-import { auth } from "./firebase";
-import AppErrorBoundary from "./components/AppErrorBoundary";
-import { usePageTracking } from "./hooks/usePageTracking";
-import { identifyUser, resetAnalytics, trackEvent } from "./utils/analytics";
-import { captureException } from "./monitoring/sentry";
+import { auth } from "./firebase.js";
+import AppErrorBoundary from "./components/AppErrorBoundary.jsx";
+import { usePageTracking } from "./hooks/usePageTracking.jsx";
+import { identifyUser, resetAnalytics, trackEvent } from "./utils/analytics.js";
+import { captureException } from "./monitoring/sentry.js";
 import "./App.css";
 
 function isComponentLike(value) {
@@ -73,9 +73,9 @@ function safeLazy(loader, title) {
   return LazyComponent;
 }
 
-const Landing = safeLazy(() => import("./pages/Landing"), "Landing");
-const Login = safeLazy(() => import("./components/Login"), "Login");
-const Dashboard = safeLazy(() => import("./components/Dashboard"), "Dashboard");
+const Landing = safeLazy(() => import("./pages/Landing.jsx"), "Landing");
+const Login = safeLazy(() => import("./components/Login.jsx"), "Login");
+const Dashboard = safeLazy(() => import("./components/Dashboard.jsx"), "Dashboard");
 
 function ProtectedRoute({ user, children }) {
   if (!user) return <Navigate to="/login" replace />;

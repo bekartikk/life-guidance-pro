@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { fetchAdaptiveInsights, primeAdaptiveInsightsCache } from "./adaptiveInsightsRepository";
-import { subscribeToAdaptiveRecommendations } from "../../data/hybrid/realtimeSubscriptions";
+import { fetchAdaptiveInsights, primeAdaptiveInsightsCache } from "./adaptiveInsightsRepository.js";
+import { subscribeToAdaptiveRecommendations } from "../../data/hybrid/realtimeSubscriptions.js";
 
 const ADAPTIVE_INSIGHTS_TIMEOUT_MS = 7000;
 

@@ -10,18 +10,18 @@ import {
   HiOutlineSparkles,
 } from "react-icons/hi2";
 import { sendEmailVerification, signOut } from "firebase/auth";
-import Header from "./dashboard/Header";
-import PlannerBoard from "./dashboard/PlannerBoard";
-import PlannerTab from "./dashboard/PlannerTab";
-import QuickAddModal from "./dashboard/QuickAddModal";
-import ResultPanel from "./dashboard/ResultPanel";
-import Sidebar from "./dashboard/Sidebar";
-import AdaptiveWidgetSkeleton from "./ai/AdaptiveWidgetSkeleton";
-import { useAdaptiveInsightsFeed } from "./ai/useAdaptiveInsightsFeed";
+import Header from "./dashboard/Header.jsx";
+import PlannerBoard from "./dashboard/PlannerBoard.jsx";
+import PlannerTab from "./dashboard/PlannerTab.jsx";
+import QuickAddModal from "./dashboard/QuickAddModal.jsx";
+import ResultPanel from "./dashboard/ResultPanel.jsx";
+import Sidebar from "./dashboard/Sidebar.jsx";
+import AdaptiveWidgetSkeleton from "./ai/AdaptiveWidgetSkeleton.jsx";
+import { useAdaptiveInsightsFeed } from "./ai/useAdaptiveInsightsFeed.js";
 
 
 
-import { WidgetErrorBoundary } from "./AppErrorBoundary";
+import { WidgetErrorBoundary } from "./AppErrorBoundary.jsx";
 import "../styles/dashboard-modern.css";
 import { auth } from "../firebase";
 import {
@@ -60,8 +60,8 @@ import { getDateKey } from "../services/rewards";
 import { applyRewardAction, loadRewardEvents, loadUserCheckins, loadUserProgress, submitDailyCheckin } from "../services/progressData";
 import { logPlanGeneration, logPlanFeedback, logPlanAdjustment, logCheckinPattern } from "../services/dataCollection";
 import { buildBehavioralInsights } from "../services/behavioralInsights";
-import { buildAdaptiveIntelligence } from "../ai/orchestration/adaptiveIntelligence";
-import { buildAiRequestContext } from "../ai/orchestration/buildAiRequestContext";
+import { buildAdaptiveIntelligence } from "../ai/orchestration/adaptiveIntelligence.js";
+import { buildAiRequestContext } from "../ai/orchestration/buildAiRequestContext.js";
 import { trackEvent } from "../utils/analytics";
 import { captureException } from "../monitoring/sentry";
 
@@ -179,31 +179,31 @@ function toDisplayText(value, fallback = "Unavailable") {
   return fallback;
 }
 
-const GoalTabDirect = safeLazy(() => import("./dashboard/GoalTab"), "Goals");
-const HabitTabDirect = safeLazy(() => import("./dashboard/HabitTab"), "Habits");
-const DailyProgressTabDirect = safeLazy(() => import("./dashboard/DailyProgressTab"), "Daily progress");
-const AdaptiveIntelligenceRail = safeLazy(() => import("./ai/AdaptiveIntelligenceRail"), "AI intelligence");
-const AdaptiveHistorySurface = safeLazy(() => import("./ai/AdaptiveHistorySurface"), "Adaptive history");
-const ProgressWidget = safeLazy(() => import("./dashboard/ProgressWidget"), "Progress overview");
-const AnalyticsChart = safeLazy(() => import("./dashboard/AnalyticsChart"), "Analytics chart");
-const WeeklyProgressTabDirect = safeLazy(() => import("./dashboard/WeeklyProgressTab"), "Weekly progress");
-const WeeklyReviewTabDirect = safeLazy(() => import("./dashboard/WeeklyReviewTab"), "Weekly review");
-const MonthlyReviewTabDirect = safeLazy(() => import("./dashboard/MonthlyReviewTab"), "Monthly review");
-const CareerExplorerTabDirect = safeLazy(() => import("./dashboard/CareerExplorerTab"), "Career explorer");
-const HobbyIncomeTabDirect = safeLazy(() => import("./dashboard/HobbyIncomeTab"), "Income paths");
-const RoutineBuilderTabDirect = safeLazy(() => import("./dashboard/RoutineBuilderTab"), "Routine builder");
-const ChatExtensionTabDirect = safeLazy(() => import("./dashboard/ChatExtensionTab"), "AI coach");
-const AchievementTabDirect = safeLazy(() => import("./dashboard/AchievementTab"), "Achievements");
-const MissionsTabDirect = safeLazy(() => import("./dashboard/MissionsTab"), "Missions");
-const PersonalizationTabDirect = safeLazy(() => import("./dashboard/PersonalizationTab"), "Insights");
-const ProjectMapTabDirect = safeLazy(() => import("./dashboard/ProjectMapTab"), "System map");
-const HistoryTabDirect = safeLazy(() => import("./dashboard/HistoryTab"), "History");
-const ProfileTabDirect = safeLazy(() => import("./dashboard/ProfileTab"), "Profile");
-const FeedbackTabDirect = safeLazy(() => import("./dashboard/FeedbackTab"), "Feedback");
-const ReminderTabDirect = safeLazy(() => import("./dashboard/ReminderTab"), "Reminders");
-const SupportTabDirect = safeLazy(() => import("./dashboard/SupportTab"), "Support");
-const SettingsTabDirect = safeLazy(() => import("./dashboard/SettingsTab"), "Settings");
-const AdminTabDirect = safeLazy(() => import("./dashboard/AdminTab"), "Admin");
+const GoalTabDirect = safeLazy(() => import("./dashboard/GoalTab.jsx"), "Goals");
+const HabitTabDirect = safeLazy(() => import("./dashboard/HabitTab.jsx"), "Habits");
+const DailyProgressTabDirect = safeLazy(() => import("./dashboard/DailyProgressTab.jsx"), "Daily progress");
+const AdaptiveIntelligenceRail = safeLazy(() => import("./ai/AdaptiveIntelligenceRail.jsx"), "AI intelligence");
+const AdaptiveHistorySurface = safeLazy(() => import("./ai/AdaptiveHistorySurface.jsx"), "Adaptive history");
+const ProgressWidget = safeLazy(() => import("./dashboard/ProgressWidget.jsx"), "Progress overview");
+const AnalyticsChart = safeLazy(() => import("./dashboard/AnalyticsChart.jsx"), "Analytics chart");
+const WeeklyProgressTabDirect = safeLazy(() => import("./dashboard/WeeklyProgressTab.jsx"), "Weekly progress");
+const WeeklyReviewTabDirect = safeLazy(() => import("./dashboard/WeeklyReviewTab.jsx"), "Weekly review");
+const MonthlyReviewTabDirect = safeLazy(() => import("./dashboard/MonthlyReviewTab.jsx"), "Monthly review");
+const CareerExplorerTabDirect = safeLazy(() => import("./dashboard/CareerExplorerTab.jsx"), "Career explorer");
+const HobbyIncomeTabDirect = safeLazy(() => import("./dashboard/HobbyIncomeTab.jsx"), "Income paths");
+const RoutineBuilderTabDirect = safeLazy(() => import("./dashboard/RoutineBuilderTab.jsx"), "Routine builder");
+const ChatExtensionTabDirect = safeLazy(() => import("./dashboard/ChatExtensionTab.jsx"), "AI coach");
+const AchievementTabDirect = safeLazy(() => import("./dashboard/AchievementTab.jsx"), "Achievements");
+const MissionsTabDirect = safeLazy(() => import("./dashboard/MissionsTab.jsx"), "Missions");
+const PersonalizationTabDirect = safeLazy(() => import("./dashboard/PersonalizationTab.jsx"), "Insights");
+const ProjectMapTabDirect = safeLazy(() => import("./dashboard/ProjectMapTab.jsx"), "System map");
+const HistoryTabDirect = safeLazy(() => import("./dashboard/HistoryTab.jsx"), "History");
+const ProfileTabDirect = safeLazy(() => import("./dashboard/ProfileTab.jsx"), "Profile");
+const FeedbackTabDirect = safeLazy(() => import("./dashboard/FeedbackTab.jsx"), "Feedback");
+const ReminderTabDirect = safeLazy(() => import("./dashboard/ReminderTab.jsx"), "Reminders");
+const SupportTabDirect = safeLazy(() => import("./dashboard/SupportTab.jsx"), "Support");
+const SettingsTabDirect = safeLazy(() => import("./dashboard/SettingsTab.jsx"), "Settings");
+const AdminTabDirect = safeLazy(() => import("./dashboard/AdminTab.jsx"), "Admin");
 
 
 const initialForm = {
