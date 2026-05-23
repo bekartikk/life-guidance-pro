@@ -12,6 +12,7 @@
     "project:map:watch": "node scripts/watch-project-map.mjs"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.58.0",
     "@tailwindcss/vite": "^4.2.4",
     "firebase": "^12.7.0",
     "framer-motion": "^12.38.0",

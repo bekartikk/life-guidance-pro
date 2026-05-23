@@ -6,6 +6,23 @@ import {
   HiOutlineSparkles,
 } from "react-icons/hi2";
 
+function toDisplayText(value, fallback = "Unavailable") {
+  if (value == null) return fallback;
+  if (typeof value === "string" || typeof value === "number") return String(value);
+  if (typeof value === "boolean") return value ? "Yes" : "No";
+  if (Array.isArray(value)) {
+    const joined = value
+      .map((item) => toDisplayText(item, ""))
+      .filter(Boolean)
+      .join(", ");
+    return joined || fallback;
+  }
+  if (typeof value === "object") {
+    return value.label || value.title || value.name || value.summary || value.detail || fallback;
+  }
+  return fallback;
+}
+
 function formatLabel(value) {
   return String(value || "")
     .replace(/-/g, " ")
@@ -125,6 +142,7 @@ function renderSectionBody(body) {
 
 function ResultPanel({
   currentPlan,
+  aiMeta,
   currentPlanFeedback,
   adjustmentRequest,
   checkinNote,
@@ -145,6 +163,7 @@ function ResultPanel({
   onRate,
 }) {
   const sections = useMemo(() => splitPlanSections(currentPlan?.result), [currentPlan?.result]);
+  const safeBehavioralInsights = behavioralInsights && typeof behavioralInsights === "object" ? behavioralInsights : {};
   const [expandedState, setExpandedState] = useState(() => ({
     planId: null,
     headings: new Set(),
@@ -168,6 +187,26 @@ function ResultPanel({
       { label: "Longer horizon", section: longerHorizon },
     ].filter((item) => item.section);
   }, [sections]);
+
+  const planChangeCard = useMemo(() => {
+    const recommendation = aiMeta?.recommendations?.[0] || null;
+    if (!recommendation && !aiMeta?.adaptiveState && !aiMeta?.personality) {
+      return null;
+    }
+
+    return {
+      title: toDisplayText(recommendation?.title, "Why the plan changed"),
+      detail:
+        toDisplayText(recommendation?.why, "") ||
+        toDisplayText(recommendation?.detail, "") ||
+        "The adaptive engine used your recent energy, stress, and momentum signals to keep the roadmap realistic.",
+      meta: [
+        toDisplayText(aiMeta?.adaptiveState?.intensityLabel, ""),
+        toDisplayText(aiMeta?.personality?.label, ""),
+        toDisplayText(aiMeta?.roadmapIntelligence?.activeMode, ""),
+      ].filter((item) => item && item !== "Unavailable"),
+    };
+  }, [aiMeta]);
 
   if (!currentPlan) {
     return null;
@@ -295,17 +334,32 @@ function ResultPanel({
         </div>
       )}
 
+      {planChangeCard ? (
+        <article className="result-plan-change-card">
+          <div className="result-plan-change-card__head">
+            <span>Why the plan changed</span>
+            <div className="result-plan-change-card__chips">
+              {planChangeCard.meta.map((item, index) => (
+                <span className="badge-chip" key={`${item}-${index}`}>{item}</span>
+              ))}
+            </div>
+          </div>
+          <strong>{planChangeCard.title}</strong>
+          <p>{planChangeCard.detail}</p>
+        </article>
+      ) : null}
+
       <div className="checkin-panel">
         <div>
           <h3>Today's check-in</h3>
           <p>Reward effort, not perfection. Give the AI enough emotional context to adapt tomorrow realistically.</p>
         </div>
         <div className="result-summary-grid result-summary-grid--compact">
-          {behavioralInsights.summaryCards.slice(0, 2).map((item) => (
-            <article className="result-summary-card" key={`checkin-${item.label}`}>
-              <span>{item.label}</span>
-              <strong>{item.value}</strong>
-              <p>{item.detail}</p>
+          {(Array.isArray(safeBehavioralInsights.summaryCards) ? safeBehavioralInsights.summaryCards : []).slice(0, 2).map((item, index) => (
+            <article className="result-summary-card" key={`checkin-${toDisplayText(item?.label, "summary")}-${index}`}>
+              <span>{toDisplayText(item?.label, "Summary")}</span>
+              <strong>{toDisplayText(item?.value, "Waiting for data")}</strong>
+              <p>{toDisplayText(item?.detail, "The AI will add more context as your check-ins build up.")}</p>
             </article>
           ))}
         </div>

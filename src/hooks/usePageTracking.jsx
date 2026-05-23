@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { trackPageView } from "../utils/analytics";
+import { captureException } from "../monitoring/sentry";
 
 const TITLE_MAP = {
   "/": "Life Guidance Pro | Adaptive AI Life Operating System",
@@ -14,6 +15,13 @@ export function usePageTracking() {
   useEffect(() => {
     const title = TITLE_MAP[location.pathname] || "Life Guidance Pro";
     document.title = title;
-    trackPageView(location.pathname, title);
+    try {
+      trackPageView(location.pathname, title);
+    } catch (error) {
+      captureException(error, {
+        tags: { boundary: "page-tracking" },
+        extra: { pathname: location.pathname, title },
+      });
+    }
   }, [location.pathname]);
 }

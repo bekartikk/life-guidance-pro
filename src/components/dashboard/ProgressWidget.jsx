@@ -1,9 +1,16 @@
 import { memo, useMemo } from "react";
-import { motion } from "framer-motion";
 
-const MotionSection = motion.section;
+function getDisplayText(value, fallback) {
+  if (value == null) return fallback;
+  if (typeof value === "string" || typeof value === "number") return String(value);
+  if (typeof value === "object") {
+    return value.label || value.title || value.name || value.summary || fallback;
+  }
+  return fallback;
+}
 
 function ProgressWidget({ completion, progress, plans, goals, habits, behavioralInsights }) {
+  const safeBehavioralInsights = behavioralInsights && typeof behavioralInsights === "object" ? behavioralInsights : {};
   const radius = 58;
   const circumference = useMemo(() => 2 * Math.PI * radius, [radius]);
   const offset = useMemo(() => circumference - (completion / 100) * circumference, [circumference, completion]);
@@ -24,18 +31,14 @@ function ProgressWidget({ completion, progress, plans, goals, habits, behavioral
   );
 
   return (
-    <MotionSection
-      initial={{ opacity: 0, x: 16 }}
-      animate={{ opacity: 1, x: 0 }}
-      className="saas-panel premium-progress-widget"
-    >
+    <section className="saas-panel premium-progress-widget">
       <div className="premium-widget-head">
         <div>
           <p>Progress overview</p>
           <h3>Daily completion</h3>
         </div>
         <span className="status-chip">
-          {behavioralInsights.lifeState.label}
+          {getDisplayText(safeBehavioralInsights?.lifeState, "Stabilizing")}
         </span>
       </div>
 
@@ -72,17 +75,17 @@ function ProgressWidget({ completion, progress, plans, goals, habits, behavioral
             <div>
               <p className="premium-widget-title">Momentum is live</p>
               <p>
-                You have {pendingGoals} active goals, {habitCount} habits in rotation, and a {progress.activeStreak}-day streak. {behavioralInsights.burnoutRisk.summary}
+                You have {pendingGoals} active goals, {habitCount} habits in rotation, and a {Number(progress?.activeStreak || 0)}-day streak. {getDisplayText(safeBehavioralInsights?.burnoutRisk?.summary, "Burnout protection is adapting around your current signals.")}
               </p>
             </div>
             <div className="premium-widget-mini-grid">
               <div className="premium-mini-card">
                 <p>Burnout risk</p>
-                <strong>{behavioralInsights.burnoutRisk.score}%</strong>
+                <strong>{Number(safeBehavioralInsights?.burnoutRisk?.score || 0)}%</strong>
               </div>
               <div className="premium-mini-card">
                 <p>Coach mode</p>
-                <strong>{behavioralInsights.personalityMode.active}</strong>
+                <strong>{getDisplayText(safeBehavioralInsights?.personalityMode?.active, "Balanced Strategist")}</strong>
               </div>
             </div>
           </div>
@@ -97,7 +100,7 @@ function ProgressWidget({ completion, progress, plans, goals, habits, behavioral
           </div>
         ))}
       </div>
-    </MotionSection>
+    </section>
   );
 }
 

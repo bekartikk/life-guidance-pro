@@ -11,9 +11,6 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { motion } from "framer-motion";
-
-const MotionSection = motion.section;
 
 const BAR_COLORS = ["#60a5fa", "#8b5cf6", "#22c55e", "#f59e0b", "#ef4444", "#38bdf8", "#a78bfa"];
 
@@ -47,13 +44,23 @@ function buildFallbackData() {
   }));
 }
 
+function getDisplayText(value, fallback) {
+  if (value == null) return fallback;
+  if (typeof value === "string" || typeof value === "number") return String(value);
+  if (typeof value === "object") {
+    return value.label || value.title || value.name || value.summary || fallback;
+  }
+  return fallback;
+}
+
 function AnalyticsChart({ checkins, progress, behavioralInsights }) {
+  const safeBehavioralInsights = behavioralInsights && typeof behavioralInsights === "object" ? behavioralInsights : {};
   const chartData = useMemo(
-    () => (checkins.length ? checkins.slice(0, 7).reverse().map(normalizeDay) : buildFallbackData()),
+    () => (Array.isArray(checkins) && checkins.length ? checkins.slice(0, 7).reverse().map(normalizeDay) : buildFallbackData()),
     [checkins],
   );
   const strongestDay = useMemo(
-    () => [...chartData].sort((left, right) => right.productivity - left.productivity)[0],
+    () => [...chartData].sort((left, right) => right.productivity - left.productivity)[0] || buildFallbackData()[0],
     [chartData],
   );
   const average = useMemo(
@@ -61,7 +68,7 @@ function AnalyticsChart({ checkins, progress, behavioralInsights }) {
     [chartData],
   );
   const weakestDay = useMemo(
-    () => [...chartData].sort((left, right) => left.productivity - right.productivity)[0],
+    () => [...chartData].sort((left, right) => left.productivity - right.productivity)[0] || buildFallbackData()[0],
     [chartData],
   );
   const moodAverage = useMemo(
@@ -70,12 +77,7 @@ function AnalyticsChart({ checkins, progress, behavioralInsights }) {
   );
 
   return (
-    <MotionSection
-      initial={{ opacity: 0, x: 16 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: 0.05 }}
-      className="saas-panel premium-analytics-widget"
-    >
+    <section className="saas-panel premium-analytics-widget">
       <div className="premium-widget-head">
         <div>
           <p>Weekly insights</p>
@@ -84,25 +86,25 @@ function AnalyticsChart({ checkins, progress, behavioralInsights }) {
         <span className="status-chip">Adaptive read</span>
       </div>
       <p className="premium-analytics-copy">
-        Average completion is {average}%. Your strongest recent day was {strongestDay.label.toLowerCase()}.
+        Average completion is {average}%. Your strongest recent day was {String(strongestDay.label || "recently").toLowerCase()}.
       </p>
 
       <div className="space-y-6">
         <div className="premium-insight-grid">
           <div className="premium-insight-card">
             <p>Peak day</p>
-            <strong>{strongestDay.label}</strong>
-            <span>{strongestDay.productivity}% completion</span>
+            <strong>{getDisplayText(strongestDay.label, "Mon")}</strong>
+            <span>{Number(strongestDay.productivity || 0)}% completion</span>
           </div>
           <div className="premium-insight-card">
             <p>Needs support</p>
-            <strong>{weakestDay.label}</strong>
-            <span>{weakestDay.productivity}% completion</span>
+            <strong>{getDisplayText(weakestDay.label, "Tue")}</strong>
+            <span>{Number(weakestDay.productivity || 0)}% completion</span>
           </div>
           <div className="premium-insight-card">
             <p>Life state</p>
-            <strong>{behavioralInsights.lifeState.label}</strong>
-            <span>{behavioralInsights.burnoutRisk.score}% burnout risk</span>
+            <strong>{getDisplayText(safeBehavioralInsights?.lifeState, "Stabilizing")}</strong>
+            <span>{Number(safeBehavioralInsights?.burnoutRisk?.score || 0)}% burnout risk</span>
           </div>
         </div>
         <div className="h-44">
@@ -122,7 +124,7 @@ function AnalyticsChart({ checkins, progress, behavioralInsights }) {
               />
               <Bar dataKey="productivity" radius={[10, 10, 0, 0]}>
                 {chartData.map((entry, index) => (
-                  <Cell key={entry.label} fill={BAR_COLORS[index % BAR_COLORS.length]} />
+                  <Cell key={`${entry.label}-${index}`} fill={BAR_COLORS[index % BAR_COLORS.length]} />
                 ))}
               </Bar>
             </BarChart>
@@ -155,15 +157,15 @@ function AnalyticsChart({ checkins, progress, behavioralInsights }) {
           </div>
           <div className="premium-stat-card">
             <p>Streak</p>
-            <strong>{progress.activeStreak}</strong>
+            <strong>{Number(progress?.activeStreak || 0)}</strong>
           </div>
           <div className="premium-stat-card">
             <p>Recovery</p>
-            <strong>{behavioralInsights.metrics.avgSleep ? behavioralInsights.metrics.avgSleep.toFixed(1) : "—"}/5</strong>
+            <strong>{safeBehavioralInsights?.metrics?.avgSleep ? Number(safeBehavioralInsights.metrics.avgSleep).toFixed(1) : "—"}/5</strong>
           </div>
         </div>
       </div>
-    </MotionSection>
+    </section>
   );
 }
 

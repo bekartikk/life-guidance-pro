@@ -1,7 +1,4 @@
-import { motion } from "framer-motion";
 import TaskCard from "./TaskCard";
-
-const MotionDiv = motion.div;
 
 function PlannerBoard({ currentPlan, goals, habits, activeTab, onGoToTab, children }) {
   const activeGoals = goals.filter((goal) => goal.status !== "completed");
@@ -59,15 +56,9 @@ function PlannerBoard({ currentPlan, goals, habits, activeTab, onGoToTab, childr
         ))}
       </div>
 
-      <MotionDiv
-        key={activeTab}
-        initial={{ opacity: 0, y: 14 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.28 }}
-        className="min-w-0"
-      >
+      <div key={activeTab} className="min-w-0">
         {children}
-      </MotionDiv>
+      </div>
     </section>
   );
 }

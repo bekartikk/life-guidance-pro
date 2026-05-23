@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { generateProjectMap } from './scripts/generate-project-map.mjs'
 
-function projectBrainMapPlugin() {
+function projectBrainMapPlugin({ enabled = true } = {}) {
   const refreshMap = () => generateProjectMap().catch((error) => {
     console.error("Project map generation failed:", error);
   });
@@ -11,9 +11,13 @@ function projectBrainMapPlugin() {
   return {
     name: "project-brain-map",
     buildStart() {
-      return refreshMap();
+      if (enabled) {
+        return refreshMap();
+      }
+      return null;
     },
     configureServer(server) {
+      if (!enabled) return;
       refreshMap();
       const shouldTrack = (file) =>
         file &&
@@ -35,9 +39,9 @@ function projectBrainMapPlugin() {
 }
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   plugins: [
-    projectBrainMapPlugin(),
+    projectBrainMapPlugin({ enabled: command === "serve" }),
     tailwindcss(),
     react(),
   ],
@@ -54,17 +58,20 @@ export default defineConfig({
         manualChunks(id) {
           if (id.includes("node_modules")) {
             if (id.includes("posthog-js")) return "analytics";
+            if (id.includes("@supabase/supabase-js")) return "supabase";
             if (id.includes("firebase/firestore")) return "firebase-db";
             if (id.includes("firebase/auth")) return "firebase-auth";
             if (id.includes("firebase/app")) return "firebase-core";
             if (id.includes("firebase")) return "firebase";
             if (id.includes("recharts")) return "charts";
             if (id.includes("framer-motion")) return "motion";
+            if (id.includes("react-icons")) return "icons";
             if (id.includes("react-router-dom")) return "router";
+            if (id.includes("react-dom") || id.includes("\\react\\") || id.includes("/react/")) return "react-core";
             return "vendor";
           }
         },
       },
     },
   },
-})
+}));
