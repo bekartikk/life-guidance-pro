@@ -4,7 +4,7 @@ import { auth } from "./firebase.js";
 import AppErrorBoundary from "./components/AppErrorBoundary.jsx";
 import { usePageTracking } from "./hooks/usePageTracking.jsx";
 import { identifyUser, resetAnalytics, trackEvent } from "./utils/analytics.js";
-import { captureException } from "./monitoring/sentry.js";
+import { captureException, setMonitoringUser, withMonitoringRouting } from "./monitoring/sentry.js";
 import "./App.css";
 
 function isComponentLike(value) {
@@ -41,11 +41,7 @@ function safeLazy(loader, title) {
     loader()
       .then((module) => {
         const component = resolveLazyComponent(module);
-        if (import.meta.env.DEV) {
-          console.log("loaded:", title, component?.displayName || component?.name || component?.$$typeof?.description || typeof component);
-        }
         if (!component) {
-          console.error("Invalid lazy component:", title, module);
           throw new Error(`Invalid lazy component export for ${title}.`);
         }
         return { default: component };
@@ -76,6 +72,7 @@ function safeLazy(loader, title) {
 const Landing = safeLazy(() => import("./pages/Landing.jsx"), "Landing");
 const Login = safeLazy(() => import("./components/Login.jsx"), "Login");
 const Dashboard = safeLazy(() => import("./components/Dashboard.jsx"), "Dashboard");
+const MonitoredRoutes = withMonitoringRouting(Routes);
 
 function ProtectedRoute({ user, children }) {
   if (!user) return <Navigate to="/login" replace />;
@@ -112,7 +109,7 @@ function AppRoutes({ user }) {
   return (
     <Suspense fallback={<FullScreenLoader />}>
       <RouteTelemetry />
-      <Routes>
+      <MonitoredRoutes>
         <Route path="/" element={<HomeRoute user={user} />} />
         <Route
           path="/login"
@@ -131,7 +128,7 @@ function AppRoutes({ user }) {
           }
         />
         <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      </MonitoredRoutes>
     </Suspense>
   );
 }
@@ -167,8 +164,10 @@ function App() {
       try {
         if (currentUser) {
           identifyUser(currentUser);
+          setMonitoringUser(currentUser);
           trackEvent("auth_state_changed", { state: "authenticated" });
         } else {
+          setMonitoringUser(null);
           resetAnalytics();
           trackEvent("auth_state_changed", { state: "logged_out" });
         }

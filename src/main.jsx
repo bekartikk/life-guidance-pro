@@ -2,6 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.jsx";
 import { initPostHog } from "./analytics/posthog";
+import { initMonitoring } from "./monitoring/sentry.js";
 
 import "./index.css";
 
@@ -12,6 +13,8 @@ if (!rootElement) {
 }
 
 if (typeof window !== "undefined") {
+  initMonitoring();
+
   const schedulePostHog =
     "requestIdleCallback" in window
       ? window.requestIdleCallback.bind(window)
