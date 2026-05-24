@@ -1,5 +1,4 @@
 import { Component } from "react";
-import { captureException } from "../monitoring/sentry";
 
 class AppErrorBoundary extends Component {
   constructor(props) {
@@ -14,11 +13,7 @@ class AppErrorBoundary extends Component {
     };
   }
 
-  componentDidCatch(error, info) {
-    captureException(error, {
-      tags: { boundary: "app" },
-      extra: { componentStack: info?.componentStack || "" },
-    });
+  componentDidCatch() {
   }
 
   handleReload = () => {
@@ -61,11 +56,7 @@ export class WidgetErrorBoundary extends Component {
     };
   }
 
-  componentDidCatch(error, info) {
-    captureException(error, {
-      tags: { boundary: "widget", widget_title: this.props.title || "unknown" },
-      extra: { componentStack: info?.componentStack || "" },
-    });
+  componentDidCatch() {
   }
 
   render() {

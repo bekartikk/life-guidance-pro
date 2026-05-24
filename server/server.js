@@ -294,6 +294,16 @@ app.post("/api/followup", async (req, res) => {
   }
 });
 
+app.use((error, req, res, next) => {
+  if (res.headersSent) {
+    return next(error);
+  }
+
+  return res.status(error.status || 500).json({
+    message: error.publicMessage || error.message || "Server error.",
+  });
+});
+
 app.listen(PORT, () => {
   console.log(`Life Guidance API running on port ${PORT} with ${activeProvider}:${activeModel}`);
 });

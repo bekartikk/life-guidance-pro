@@ -63,7 +63,6 @@ import { buildBehavioralInsights } from "../services/behavioralInsights";
 import { buildAdaptiveIntelligence } from "../ai/orchestration/adaptiveIntelligence.js";
 import { buildAiRequestContext } from "../ai/orchestration/buildAiRequestContext.js";
 import { trackEvent } from "../utils/analytics";
-import { captureException } from "../monitoring/sentry";
 
 const LAZY_IMPORT_TIMEOUT_MS = 8000;
 const WORKSPACE_SECTION_TIMEOUT_MS = 12000;
@@ -121,19 +120,12 @@ function safeLazy(loader, title) {
     ])
       .then((module) => {
         const component = resolveLazyComponent(module);
-        if (import.meta.env.DEV) {
-          console.log("loaded:", title, component?.displayName || component?.name || component?.$$typeof?.description || typeof component);
-        }
         if (!component) {
-          console.error("Invalid lazy component:", title, module);
           throw new Error(`Invalid lazy component export for ${title}.`);
         }
         return { default: component };
       })
-      .catch((error) => {
-        captureException(error, {
-          tags: { boundary: "lazy-import", widget_title: title },
-        });
+      .catch(() => {
         return {
           default: function LazyModuleFallback() {
             return <LazyImportFallback title={title} />;
@@ -346,7 +338,7 @@ const emptyProgress = {
   lastWeekSummary: null,
 };
 
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "";
+const API_BASE = String(import.meta.env.VITE_API_BASE_URL || "").replace(/\/+$/, "");
 const adminEmails = String(import.meta.env.VITE_ADMIN_EMAILS || "").split(",").map((email) => email.trim().toLowerCase()).filter(Boolean);
 const requiredFields = ["currentRoutine", "workOrStudy", "personalChallenges", "futureConfusion", "goals", "hobbies", "happinessSources"];
 const navigationItems = ["planner", "goals", "habits", "daily", "weekly", "review", "monthly", "career", "income", "routine", "chat", "achievements", "missions", "insights", "system", "history", "profile", "feedback", "reminders", "support", "settings", "admin"];
@@ -1084,10 +1076,6 @@ function Dashboard({ user }) {
           }
         }
       } catch (workspaceError) {
-        captureException(workspaceError, {
-          tags: { surface: "dashboard_workspace_load" },
-          extra: { userId },
-        });
         if (isMounted) {
           const message = String(workspaceError?.message || "");
           if (
@@ -1129,10 +1117,6 @@ function Dashboard({ user }) {
         const snapshot = await loadAdminSnapshot();
         if (!ignore) setAdminSnapshot(snapshot);
       } catch (adminError) {
-        captureException(adminError, {
-          tags: { surface: "dashboard_admin_load" },
-          extra: { userId },
-        });
         if (!ignore) setError(adminError.message || "Could not load admin dashboard.");
       }
     }
@@ -1198,11 +1182,7 @@ function Dashboard({ user }) {
           progress,
           hobbyPlans,
         });
-      } catch (error) {
-        captureException(error, {
-          tags: { surface: "dashboard_behavioral_insights" },
-          extra: { userId },
-        });
+      } catch {
         return buildBehavioralInsights({
           profile: initialProfile,
           plans: [],
@@ -1214,7 +1194,7 @@ function Dashboard({ user }) {
         });
       }
     },
-    [profile, plans, goals, habits, checkins, progress, hobbyPlans, userId],
+    [profile, plans, goals, habits, checkins, progress, hobbyPlans],
   );
   const adaptiveWorkspace = useMemo(
     () => {
@@ -1231,11 +1211,7 @@ function Dashboard({ user }) {
           currentPlan,
           behavioralInsights,
         });
-      } catch (error) {
-        captureException(error, {
-          tags: { surface: "dashboard_adaptive_intelligence" },
-          extra: { userId },
-        });
+      } catch {
         return buildAdaptiveIntelligence({
           userId,
           profile: initialProfile,
@@ -1261,11 +1237,7 @@ function Dashboard({ user }) {
           progress,
           checkins,
         });
-      } catch (error) {
-        captureException(error, {
-          tags: { surface: "dashboard_ai_request_context" },
-          extra: { userId },
-        });
+      } catch {
         return buildAiRequestContext({
           behavioralInsights,
           adaptiveWorkspace,
@@ -1274,7 +1246,7 @@ function Dashboard({ user }) {
         });
       }
     },
-    [adaptiveWorkspace, behavioralInsights, checkins, progress, userId],
+    [adaptiveWorkspace, behavioralInsights, checkins, progress],
   );
   const activeAiMeta = followupAiMeta || currentPlan?.aiMeta || null;
   const { adaptiveInsights, isLoadingAdaptiveInsights } = useAdaptiveInsightsFeed({
@@ -1465,7 +1437,7 @@ function Dashboard({ user }) {
     if (!validatePlanner()) return;
     adjustment ? setIsAdjusting(true) : setIsLoading(true);
     try {
-      const response = await fetch(`${apiBaseUrl}/api/guidance`, {
+      const response = await fetch(`${API_BASE}/api/guidance`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1525,10 +1497,6 @@ function Dashboard({ user }) {
       setActiveTab("planner");
       setStatusMessage(adjustment ? "Plan updated successfully. Your revised plan is ready below." : "Plan generated successfully. Your new guidance plan is ready below.");
     } catch (requestError) {
-      captureException(requestError, {
-        tags: { surface: "plan_generation" },
-        extra: { roadmapFocus: form.roadmapFocus, planDuration: form.planDuration, adjusted: Boolean(adjustment) },
-      });
       setError(requestError.message || "Something went wrong while creating your plan.");
     } finally {
       setIsLoading(false);
@@ -1551,10 +1519,6 @@ function Dashboard({ user }) {
       });
       setStatusMessage("Profile saved. You can now use it to autofill the planner.");
     } catch (profileError) {
-      captureException(profileError, {
-        tags: { surface: "profile_save" },
-        extra: { role: profile.role, userId },
-      });
       setError(profileError.message || "Could not save your profile.");
     } finally {
       setIsSavingProfile(false);
@@ -1595,10 +1559,6 @@ function Dashboard({ user }) {
       setFeedbackRating(5);
       setStatusMessage("Feedback saved and added to your momentum.");
     } catch (feedbackError) {
-      captureException(feedbackError, {
-        tags: { surface: "feedback_submit" },
-        extra: { planId: currentPlan?.id, rating: feedbackRating },
-      });
       setError(feedbackError.message || "Could not save feedback.");
     } finally {
       setIsSubmittingFeedback(false);
@@ -1655,10 +1615,6 @@ function Dashboard({ user }) {
       
       setStatusMessage(`Today's progress was saved as ${status.replace(/-/g, " ")}.`);
     } catch (checkinError) {
-      captureException(checkinError, {
-        tags: { surface: "daily_checkin" },
-        extra: { planId: currentPlan?.id, status },
-      });
       setError(checkinError.message || "Could not save today's check-in.");
     } finally {
       setIsSubmittingCheckin(false);
@@ -1987,7 +1943,7 @@ function Dashboard({ user }) {
     setError("");
     const userMessage = { role: "user", content: chatPrompt.trim() };
     try {
-      const response = await fetch(`${apiBaseUrl}/api/followup`, {
+      const response = await fetch(`${API_BASE}/api/followup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -2008,10 +1964,6 @@ function Dashboard({ user }) {
       setChatPrompt("");
       setStatusMessage("Follow-up guidance added.");
     } catch (chatError) {
-      captureException(chatError, {
-        tags: { surface: "ai_chat_followup" },
-        extra: { planId: currentPlan?.id },
-      });
       setError(chatError.message || "Could not send the follow-up request.");
     } finally {
       setIsSendingChat(false);
