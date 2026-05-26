@@ -1,21 +1,10 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import * as Sentry from "@sentry/react";
 import App from "./App.jsx";
 import { initPostHog } from "./analytics/posthog";
 
 import "./index.css";
 import "./styles/design-system.css";
-
-const sentryDsn = import.meta.env.VITE_SENTRY_DSN;
-
-if (sentryDsn) {
-  Sentry.init({
-    dsn: sentryDsn,
-    tracesSampleRate: 0.2,
-    environment: import.meta.env.MODE,
-  });
-}
 
 const rootElement = document.getElementById("root");
 

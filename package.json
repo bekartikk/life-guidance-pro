@@ -9,10 +9,12 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "project:map": "node scripts/generate-project-map.mjs",
-    "project:map:watch": "node scripts/watch-project-map.mjs"
+    "project:map:watch": "node scripts/watch-project-map.mjs",
+    "cap:sync": "npx cap sync",
+    "cap:open": "npx cap open android"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.58.0",
+    "@supabase/supabase-js": "^2.106.2",
     "@tailwindcss/vite": "^4.2.4",
     "firebase": "^12.7.0",
     "framer-motion": "^12.38.0",
@@ -26,6 +28,9 @@
   },
   "devDependencies": {
     "@babel/core": "^7.29.0",
+    "@capacitor/android": "^8.3.4",
+    "@capacitor/cli": "^8.3.4",
+    "@capacitor/core": "^8.3.4",
     "@eslint/js": "^9.39.4",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",

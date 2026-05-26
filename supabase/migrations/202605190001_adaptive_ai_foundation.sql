@@ -93,8 +93,7 @@ create index if not exists idx_ai_conversation_messages_conversation_id_created_
 
 create index if not exists idx_ai_memory_snapshots_embedding_cosine
   on public.ai_memory_snapshots
-  using ivfflat (embedding_vector vector_cosine_ops)
-  with (lists = 100);
+  using hnsw (embedding_vector extensions.vector_cosine_ops);
 
 alter table public.ai_memory_snapshots enable row level security;
 alter table public.ai_behavior_snapshots enable row level security;

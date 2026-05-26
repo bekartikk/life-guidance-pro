@@ -73,6 +73,11 @@ export async function persistAdaptiveFollowupArtifacts({
   const authContext = buildExternalAuthContext({ userEmail, userId, profile });
 
   await Promise.allSettled([
+    repo.persistMemorySnapshot({
+      authContext,
+      aiMeta,
+      memory: aiMeta?.memoryProfile || aiContext?.memory?.profile || null,
+    }),
     repo.persistBehaviorSnapshot({
       authContext,
       aiContext,

@@ -1,489 +1,1099 @@
-# Life Guidance Pro Figma Redesign Execution Plan
+# Life Guidance Pro Redesign System Spec
 
-This document is the continuation plan for the Figma redesign file:
+This document is the Figma-ready continuation pack for the Life Guidance Pro redesign while the live Figma MCP bridge is unavailable.
 
-- Figma file: `Life Guidance Pro Redesign`
-- File URL: `https://www.figma.com/design/DY7j7ii1C5TpcjQnXMT48i`
-- File key: `DY7j7ii1C5TpcjQnXMT48i`
+- Product: `Life Guidance Pro`
+- Source of truth app: `https://life-guidance-pro.vercel.app`
+- Existing Figma file: `Life Guidance Pro Redesign`
+- Figma URL: `https://www.figma.com/design/DY7j7ii1C5TpcjQnXMT48i`
+- Intended use: manual Figma implementation, implementation planning, design QA, and React/Tailwind mapping
 
-The goal is to continue and complete the redesign once the Figma MCP Starter-plan rate limit resets.
+This is not concept art. It is a production-grade UI system spec that preserves the current product structure:
 
-## Redesign Intent
+- React + Vite frontend
+- Firebase Auth + Firestore primary flow
+- Supabase hybrid semantic memory layer
+- adaptive AI dashboard, planner, check-ins, insights, and recommendation surfaces
 
-Use the current live app structure as the source of truth, but redesign the product into a premium, implementation-friendly AI SaaS experience with:
+## 1. Product Design Goal
 
-- dark futuristic UI
-- calm wellness/productivity tone
-- Linear + Apple + Arc + Notion influence
-- glassmorphism and soft gradients
-- reusable components
-- mobile-first responsive layouts
-- lower cognitive load
-- realistic React/Vite implementation feasibility
+Transform the product from a planner into an adaptive AI life operating system that feels:
 
-This is not a random concept pass. The Figma file should map directly back to:
+- emotionally calm
+- premium and futuristic
+- practical rather than decorative
+- intelligent and deeply personalized
+- implementation-feasible in the current codebase
 
-- landing page
-- login / onboarding
-- dashboard shell
-- planner wizard
-- AI result panel
-- insights / analytics rail
-- settings / profile
-- mobile navigation and mobile dashboards
+Primary design influences:
 
-## Live App Architecture Reference
+- Apple: restraint, spaciousness, polished surfaces
+- Linear: sharp hierarchy, workflow clarity, dense information made readable
+- Notion: calm structure, clear blocks, non-threatening layout rhythm
+- Perplexity: intelligence-forward cards, clean signal grouping, useful summaries
 
-Use these files as the structural reference:
+## 2. Design Principles
 
-- `C:\Users\User\Downloads\projects\life-guidance-pro\src\App.jsx`
-- `C:\Users\User\Downloads\projects\life-guidance-pro\src\pages\Landing.jsx`
-- `C:\Users\User\Downloads\projects\life-guidance-pro\src\components\Login.jsx`
-- `C:\Users\User\Downloads\projects\life-guidance-pro\src\components\Dashboard.jsx`
-- `C:\Users\User\Downloads\projects\life-guidance-pro\src\components\dashboard\PlannerTab.jsx`
-- `C:\Users\User\Downloads\projects\life-guidance-pro\src\components\dashboard\ResultPanel.jsx`
+1. Calm first:
+   the UI should reduce emotional pressure rather than amplify it.
 
-## Figma File Structure
+2. Intelligence visible, not noisy:
+   adaptive guidance should appear as confident summaries, signals, and next actions, not walls of AI text.
 
-Because the file is on the Starter plan, keep the file to **three pages**:
+3. One primary action per surface:
+   each panel should have a clear job.
+
+4. Dense but breathable:
+   the dashboard can contain a lot of information, but spacing and grouping must prevent cognitive overload.
+
+5. Mobile is guided, not compressed:
+   mobile screens should prioritize one strong card or section at a time.
+
+6. Component discipline:
+   all major UI should be assembled from repeatable primitives, not one-off compositions.
+
+## 3. Figma File Structure
+
+Keep the file to these three pages:
 
 1. `00 System`
 2. `10 Desktop`
 3. `11 Mobile`
 
-Do not split into more pages unless plan limits change.
+Inside each page, use section labels and frame naming with the format:
 
-## Page 1: 00 System
+- `Foundation / Colors`
+- `Foundation / Typography`
+- `Component / Sidebar Item / Active`
+- `Desktop / Dashboard / Planner`
+- `Mobile / Dashboard / Insights`
 
-This page should contain both foundations and reusable components.
+## 4. Foundations
 
-### Foundations
-
-#### Color System
-
-Use a dark adaptive palette:
-
-- `bg0` `#08111F`
-- `bg1` `#0D172A`
-- `bg2` `#12213A`
-- `surface` `#101B31`
-- `surface2` `#13233F`
-- `glass` `#182743`
-- `border` `#284165`
-- `text` `#F6FAFF`
-- `text2` `#B6C6E3`
-- `text3` `#7F93B7`
-- `cyan` `#65E6FF`
-- `blue` `#4F8CFF`
-- `violet` `#8E7DFF`
-- `teal` `#3DD7C0`
-- `success` `#59E3AE`
-- `warning` `#FFB45C`
-- `danger` `#FF7A9E`
-
-#### Typography
+### 4.1 Typography Scale
 
 Use:
 
-- display serif: `Instrument Serif`
-- UI sans: `Inter`
-- optional accent/meta: `DM Sans`
+- `Instrument Serif` for emotional display moments only
+- `Inter` for all product UI, forms, nav, cards, data, labels
+- optional `DM Sans` only if needed for small meta tags; otherwise keep `Inter` everywhere
 
-Suggested scale:
+#### Type Roles
 
-- Hero: `56 / 64`
-- Display: `40 / 48`
-- H2: `28 / 36`
-- H3: `22 / 30`
-- Body: `16 / 28`
-- Meta: `13 / 18`
+| Role | Font | Size / Line | Weight | Use |
+|---|---|---:|---:|---|
+| Display XL | Instrument Serif | 64 / 68 | 400 | landing hero desktop only |
+| Display L | Instrument Serif | 48 / 54 | 400 | major hero, section openers |
+| Heading 1 | Inter | 32 / 40 | 700 | dashboard hero titles, auth titles |
+| Heading 2 | Inter | 24 / 32 | 700 | section titles, planner/result blocks |
+| Heading 3 | Inter | 20 / 28 | 600 | card titles, surface headings |
+| Heading 4 | Inter | 18 / 26 | 600 | sub-panels |
+| Body L | Inter | 16 / 26 | 400 | core paragraphs |
+| Body M | Inter | 15 / 24 | 400 | standard card body |
+| Body S | Inter | 14 / 20 | 400 | compact UI text |
+| Label L | Inter | 13 / 18 | 600 | buttons, chips, filter labels |
+| Label S | Inter | 12 / 16 | 600 | eyebrow, meta, tab counters |
+| Mono Meta | Inter | 12 / 16 | 500 | optional stats or machine-like tags |
 
-#### Surface Rules
+#### Typography Rules
 
-- panel radius: `24–28`
-- chip/button radius: `999`
-- glass fill opacity: `0.78–0.9`
-- border opacity: `0.35–0.55`
-- strong shadow only on hero and key panels
-- background blur on premium panels only
+- no negative letter spacing
+- no viewport-based font scaling
+- use serif only for emotional or aspirational headers
+- all dashboard/product surfaces stay in sans
+- keep paragraph width between `44ch` and `68ch`
 
-### Core Components
+### 4.2 Spacing System
 
-Create reusable components for:
+Base unit: `4`
 
-- `Button / Primary`
-- `Button / Secondary`
-- `Button / Ghost`
-- `Chip / Status`
-- `Chip / Filter`
-- `Metric Card`
-- `Insight Card`
-- `Panel / Standard`
-- `Panel / AI Result`
-- `Sidebar Item / Default`
-- `Sidebar Item / Active`
-- `Topbar Search`
-- `Planner Step Card`
-- `Accordion Section`
-- `Result Section Card`
-- `Check-in Signal Card`
-- `Mobile Nav Chip`
+Token scale:
 
-## Page 2: 10 Desktop
+- `space-1` = 4
+- `space-2` = 8
+- `space-3` = 12
+- `space-4` = 16
+- `space-5` = 20
+- `space-6` = 24
+- `space-7` = 28
+- `space-8` = 32
+- `space-10` = 40
+- `space-12` = 48
+- `space-16` = 64
+- `space-20` = 80
+- `space-24` = 96
 
-This page should hold the desktop layouts.
+Usage guidance:
 
-### Frame Set 1: Landing Page
+- panel internal padding: `24` desktop, `20` tablet, `16` mobile
+- major section gap: `32` desktop, `24` mobile
+- card grid gap: `20` desktop, `16` mobile
+- text stack gap:
+  - title to body: `8`
+  - eyebrow to title: `10`
+  - label to field: `8`
 
-Create a full desktop landing page with these sections in order:
+### 4.3 Grid System
 
-1. Hero
-2. Who this is for
-3. How AI works
-4. AI memory
-5. Hobby to income engine
-6. Daily AI check-ins
-7. Life balance analytics
-8. Interactive demo
-9. Real user journeys
-10. Trust and safety
-11. Final CTA
+#### Desktop
 
-#### Hero Composition
+- frame width: `1440`
+- outer margins: `64`
+- content max width: `1312`
+- grid: `12 columns`
+- gutter: `24`
+- primary dashboard split:
+  - left nav: `264`
+  - center workspace: flexible, target `min 640`
+  - right rail: `320`
+
+#### Tablet
+
+- frame width: `1024`
+- outer margins: `32`
+- grid: `8 columns`
+- gutter: `20`
+
+#### Mobile
+
+- frame width: `390`
+- safe content width: `358`
+- outer margins: `16`
+- grid: `4 columns`
+- gutter: `12`
+
+### 4.4 Radius System
+
+- `radius-1` = 6
+- `radius-2` = 8
+- `radius-3` = 12
+- `radius-4` = 16
+- `radius-5` = 20
+- `radius-6` = 24
+- `radius-pill` = 999
+
+Usage:
+
+- button/input/chip: `8`
+- small cards: `12`
+- standard panels: `16`
+- hero / premium shells: `20`
+- modal / auth card / dashboard hero: `24`
+
+### 4.5 Elevation + Shadow System
+
+Use shadows sparingly. Depth comes from fill, border, blur, and contrast first.
+
+- `shadow-none`
+- `shadow-soft`:
+  - `0 8 24 rgba(3, 8, 20, 0.18)`
+- `shadow-panel`:
+  - `0 18 48 rgba(3, 8, 20, 0.24)`
+- `shadow-hero`:
+  - `0 24 64 rgba(5, 16, 38, 0.32)`
+- `shadow-glow-cyan`:
+  - outer soft glow for focused AI cards only
+
+Rules:
+
+- avoid stacking multiple heavy shadows
+- no hero-card-inside-hero-card nesting
+- only one glow source per section
+
+### 4.6 Motion Rules
+
+Motion style: subtle, smooth, informational
+
+- duration fast: `160ms`
+- duration standard: `220ms`
+- duration calm: `320ms`
+- easing:
+  - standard: `cubic-bezier(0.22, 1, 0.36, 1)`
+  - fade: `ease-out`
+
+Allowed motion:
+
+- fade + 8px translate on cards
+- tab/content crossfade
+- expanding accordion height
+- number shimmer / loading pulse
+- bottom-nav chip active state
+
+Avoid:
+
+- bouncing
+- dramatic scaling
+- decorative looping animations
+- blur-heavy transitions on low-end mobile
+
+### 4.7 Dark Theme Tokens
+
+#### Base Tokens
+
+- `bg.app` = `#08111F`
+- `bg.canvas` = `#0B1528`
+- `bg.section` = `#0F1B31`
+- `bg.panel` = `#13213B`
+- `bg.panel-2` = `#162843`
+- `bg.panel-3` = `#1A2D49`
+- `bg.overlay` = `rgba(6, 12, 24, 0.72)`
+- `bg.glass` = `rgba(19, 33, 59, 0.74)`
+
+- `border.default` = `rgba(124, 156, 204, 0.20)`
+- `border.strong` = `rgba(134, 176, 236, 0.34)`
+- `border.focus` = `rgba(101, 230, 255, 0.62)`
+
+- `text.primary` = `#F4F8FF`
+- `text.secondary` = `#BCCBE7`
+- `text.tertiary` = `#8093B7`
+- `text.inverse` = `#07111E`
+
+#### Accent Tokens
+
+- `accent.cyan` = `#65E6FF`
+- `accent.blue` = `#4F8CFF`
+- `accent.violet` = `#8C7BFF`
+- `accent.teal` = `#38D6C0`
+
+#### Semantic Tokens
+
+- `state.success` = `#59E3AE`
+- `state.warning` = `#FFB45C`
+- `state.danger` = `#FF7A9E`
+- `state.info` = `#7BB9FF`
+
+#### AI Semantic Tokens
+
+- `ai.focus` = `#65E6FF`
+- `ai.recovery` = `#6ED5B8`
+- `ai.growth` = `#89A3FF`
+- `ai.career` = `#FFB66B`
+- `ai.memory` = `#A38DFF`
+- `ai.burnout` = `#FF8FA8`
+
+### 4.8 Glassmorphism Rules
+
+Use glass only on:
+
+- dashboard hero cards
+- auth shell card
+- selected adaptive insight cards
+- top navigation/shell surfaces
+
+Glass recipe:
+
+- fill: `bg.glass`
+- blur: `16`
+- border: `1px border.default`
+- shadow: `shadow-panel`
+
+Avoid glass on:
+
+- form-heavy inner cards
+- dense tables
+- charts where contrast matters
+- every card in a list
+
+### 4.9 AI Insight Card Styling System
+
+There are four AI card classes:
+
+1. `Signal Card`
+   - compact
+   - one label, one metric, one supporting sentence
+
+2. `Interpretation Card`
+   - “what the system sees”
+   - one strong headline
+   - one summary sentence
+   - 2-3 bullets max
+
+3. `Recommendation Card`
+   - prioritized action
+   - includes urgency/state chip
+   - one CTA
+
+4. `Memory Card`
+   - references prior pattern or remembered behavior
+   - contains “trigger”, “pattern”, “next move”
+
+## 5. Reusable Component Specifications
+
+### 5.1 Navbar
+
+Desktop navbar:
+
+- height: `72`
+- left: brand mark + wordmark
+- center: primary anchors on landing only
+- right: secondary action + primary CTA
+- sticky with slight glass effect on scroll
+
+States:
+
+- default
+- scrolled
+- auth context hidden links
+
+Tailwind mapping:
+
+- wrapper: `h-[72px] px-6 lg:px-10 flex items-center justify-between`
+- shell: `backdrop-blur-xl bg-[rgba(11,21,40,.72)] border border-white/10`
+
+### 5.2 Sidebar
+
+Desktop dashboard sidebar:
+
+- width expanded: `264`
+- width collapsed: `88`
+- top: brand, collapse button
+- grouped sections:
+  - Workspace
+  - Intelligence
+  - Memory
+- footer: account/status area
+
+Item anatomy:
+
+- icon 18
+- label
+- optional badge
+- active left glow rail or soft active pill
+
+### 5.3 Mobile Navigation
+
+Use two layers:
+
+1. top app bar
+2. bottom nav for 4 primary destinations:
+   - Planner
+   - Daily
+   - Insights
+   - Settings
+
+Optional third layer:
+
+- horizontal quick-chip rail for sub-views
+
+Rules:
+
+- no more than 4 bottom items
+- bottom bar height: `72`
+- icons + short labels only
+
+### 5.4 Adaptive Insight Cards
+
+Variants:
+
+- `Today Focus`
+- `Momentum`
+- `Burnout Risk`
+- `Recovery Suggestion`
+- `Cognitive Load`
+- `Weekly Pattern`
+- `Memory Recall`
+
+Structure:
+
+- eyebrow
+- title
+- primary metric or sentence
+- 1 supporting line
+- optional CTA/link
+
+### 5.5 Planner Cards
+
+Used in:
+
+- planner tab
+- goal/habit builders
+- routine setup
+
+Anatomy:
+
+- section number
+- heading
+- supporting sentence
+- grouped fields
+- sticky save/generate action at bottom for long flows
+
+### 5.6 Recommendation Modules
+
+Two types:
+
+- inline recommendation strip
+- stacked recommendation panel
+
+Fields:
+
+- recommendation title
+- reasoning
+- urgency/state chip
+- next action
+
+### 5.7 AI Conversation Surfaces
+
+Use for result adjustment and AI coach follow-up.
+
+Structure:
+
+- assistant/user bubbles
+- assistant surfaces are slightly elevated and wider
+- user bubbles tighter and darker
+- bottom composer bar sticky
+- supporting context chips above composer
+
+### 5.8 Onboarding Flows
+
+Flow shell:
+
+- left story panel
+- right auth/setup card desktop
+- full-stack vertical on mobile
+
+Required modules:
+
+- trust signals
+- setup step list
+- AI personality preview
+- credential form
+- helper actions
+
+### 5.9 Authentication Surfaces
+
+Card width desktop: `480–520`
+
+Use:
+
+- segmented login/signup switch
+- primary form stack
+- social auth button
+- helper link row
+- success/error message strip
+
+### 5.10 Charts and Data Widgets
+
+Charts must be lightweight visually.
+
+Rules:
+
+- use minimal axes
+- avoid dense legends
+- rely on 1-2 accent colors max
+- all widgets need a textual takeaway, not only graphs
+
+Preferred widgets:
+
+- trend sparkline
+- compact bar series
+- heat strip
+- radial progress
+- stat delta card
+
+### 5.11 Workspace Mode Selectors
+
+Modes:
+
+- Focus
+- Recovery
+- Growth
+- Career
+
+Component:
+
+- segmented pills desktop
+- scrollable chip rail mobile
+- active mode also controls subtle tint on adjacent AI panels
+
+### 5.12 Burnout / Risk Indicators
+
+Represent with:
+
+- small meter
+- risk label
+- one sentence recommendation
+
+Levels:
+
+- Low
+- Watch
+- Elevated
+- Recovery Needed
+
+Do not use alarming red overload everywhere. Reserve danger tone for true high-risk states.
+
+### 5.13 Semantic Memory Surfaces
+
+This is where Supabase-backed semantic memory shows up visually.
+
+Modules:
+
+- memory timeline card
+- “remembered pattern” card
+- prior recommendation recall card
+- behavioral similarity summary card
+
+Anatomy:
+
+- source label
+- memory summary
+- relevance reason
+- optional time anchor
+
+## 6. Desktop Screen Structures
+
+### 6.1 Landing Page
+
+#### Section Order
+
+1. Navbar
+2. Hero
+3. Audience fit
+4. How AI works
+5. AI memory engine
+6. Hobby to income system
+7. Daily check-ins
+8. Adaptive analytics
+9. Interactive mode demo
+10. Outcome journeys
+11. Trust and privacy
+12. Final CTA
+13. Footer
+
+#### Hero Layout
+
+Desktop split: `6 / 6`
 
 Left:
 
 - eyebrow
-- large headline
+- H1
 - supporting copy
-- 3 CTAs
-- 3 metric cards
+- primary CTA
+- secondary CTA
+- tertiary ghost CTA
+- 3 metrics in row
 
 Right:
 
-- adaptive roadmap preview
-- 3 timeline cards
-- 2 AI insight notes
+- adaptive roadmap mock panel
+- stacked intelligence notes
+- progress line
+- one burnout/risk chip
 
-#### Audience Section
+Spacing:
 
-Use a 3-column card grid for:
+- hero top padding `96`
+- hero bottom padding `72`
+- copy stack gap `20`
+- CTA gap `12`
+- metric card gap `16`
 
-- Students
-- Employees
-- Freelancers
-- Creators
-- People feeling lost
-- Burned-out individuals
+#### Audience Fit
+
+- 3-column grid desktop
+- 2-column tablet
+- 1-column mobile
+
+Each card:
+
+- icon
+- title
+- struggle sentence
+- support sentence
+- outcome sentence
 
 #### How AI Works
 
-Use a 5-step horizontal or 2x3 modular grid:
+Use 4-step or 5-step progressive strip with numbered cards.
 
-- user inputs
-- pattern analysis
-- adaptive plan generation
-- daily feedback
-- dynamic adaptation
+Layout:
 
-#### AI Memory
+- horizontal connected modules desktop
+- stacked numbered cards mobile
 
-Use stacked insight cards with high-value summaries, not long paragraphs.
+#### AI Memory Section
 
-#### Hobby to Income
+Layout:
 
-Use a roadmap strip:
-
-- Beginner
-- Practice system
-- Skill growth
-- Portfolio
-- Income path
-
-#### Check-in Section
-
-Use signal cards + one adaptive explanation panel.
-
-#### Analytics Section
-
-Use 4 metric cards + one mini trend/heatmap style block.
-
-#### Demo Section
-
-Tabbed demo shell:
-
-- Student mode
-- Employee mode
-- Creator mode
-
-#### Journeys Section
-
-Use 3 story cards with progression structure:
-
-- before
-- what AI changed
-- outcome
-
-#### Trust Section
-
-3 trust cards:
-
-- user control
-- supportive guidance only
-- private adaptive planning
-
-### Frame Set 2: Login / Onboarding
-
-Create desktop auth/onboarding frame:
-
-Left side:
-
-- onboarding story
-- trust signals
-- 5 setup stages
-- AI personality selector
-
-Right side:
-
-- auth card
-- login/signup toggle
-- email/password fields
-- primary CTA
-- Google CTA
-- helper actions
-
-### Frame Set 3: Dashboard Shell
-
-Create the main dashboard shell:
-
-#### Left Sidebar
-
-Include grouped navigation matching the live product:
-
-- Workspace
-- Intelligence
-- Memory
-
-Required visible items:
-
-- Planner
-- Goals
-- Habits
-- Daily Progress
-- Weekly Progress
-- Review
-- Monthly
-- Career
-- Income
-- Routine
-- AI Coach
-- Insights
-- History
-- Profile
-- Feedback
-- Reminders
-- Support
-- Settings
-
-#### Top Header
+- left explanation block
+- right stacked memory cards
 
 Include:
 
-- page title
-- description
-- search
-- quick add action
-- streak chip
-- focus mode
-- user email
-- logout
+- remembered routines
+- burnout cycles
+- successful days
+- emotional triggers
 
-#### Hero Band
+#### Hobby to Income Section
 
-Two cards:
+Use a horizontal roadmap rail.
 
-- adaptive life operating system summary
-- AI guidance pulse
+Each stage:
 
-### Frame Set 4: Planner Workspace
+- label
+- summary
+- connector line
 
-Use the dashboard shell and show the planner tab active.
-
-Center layout:
-
-- step strip
-- onboarding progress hero
-- 4 accordion steps
-- consent
-- planner submit block
-
-Right:
-
-- result loading state
-- or result empty state
-
-Planner steps:
-
-1. Reality & Routine
-2. Pressure & Goals
-3. Energy & Interests
-4. Guidance Preferences
-
-### Frame Set 5: Result Experience
-
-Use the same shell with a generated result visible.
-
-Result panel must include:
-
-- title and saved timestamp
-- sticky action toolbar
-- reward summary strip
-- summary cards:
-  - Key shifts
-  - Today’s focus
-  - Next 7 days
-  - Longer horizon
-- daily check-in section
-- recent wins section
-- plan outline chips
-- collapsible result section cards
-- adjust this plan panel
-
-### Frame Set 6: Insights / Analytics
-
-Create a dedicated insight-heavy dashboard view:
-
-- left nav active on `Insights`
-- center:
-  - behavioral pattern summaries
-  - adaptive recommendation cards
-  - burnout risk block
-  - memory cards
-  - future projections
-- right rail:
-  - progress widget
-  - analytics chart
-  - privacy/control card
-
-### Frame Set 7: Profile / Settings
-
-Create one desktop frame for profile and one for settings.
-
-Profile:
-
-- personal context
-- routine style
-- stress / vision / goals
-- planner bridge CTA
-
-Settings:
-
-- account
-- export
-- privacy
-- reminders
-- delete data action
-
-## Page 3: 11 Mobile
-
-This page should hold mobile-first versions of the most important flows.
-
-Create mobile frames at `390 x 844`.
-
-### Required Mobile Frames
-
-1. Landing hero
-2. Landing progressive sections view
-3. Login / onboarding
-4. Dashboard shell with mobile chips
-5. Planner mobile flow
-6. Result mobile flow
-7. Insights mobile rail collapsed into cards
-8. Settings / profile mobile
-
-### Mobile Rules
-
-- reduce hero height
-- reduce glow intensity
-- use horizontal chip rails instead of dense grids
-- one dominant card at a time
-- planner sections must feel guided, not endless
-- result sections must be readable with clear spacing
-- keep thumb-friendly CTAs
-
-### Mobile Navigation Pattern
+#### Daily Check-ins Section
 
 Use:
 
-- top app bar
-- horizontal quick nav chip row
-- collapsible/intelligent insight summaries
+- left phone-style check-in preview
+- right explanation and adaptive support card
 
-Do not make the right rail fully stack as a huge endless sidebar.
+#### Analytics Section
 
-## Visual Principles
+Layout:
 
-### Keep
+- 4 stat cards on top
+- one wide intelligence chart card below
+- one textual “what changed” card beside or beneath
 
-- calm futuristic atmosphere
-- dark glass UI
-- blue / cyan / violet accents
-- premium SaaS feel
-- emotionally supportive tone
+#### Interactive Demo
 
-### Avoid
+Tabs:
 
-- random concept shapes
-- extreme glow
-- muddy purple overload
-- large empty dead zones
-- equal emphasis on every card
-- unrealistic Dribbble-only layouts
+- Student
+- Employee
+- Creator
 
-## Figma Build Order Once MCP Limit Resets
+Each tab shows:
 
-1. Finish `00 System`
-   - color blocks
-   - type scale
-   - reusable components
-2. Build `10 Desktop`
-   - landing
-   - auth
-   - dashboard shell
-   - planner
-   - results
-   - insights
-   - profile/settings
-3. Build `11 Mobile`
-   - landing mobile
-   - auth mobile
-   - dashboard mobile
-   - planner mobile
-   - result mobile
-   - settings/profile mobile
-4. Final polish
-   - align spacing
-   - align card radii
-   - make CTAs consistent
-   - verify component reuse
+- persona summary
+- sample plan
+- adaptive notes
 
-## Notes For Implementation Feasibility
+#### Trust and Privacy
 
-The redesign should remain easy to map back to the current React/Vite codebase:
+3 cards:
 
-- avoid impossible layouts
-- use consistent card and panel logic
-- respect current route structure
-- keep planner/result relationship intact
-- keep dashboard shell realistic for responsive implementation
+- private memory
+- user control
+- supportive guidance only
 
-## Completion Standard
+#### Tailwind Mapping
 
-The Figma redesign is complete when:
+- page shell: `bg-[var(--bg-app)] text-[var(--text-primary)]`
+- content width: `max-w-[1312px] mx-auto px-4 md:px-8 xl:px-16`
+- desktop grids:
+  - `grid grid-cols-12 gap-6`
+  - `col-span-6`, `col-span-4`, etc.
 
-- all major product flows exist in desktop and mobile form
-- the file contains reusable system components
-- the layouts clearly map to the live app
-- the visual language is consistent across landing, onboarding, dashboard, planner, results, insights, and settings
-- the result feels implementation-ready, not speculative
+### 6.2 Onboarding
+
+Screen purpose:
+
+- introduce product
+- build trust
+- prepare user mentally for AI profile setup
+
+Desktop split:
+
+- left narrative column `5`
+- right auth/setup card `7`
+
+Sections:
+
+- onboarding hero statement
+- trust signal list
+- setup journey card
+- AI personality selector
+- create account CTA
+
+### 6.3 Auth Flow
+
+Screen purpose:
+
+- log in or sign up with zero friction
+
+Right card content:
+
+- auth mode segmented switch
+- title + helper copy
+- email field
+- password field
+- primary submit
+- Google sign-in
+- password reset action
+- message strip
+
+### 6.4 Dashboard
+
+Three-column shell:
+
+- left sidebar: `264`
+- center workspace: flexible
+- right intelligence rail: `320`
+
+#### Center Hierarchy
+
+1. top header
+2. hero summary band
+3. workspace panel
+4. tab-specific content
+
+#### Right Rail Hierarchy
+
+1. life state card
+2. AI intelligence rail
+3. adaptive history surface
+4. progress widget
+5. analytics chart
+6. memory engine card
+7. future projection card
+8. privacy/control card
+
+### 6.5 Planner Workspace
+
+Keep current structure:
+
+- left/center form
+- right result surface
+
+Planner form composition:
+
+- section intro banner
+- 4 guided sections
+- save/continue CTA
+
+Result state variants:
+
+- empty
+- loading
+- result ready
+
+### 6.6 Adaptive Intelligence Hub
+
+This is the “Insights” heavy dashboard mode.
+
+Sections:
+
+- today’s AI focus
+- momentum score
+- burnout risk
+- recovery suggestion
+- cognitive load
+- weekly pattern
+- semantic memory recap
+- adaptive recommendation history
+
+### 6.7 Memory / History Timeline
+
+Screen purpose:
+
+- show saved plans
+- show semantic memory recalls
+- show behavioral evolution
+
+Layout:
+
+- left timeline/list
+- right detail card
+
+### 6.8 Analytics Surfaces
+
+Use a dedicated screen with:
+
+- productivity trend
+- mood/energy trend
+- stress accumulation
+- recovery improvement
+- momentum history
+- behavioral summary callouts
+
+### 6.9 Settings / Profile
+
+Profile:
+
+- personal identity and role
+- goals and interests
+- routine style
+- stress and long-term vision
+
+Settings:
+
+- reminders
+- account
+- export
+- privacy
+- delete data
+
+### 6.10 AI Recommendation Center
+
+Dedicated recommendation screen:
+
+- pinned highest-priority recommendation
+- grouped modules:
+  - Recovery
+  - Focus
+  - Growth
+  - Career
+- recommendation history
+- “why this is suggested” explanatory drawer/card
+
+## 7. Mobile Redesign Specs
+
+### 7.1 Global Mobile Rules
+
+- frame: `390 x 844`
+- fixed top bar
+- fixed bottom nav
+- chip rail optional below top bar
+- max one dominant pane visible at a time
+- avoid 3-column density
+- convert right rail into sequential cards
+
+### 7.2 Mobile Landing
+
+Order:
+
+- hero
+- CTA
+- mobile section dock
+- one collapsible section at a time
+- trust CTA footer
+
+Rules:
+
+- hero headline max 4 lines
+- only one visual mock surface above fold
+- metric cards scroll horizontally or stack 1-by-1
+
+### 7.3 Mobile Onboarding/Auth
+
+Stack order:
+
+1. back link
+2. product story
+3. trust items
+4. personality preview
+5. auth card
+
+Use tighter spacing:
+
+- outer padding `16`
+- card padding `16`
+- section gap `20`
+
+### 7.4 Mobile Dashboard
+
+Hierarchy:
+
+1. top app bar
+2. quick summary hero
+3. quick chip nav
+4. active content card
+5. adaptive insight cards
+6. bottom nav
+
+Rules:
+
+- planner remains primary default
+- charts deferred unless opened from daily/insights
+- use skeletons in slow surfaces
+
+### 7.5 Mobile Planner
+
+Structure:
+
+- sticky progress indicator
+- accordion sections
+- sticky CTA footer
+- result panel appears below or in separate slide-up panel
+
+### 7.6 Mobile Result
+
+Sections:
+
+- summary header
+- key shifts
+- today’s focus
+- next 7 days
+- longer horizon
+- daily check-in
+- adjust plan
+
+Each section collapsible after first read.
+
+### 7.7 Mobile Insights
+
+Transform right rail into:
+
+- one stacked card feed
+- no side rail behavior
+- cards ordered by urgency:
+  - focus
+  - burnout
+  - recovery
+  - momentum
+  - memory
+  - projections
+
+### 7.8 Mobile Settings/Profile
+
+Use grouped sections with sticky save button on profile edits.
+
+## 8. Responsive Behavior Rules
+
+### Breakpoints
+
+- mobile: `< 640`
+- tablet: `640–1023`
+- desktop: `1024+`
+- wide desktop: `1280+`
+
+### Transform Rules
+
+- desktop 3-column dashboard -> tablet 2-column -> mobile stacked
+- landing multi-card rows -> horizontal scroll or single-column stack
+- right rail -> stacked insight sequence
+- sidebar -> slide-over or condensed chip nav on tablet/mobile
+
+### Priority Rules
+
+If space is tight, preserve in this order:
+
+1. primary action
+2. current state summary
+3. active working surface
+4. secondary insights
+5. historical/reference content
+
+## 9. Tailwind Implementation Mapping
+
+### Shell Tokens
+
+Implement token mapping in Tailwind or CSS variables:
+
+```css
+:root {
+  --bg-app: #08111F;
+  --bg-panel: #13213B;
+  --bg-glass: rgba(19, 33, 59, 0.74);
+  --border-default: rgba(124, 156, 204, 0.20);
+  --text-primary: #F4F8FF;
+  --text-secondary: #BCCBE7;
+  --accent-cyan: #65E6FF;
+  --accent-violet: #8C7BFF;
+  --state-danger: #FF7A9E;
+}
+```
+
+### Common Tailwind Recipes
+
+Panel:
+
+```txt
+rounded-2xl border border-white/10 bg-[rgba(19,33,59,.74)] backdrop-blur-xl shadow-[0_18px_48px_rgba(3,8,20,.24)]
+```
+
+Standard card:
+
+```txt
+rounded-2xl bg-slate-900/70 border border-white/10 p-5
+```
+
+Hero shell:
+
+```txt
+rounded-[24px] border border-cyan-300/15 bg-[linear-gradient(135deg,rgba(19,33,59,.92),rgba(11,21,40,.92))] shadow-[0_24px_64px_rgba(5,16,38,.32)]
+```
+
+Active chip:
+
+```txt
+inline-flex items-center gap-2 rounded-full border border-cyan-300/25 bg-cyan-300/10 px-3 py-1.5 text-[13px] font-semibold text-cyan-100
+```
+
+### Component Hierarchy Mapping
+
+- `Dashboard shell`
+  - `Sidebar`
+  - `Header`
+  - `Hero summary`
+  - `PlannerBoard`
+  - `ResultPanel`
+  - `AdaptiveIntelligenceRail`
+  - `AdaptiveHistorySurface`
+  - `ProgressWidget`
+  - `AnalyticsChart`
+
+- `Landing`
+  - `Navbar`
+  - `Hero`
+  - `Audience cards`
+  - `Workflow steps`
+  - `Memory section`
+  - `Income roadmap`
+  - `Check-in section`
+  - `Analytics section`
+  - `Demo tabs`
+  - `Trust cards`
+
+## 10. Interaction Notes
+
+### Dashboard
+
+- sidebar hover = subtle fill only
+- active nav = stronger fill + icon tint
+- AI cards can expand inline, not modal by default
+- quick add opens centered modal desktop, bottom sheet mobile
+
+### Planner
+
+- opening a section should scroll it into comfortable view
+- generation state uses calm pulse and staged skeletons
+- result cards can collapse but summary cards stay visible
+
+### AI Recommendations
+
+- recommendation cards should expose:
+  - why
+  - urgency
+  - what to do next
+
+### Memory Surfaces
+
+- memory entries should never look like error logs
+- they should read like helpful remembered patterns
+
+## 11. Figma Build Order
+
+1. `00 System / Foundations`
+2. `00 System / Components`
+3. `10 Desktop / Dashboard Shell`
+4. `10 Desktop / Planner + Result`
+5. `10 Desktop / Landing`
+6. `10 Desktop / Auth + Onboarding`
+7. `10 Desktop / Insights + Memory + Analytics`
+8. `10 Desktop / Settings + Recommendation Center`
+9. `11 Mobile / Dashboard`
+10. `11 Mobile / Planner`
+11. `11 Mobile / Result`
+12. `11 Mobile / Landing + Auth + Settings`
+
+## 12. Completion Standard
+
+The redesign spec is complete when:
+
+- every major surface has a defined layout
+- every major repeated surface has a reusable component spec
+- spacing, type, and color decisions are unambiguous
+- mobile behavior is explicit rather than implied
+- Tailwind/component mapping is clear enough for direct implementation
+- the output still respects the existing app architecture and product identity
+
+## 13. Immediate Implementation Priorities
+
+If design-to-code work starts before full Figma reconstruction, prioritize these surfaces first:
+
+1. Dashboard shell
+2. Planner workspace
+3. Result panel
+4. AI insight rail
+5. Mobile dashboard shell
+6. Auth/onboarding shell
+7. Landing page cleanup
 

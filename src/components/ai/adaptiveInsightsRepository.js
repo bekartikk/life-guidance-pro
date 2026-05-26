@@ -1,4 +1,4 @@
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "";
+const API_BASE = String(import.meta.env.VITE_API_BASE_URL || "").replace(/\/+$/, "");
 const insightCache = new Map();
 const CACHE_TTL_MS = 60_000;
 
@@ -18,7 +18,7 @@ export async function fetchAdaptiveInsights({ userId, signal }) {
   }
 
   const response = await fetch(
-    `${apiBaseUrl}/api/adaptive-insights?userId=${encodeURIComponent(userId)}`,
+    `${API_BASE}/api/adaptive-insights?userId=${encodeURIComponent(userId)}`,
     {
       method: "GET",
       signal,
