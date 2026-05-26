@@ -321,7 +321,7 @@ function Landing() {
         ))}
       </div>
 
-      <MotionSection id="who" className="landing-section">
+      <section id="who" className="landing-section">
         <div className="landing-section__intro">
           <p className="landing-eyebrow">Who this is for</p>
           <h2>Built for real people dealing with real pressure.</h2>
@@ -352,9 +352,9 @@ function Landing() {
           })}
         </div>
         </div>
-      </MotionSection>
+      </section>
 
-      <MotionSection id="how" className="landing-section landing-section--workflow">
+      <section id="how" className="landing-section landing-section--workflow">
         <div className="landing-section__intro">
           <p className="landing-eyebrow">How the AI works</p>
           <h2>Not a static planner. A closed-loop guidance engine.</h2>
@@ -379,9 +379,9 @@ function Landing() {
           ))}
         </div>
         </div>
-      </MotionSection>
+      </section>
 
-      <MotionSection id="memory" className="landing-section">
+      <section id="memory" className="landing-section">
         <div className="landing-section__intro">
           <p className="landing-eyebrow">AI memory & adaptive intelligence</p>
           <h2>The system remembers what helps and what keeps failing.</h2>
@@ -406,9 +406,9 @@ function Landing() {
           ))}
         </div>
         </div>
-      </MotionSection>
+      </section>
 
-      <MotionSection id="income" className="landing-section landing-section--split">
+      <section id="income" className="landing-section landing-section--split">
         <div className="landing-section__intro">
           <p className="landing-eyebrow">Hobby to income engine</p>
           <h2>Turn curiosity into leverage, proof, and future opportunity.</h2>
@@ -433,9 +433,9 @@ function Landing() {
             ))}
           </div>
         </div>
-      </MotionSection>
+      </section>
 
-      <MotionSection id="checkin" className="landing-section landing-section--split">
+      <section id="checkin" className="landing-section landing-section--split">
         <div className="landing-section__intro">
           <p className="landing-eyebrow">Daily AI check-ins</p>
           <h2>A routine that changes when life changes.</h2>
@@ -466,9 +466,9 @@ function Landing() {
             </div>
           </div>
         </div>
-      </MotionSection>
+      </section>
 
-      <MotionSection id="analytics" className="landing-section">
+      <section id="analytics" className="landing-section">
         <div className="landing-section__intro">
           <p className="landing-eyebrow">Life balance analytics</p>
           <h2>Watch consistency, emotional balance, creativity, learning, and direction evolve together.</h2>
@@ -493,9 +493,9 @@ function Landing() {
             ))}
           </div>
         </div>
-      </MotionSection>
+      </section>
 
-      <MotionSection id="demo" className="landing-section landing-section--demo">
+      <section id="demo" className="landing-section landing-section--demo">
         <div className="landing-section__intro">
           <p className="landing-eyebrow">Interactive live demo</p>
           <h2>See how the AI behaves before you sign up.</h2>
@@ -545,9 +545,9 @@ function Landing() {
             </article>
           </div>
         </div>
-      </MotionSection>
+      </section>
 
-      <MotionSection id="journeys" className="landing-section">
+      <section id="journeys" className="landing-section">
         <div className="landing-section__intro">
           <p className="landing-eyebrow">Real user journeys</p>
           <h2>From confusion and pressure to steadier direction.</h2>
@@ -571,9 +571,9 @@ function Landing() {
             ))}
           </div>
         </div>
-      </MotionSection>
+      </section>
 
-      <MotionSection id="trust" className="landing-section landing-section--trust">
+      <section id="trust" className="landing-section landing-section--trust">
         <div className="landing-section__intro">
           <p className="landing-eyebrow">Trust & safety</p>
           <h2>Supportive, private, and under your control.</h2>
@@ -603,9 +603,9 @@ function Landing() {
             </article>
           </div>
         </div>
-      </MotionSection>
+      </section>
 
-      <MotionSection className="landing-final-cta">
+      <section className="landing-final-cta">
         <p className="landing-eyebrow">Start your system</p>
         <h2>You do not need to figure everything out alone.</h2>
         <p>Build a life system that adapts with you, understands your pressure, and helps turn confusion into direction.</p>
@@ -614,7 +614,7 @@ function Landing() {
           <Link to="/login" className="landing-button landing-button--secondary" onClick={() => trackEvent("landing_cta_clicked", { cta: "final_create_profile" })}>Create Your Profile</Link>
           <Link to="/login" className="landing-button landing-button--ghost" onClick={() => trackEvent("landing_cta_clicked", { cta: "final_build_routine" })}>Build My Routine</Link>
         </div>
-      </MotionSection>
+      </section>
     </div>
   );
 }
