@@ -1,5 +1,6 @@
 import { Suspense, lazy, useEffect, useRef, useState } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 import { auth } from "./firebase.js";
 import AppErrorBoundary from "./components/AppErrorBoundary.jsx";
 import { usePageTracking } from "./hooks/usePageTracking.jsx";
@@ -212,6 +213,7 @@ function App() {
       <AppErrorBoundary>
         <AppRoutes user={user} />
       </AppErrorBoundary>
+      <SpeedInsights />
     </BrowserRouter>
   );
 }
