@@ -1,4 +1,6 @@
 import { memo, useMemo } from "react";
+import { Badge, Card, CardContent, CardHeader, CardTitle } from "../ui/index.js";
+import { GridLayout, PanelLayout, SectionHeader } from "../layout/index.js";
 
 const EMPTY_AI_META = Object.freeze({});
 const EMPTY_ADAPTIVE_STATE = Object.freeze({});
@@ -28,6 +30,22 @@ function clamp(value, min, max) {
 
 function formatPercent(value) {
   return `${Math.round(Number(value) || 0)}%`;
+}
+
+function buildFutureProjection(safeMeta, safeBehavioralInsights) {
+  const nextShift = toDisplayText(safeMeta?.roadmapIntelligence?.nextShift, "");
+  if (nextShift && nextShift !== "Unavailable") {
+    return nextShift;
+  }
+
+  const projections = Array.isArray(safeBehavioralInsights?.futureProjection)
+    ? safeBehavioralInsights.futureProjection
+    : [];
+
+  return toDisplayText(
+    projections[0],
+    "The adaptive layer will make its longer-range read clearer as more repeated patterns show up.",
+  );
 }
 
 function buildWeeklyPattern(checkins = []) {
@@ -121,84 +139,125 @@ function AdaptiveIntelligenceRail({
   const weeklySummary = weeklyPattern.length
     ? `Load was ${weeklyPattern[weeklyPattern.length - 1].load > weeklyPattern[0].load ? "building" : "easing"} through the latest week, while energy ${weeklyPattern[weeklyPattern.length - 1].energy >= weeklyPattern[0].energy ? "held up" : "fell back"} enough that the AI should keep adaptation visible.`
     : "The weekly pattern will get sharper as more check-ins come in.";
+  const memoryAnchor = toDisplayText(
+    safeMeta?.memorySummary?.headline,
+    "The AI is still learning which patterns deserve to carry forward.",
+  );
+  const continuityNote = toDisplayText(
+    safeMeta?.memorySummary?.signals?.[0],
+    toDisplayText(safeBehavioralInsights?.memoryCards?.[0]?.detail, "Recent check-ins are starting to form a stable continuity signal."),
+  );
+  const futureProjection = buildFutureProjection(safeMeta, safeBehavioralInsights);
 
   return (
-    <section className="saas-panel ai-intelligence-surface">
-      <div className="ai-intelligence-surface__hero">
-        <div>
-          <p className="dashboard-eyebrow">Adaptive AI engine</p>
-          <h3>{todayFocus.title}</h3>
-          <p>{todayFocus.body}</p>
-        </div>
-        <div className="ai-hero-chip-stack">
-          <span className="hero-header-chip">{toDisplayText(safeBehavioralInsights?.personalityMode?.active, "Balanced Strategist")}</span>
-          <span className="hero-header-chip">{toDisplayText(todayFocus.context, "Adaptive guidance")}</span>
-        </div>
-      </div>
+    <Card className="saas-panel ai-intelligence-surface" tone="elevated">
+      <CardHeader className="ai-intelligence-surface__hero">
+        <SectionHeader
+          eyebrow="Adaptive AI engine"
+          title={todayFocus.title}
+          description={todayFocus.body}
+          actions={(
+            <div className="ai-hero-chip-stack">
+              <Badge className="hero-header-chip" tone="info">{toDisplayText(safeBehavioralInsights?.personalityMode?.active, "Balanced Strategist")}</Badge>
+              <Badge className="hero-header-chip" tone="info">{toDisplayText(todayFocus.context, "Adaptive guidance")}</Badge>
+            </div>
+          )}
+        />
+      </CardHeader>
 
-      <div className="ai-intelligence-grid">
-        <article className="ai-signal-card">
-          <p>Momentum score</p>
-          <strong>{formatPercent(momentumScore)}</strong>
-          <span>{momentumScore >= 70 ? "You have room for stretch work." : "Protect consistency before pushing harder."}</span>
-        </article>
-        <article className="ai-signal-card">
-          <p>Burnout risk</p>
-          <strong>{formatPercent(burnoutScore)}</strong>
-          <span>{toDisplayText(safeBehavioralInsights?.burnoutRisk?.summary, "Burnout protection is based on your latest stress and recovery signals.")}</span>
-        </article>
-        <article className="ai-signal-card">
-          <p>Adaptive intensity</p>
-          <strong>{String(intensity).replace(/^\w/, (c) => c.toUpperCase())}</strong>
-          <div className="ai-meter" aria-label={`Adaptive intensity ${intensity}`}>
-            <span className="ai-meter__fill" style={{ width: `${intensityPercent}%` }} />
-          </div>
-          <span>{adaptiveState.intensityLabel || "The engine scales challenge to current recovery and momentum."}</span>
-        </article>
-        <article className="ai-signal-card">
-          <p>Cognitive load</p>
-          <strong>{cognitiveLoad.label}</strong>
-          <span>{cognitiveLoad.summary}</span>
-        </article>
-      </div>
-
-      <div className="ai-surface-columns">
-        <section className="ai-recovery-panel">
-          <div className="ai-panel-head">
-            <strong>Recovery suggestions</strong>
-            <span>{adaptiveState.recoveryMode ? "Recovery mode" : "Adaptive guardrails"}</span>
-          </div>
-          <div className="ai-recovery-list">
-            {recoverySuggestions.map((item, index) => (
-              <article key={`${toDisplayText(item.title || item.detail, "suggestion")}-${index}`} className="ai-recovery-item">
-                <strong>{toDisplayText(item.title, `Suggestion ${index + 1}`)}</strong>
-                <p>{toDisplayText(item.detail, "Adaptive guidance based on your recent signals.")}</p>
-                {item.why ? <small>{toDisplayText(item.why, "")}</small> : null}
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="ai-pattern-panel">
-          <div className="ai-panel-head">
-            <strong>AI weekly pattern</strong>
-            <span>Load vs energy</span>
-          </div>
-          <div className="ai-pattern-chart" aria-label="Weekly AI pattern summary">
-            {weeklyPattern.map((point, index) => (
-              <div key={`${point.label}-${index}`} className="ai-pattern-day">
-                <div className="ai-pattern-bars">
-                  <span className="ai-pattern-bar ai-pattern-bar--load" style={{ height: `${point.load}%` }} aria-hidden="true" />
-                  <span className="ai-pattern-bar ai-pattern-bar--energy" style={{ height: `${point.energy}%` }} aria-hidden="true" />
-                </div>
-                <small>{point.label}</small>
+      <CardContent className="grid gap-6">
+        <GridLayout className="ai-intelligence-grid">
+          <Card className="ai-signal-card" tone="soft">
+            <CardContent>
+              <p>Momentum score</p>
+              <strong>{formatPercent(momentumScore)}</strong>
+              <span>{momentumScore >= 70 ? "You have room for stretch work." : "Protect consistency before pushing harder."}</span>
+            </CardContent>
+          </Card>
+          <Card className="ai-signal-card" tone="soft">
+            <CardContent>
+              <p>Burnout risk</p>
+              <strong>{formatPercent(burnoutScore)}</strong>
+              <span>{toDisplayText(safeBehavioralInsights?.burnoutRisk?.summary, "Burnout protection is based on your latest stress and recovery signals.")}</span>
+            </CardContent>
+          </Card>
+          <Card className="ai-signal-card" tone="soft">
+            <CardContent>
+              <p>Adaptive intensity</p>
+              <strong>{String(intensity).replace(/^\w/, (c) => c.toUpperCase())}</strong>
+              <div className="ai-meter" aria-label={`Adaptive intensity ${intensity}`}>
+                <span className="ai-meter__fill" style={{ width: `${intensityPercent}%` }} />
               </div>
-            ))}
-          </div>
-          <p className="ai-pattern-summary">{weeklySummary}</p>
-        </section>
-      </div>
-    </section>
+              <span>{adaptiveState.intensityLabel || "The engine scales challenge to current recovery and momentum."}</span>
+            </CardContent>
+          </Card>
+          <Card className="ai-signal-card" tone="soft">
+            <CardContent>
+              <p>Cognitive load</p>
+              <strong>{cognitiveLoad.label}</strong>
+              <span>{cognitiveLoad.summary}</span>
+            </CardContent>
+          </Card>
+          <Card className="ai-signal-card ai-signal-card--memory" tone="soft">
+            <CardContent>
+              <p>Continuity anchor</p>
+              <strong>{memoryAnchor}</strong>
+              <span>{continuityNote}</span>
+            </CardContent>
+          </Card>
+          <Card className="ai-signal-card ai-signal-card--projection" tone="soft">
+            <CardContent>
+              <p>Future projection</p>
+              <strong>{toDisplayText(safeMeta?.roadmapIntelligence?.activeMode, "Adaptive read")}</strong>
+              <span>{futureProjection}</span>
+            </CardContent>
+          </Card>
+        </GridLayout>
+
+        <PanelLayout className="ai-surface-columns">
+          <Card className="ai-recovery-panel" tone="soft">
+            <CardHeader className="ai-panel-head">
+              <CardTitle>Recovery suggestions</CardTitle>
+              <Badge tone={adaptiveState.recoveryMode ? "warning" : "info"}>
+                {adaptiveState.recoveryMode ? "Recovery mode" : "Adaptive guardrails"}
+              </Badge>
+            </CardHeader>
+            <CardContent className="ai-recovery-list">
+              {recoverySuggestions.map((item, index) => (
+                <Card key={`${toDisplayText(item.title || item.detail, "suggestion")}-${index}`} className="ai-recovery-item" tone="soft">
+                  <CardContent>
+                    <strong>{toDisplayText(item.title, `Suggestion ${index + 1}`)}</strong>
+                    <p>{toDisplayText(item.detail, "Adaptive guidance based on your recent signals.")}</p>
+                    {item.why ? <small>{toDisplayText(item.why, "")}</small> : null}
+                  </CardContent>
+                </Card>
+              ))}
+            </CardContent>
+          </Card>
+
+          <Card className="ai-pattern-panel" tone="soft">
+            <CardHeader className="ai-panel-head">
+              <CardTitle>AI weekly pattern</CardTitle>
+              <Badge tone="info">Load vs energy</Badge>
+            </CardHeader>
+            <CardContent>
+              <div className="ai-pattern-chart" aria-label="Weekly AI pattern summary">
+                {weeklyPattern.map((point, index) => (
+                  <div key={`${point.label}-${index}`} className="ai-pattern-day">
+                    <div className="ai-pattern-bars">
+                      <span className="ai-pattern-bar ai-pattern-bar--load" style={{ height: `${point.load}%` }} aria-hidden="true" />
+                      <span className="ai-pattern-bar ai-pattern-bar--energy" style={{ height: `${point.energy}%` }} aria-hidden="true" />
+                    </div>
+                    <small>{point.label}</small>
+                  </div>
+                ))}
+              </div>
+              <p className="ai-pattern-summary">{weeklySummary}</p>
+            </CardContent>
+          </Card>
+        </PanelLayout>
+      </CardContent>
+    </Card>
   );
 }
 

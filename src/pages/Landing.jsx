@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
 import {
   HiOutlineAcademicCap,
   HiOutlineArrowTrendingUp,
@@ -18,8 +17,6 @@ import {
 } from "react-icons/hi2";
 import { trackEvent } from "../utils/analytics";
 import "../styles/landing-experience.css";
-
-const MotionSection = motion.section;
 
 const audienceCards = [
   {
@@ -187,6 +184,12 @@ const landingMetrics = [
   { label: "AI memory", value: "Pattern-aware", note: "It learns what works and what keeps collapsing." },
 ];
 
+const heroSignals = [
+  { icon: HiOutlineBolt, label: "Behavioral learning", tone: "teal" },
+  { icon: HiOutlineHeart, label: "Emotion-aware guidance", tone: "violet" },
+  { icon: HiOutlineArrowTrendingUp, label: "Long-term growth", tone: "amber" },
+];
+
 function Landing() {
   const [activeDemo, setActiveDemo] = useState("student");
   const [expandedMobileSection, setExpandedMobileSection] = useState("who");
@@ -229,12 +232,7 @@ function Landing() {
         </div>
       </nav>
 
-      <MotionSection
-        initial={{ opacity: 0, y: 24 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.45 }}
-        className="landing-hero"
-      >
+      <section className="landing-hero">
         <div className="landing-hero__copy">
           <p className="landing-eyebrow">Adaptive AI guidance for real life</p>
           <h1>Design a life that actually fits you.</h1>
@@ -245,6 +243,17 @@ function Landing() {
             <Link to="/login" className="landing-button landing-button--primary" onClick={() => trackEvent("landing_cta_clicked", { cta: "hero_start_planning" })}>Start Planning</Link>
             <a href="#demo" className="landing-button landing-button--secondary" onClick={() => trackEvent("landing_cta_clicked", { cta: "hero_explore_demo" })}>Explore Demo</a>
             <a href="#how" className="landing-button landing-button--ghost" onClick={() => trackEvent("landing_cta_clicked", { cta: "hero_how_ai_works" })}>See How AI Works</a>
+          </div>
+          <div className="landing-hero__signals">
+            {heroSignals.map((signal) => {
+              const Icon = signal.icon;
+              return (
+                <span key={signal.label} className={`landing-signal-pill landing-signal-pill--${signal.tone}`}>
+                  <Icon className="h-4 w-4" />
+                  {signal.label}
+                </span>
+              );
+            })}
           </div>
           <div className="landing-metrics">
             {landingMetrics.map((metric) => (
@@ -297,7 +306,7 @@ function Landing() {
             </div>
           </article>
         </div>
-      </MotionSection>
+      </section>
 
       <div className="landing-mobile-sections-nav" aria-label="Mobile section navigation">
         {mobileSectionLinks.map((section) => (

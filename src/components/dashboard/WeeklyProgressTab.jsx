@@ -1,4 +1,6 @@
-﻿import { useMemo } from "react";
+import { useMemo } from "react";
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from "../ui/index.js";
+import { GridLayout, PanelLayout, SectionHeader } from "../layout/index.js";
 import { getDateKey, getWeekEnd, getWeekKey, getWeekStart } from "../../services/rewards";
 
 const WEEKLY_BADGE_DETAILS = {
@@ -106,175 +108,144 @@ function WeeklyProgressTab({ checkins, progress, rewards, onExportWeeklySummary,
 
   return (
     <section className="weekly-progress-panel in-workspace">
-      <div className="progress-header">
-        <div>
-          <p className="eyebrow">Weekly Progress</p>
-          <h2>Turn streaks into real weekly wins</h2>
-          <p className="muted-text">This page keeps the weekly reward system visible so progress feels structured, not accidental.</p>
-        </div>
-        <div className="action-row">
-          <button type="button" className="secondary-button" onClick={() => onExportWeeklySummary?.(currentWeek)}>
-            Export weekly summary
-          </button>
-          <button type="button" className="secondary-button" onClick={() => onShareWeeklySummary?.(currentWeek)}>
-            Share weekly snapshot
-          </button>
-        </div>
-      </div>
-
-      <div className="section-card current-week">
-        <div className="section-card-header">
-          <div>
-            <h3>Current reward week</h3>
-            <p className="muted-text">{formatRange(getDateKey(getWeekStart(new Date())), getDateKey(getWeekEnd(new Date())))}</p>
-          </div>
-          <p className="feedback-badge">{getWeeklyTargetMessage(currentWeek)}</p>
-        </div>
-
-        <div className="week-overview">
-          <div className="week-stat">
-            <span className="stat-label">Positive days</span>
-            <span className="stat-value">{currentWeek?.positiveDays || 0}/7</span>
-          </div>
-          <div className="week-stat">
-            <span className="stat-label">Weekly score</span>
-            <span className="stat-value">{currentWeek?.completionRate || 0}%</span>
-            <div className="completion-bar">
-              <span className="completion-fill" style={{ width: `${currentWeek?.completionRate || 0}%` }} />
-            </div>
-          </div>
-          <div className="week-stat">
-            <span className="stat-label">Recorded days</span>
-            <span className="stat-value">{currentWeek?.checkedInDays || 0}/7</span>
-          </div>
-          <div className="week-stat">
-            <span className="stat-label">Points earned</span>
-            <span className="stat-value">{currentWeek?.pointsEarned || 0}</span>
-          </div>
-        </div>
-
-        <div className="weekly-target-grid">
-          <div className="target-card">
-            <span className="stat-label">Weekly bonus</span>
-            <strong>{Math.min(currentWeek?.positiveDays || 0, 5)}/5 positive days</strong>
-            <span className="target-state">Unlocks the good-week reward.</span>
-          </div>
-          <div className="target-card">
-            <span className="stat-label">Full reward week</span>
-            <strong>{Math.min(currentWeek?.positiveDays || 0, 7)}/7 positive days</strong>
-            <span className="target-state">Triggers weekly completion progress.</span>
-          </div>
-          <div className="target-card">
-            <span className="stat-label">Perfect week</span>
-            <strong>{Math.min(currentWeek?.completed || 0, 7)}/7 completed days</strong>
-            <span className="target-state">Locks in the cleanest weekly badge.</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="section-card weekly-history">
-        <div className="section-card-header">
-          <div>
-            <h3>Weekly history</h3>
-            <p className="muted-text">A cleaner read on how your weeks are stacking over time.</p>
-          </div>
-        </div>
-        {weeklyHistory.length === 0 ? (
-          <p className="muted-text">Your weekly history appears after you start checking in.</p>
-        ) : (
-          <div className="weeks-list">
-            {weeklyHistory.slice(0, 8).map((week) => (
-              <article key={week.weekKey} className="week-card">
-                <div className="week-header">
-                  <strong>{formatRange(week.weekStart, week.weekEnd)}</strong>
-                  <span className="week-completion">{week.completionRate}% score</span>
-                </div>
-                <div className="week-breakdown">
-                  <span className="breakdown-item completed"><strong>{week.completed}</strong> completed</span>
-                  <span className="breakdown-item partial"><strong>{week.partial}</strong> partial</span>
-                  <span className="breakdown-item difficult"><strong>{week.difficult}</strong> difficult</span>
-                  <span className="breakdown-item missed"><strong>{week.missed}</strong> missed</span>
-                </div>
-                <div className="week-footer">
-                  <span>{week.positiveDays}/7 positive days</span>
-                  <span>{week.pointsEarned} points</span>
-                </div>
-              </article>
-            ))}
+      <SectionHeader
+        eyebrow="Weekly Progress"
+        title="Turn streaks into real weekly wins"
+        description="This page keeps the weekly reward system visible so progress feels structured, not accidental."
+        className="progress-header"
+        actions={(
+          <div className="action-row">
+            <Button type="button" className="secondary-button" variant="secondary" onClick={() => onExportWeeklySummary?.(currentWeek)}>
+              Export weekly summary
+            </Button>
+            <Button type="button" className="secondary-button" variant="secondary" onClick={() => onShareWeeklySummary?.(currentWeek)}>
+              Share weekly snapshot
+            </Button>
           </div>
         )}
-      </div>
+      />
 
-      <div className="split-progress-grid">
-        <div className="section-card weekly-badges">
-          <h3>Weekly badges</h3>
-          {weeklyBadges.length === 0 ? (
-            <p className="muted-text">Weekly badges unlock as your check-ins start holding their shape.</p>
+      <Card className="section-card current-week" tone="elevated">
+        <CardHeader className="section-card-header">
+          <SectionHeader
+            title="Current reward week"
+            description={formatRange(getDateKey(getWeekStart(new Date())), getDateKey(getWeekEnd(new Date())))}
+            actions={<Badge className="feedback-badge" tone="info">{getWeeklyTargetMessage(currentWeek)}</Badge>}
+          />
+        </CardHeader>
+
+        <CardContent className="grid gap-6">
+          <GridLayout className="week-overview">
+            <Card className="week-stat" tone="soft"><CardContent><span className="stat-label">Positive days</span><span className="stat-value">{currentWeek?.positiveDays || 0}/7</span></CardContent></Card>
+            <Card className="week-stat" tone="soft"><CardContent><span className="stat-label">Weekly score</span><span className="stat-value">{currentWeek?.completionRate || 0}%</span><div className="completion-bar"><span className="completion-fill" style={{ width: `${currentWeek?.completionRate || 0}%` }} /></div></CardContent></Card>
+            <Card className="week-stat" tone="soft"><CardContent><span className="stat-label">Recorded days</span><span className="stat-value">{currentWeek?.checkedInDays || 0}/7</span></CardContent></Card>
+            <Card className="week-stat" tone="soft"><CardContent><span className="stat-label">Points earned</span><span className="stat-value">{currentWeek?.pointsEarned || 0}</span></CardContent></Card>
+          </GridLayout>
+
+          <GridLayout className="weekly-target-grid">
+            <Card className="target-card" tone="soft"><CardContent><span className="stat-label">Weekly bonus</span><strong>{Math.min(currentWeek?.positiveDays || 0, 5)}/5 positive days</strong><span className="target-state">Unlocks the good-week reward.</span></CardContent></Card>
+            <Card className="target-card" tone="soft"><CardContent><span className="stat-label">Full reward week</span><strong>{Math.min(currentWeek?.positiveDays || 0, 7)}/7 positive days</strong><span className="target-state">Triggers weekly completion progress.</span></CardContent></Card>
+            <Card className="target-card" tone="soft"><CardContent><span className="stat-label">Perfect week</span><strong>{Math.min(currentWeek?.completed || 0, 7)}/7 completed days</strong><span className="target-state">Locks in the cleanest weekly badge.</span></CardContent></Card>
+          </GridLayout>
+        </CardContent>
+      </Card>
+
+      <Card className="section-card weekly-history" tone="soft">
+        <CardHeader className="section-card-header">
+          <SectionHeader title="Weekly history" description="A cleaner read on how your weeks are stacking over time." />
+        </CardHeader>
+        <CardContent>
+          {weeklyHistory.length === 0 ? (
+            <p className="muted-text">Your weekly history appears after you start checking in.</p>
           ) : (
-            <div className="badges-grid">
-              {weeklyBadges.map((badge) => {
-                const details = WEEKLY_BADGE_DETAILS[badge.badge];
-                return (
-                  <article key={badge.badge} className="weekly-badge-item">
-                    <div className="badge-info">
-                      <strong>{details.name}</strong>
-                      <p>{details.description}</p>
+            <div className="weeks-list">
+              {weeklyHistory.slice(0, 8).map((week) => (
+                <Card key={week.weekKey} className="week-card" tone="soft">
+                  <CardContent>
+                    <div className="week-header">
+                      <strong>{formatRange(week.weekStart, week.weekEnd)}</strong>
+                      <span className="week-completion">{week.completionRate}% score</span>
                     </div>
-                  </article>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        <div className="section-card milestones-section">
-          <h3>Milestones</h3>
-          {milestoneItems.length === 0 ? (
-            <p className="muted-text">Milestones appear once your weekly rhythm starts compounding.</p>
-          ) : (
-            <div className="milestones-list">
-              {milestoneItems.map((milestone) => (
-                <article key={milestone.id} className="milestone-item">
-                  <div className="milestone-content">
-                    <strong>{milestone.name}</strong>
-                    <p>{milestone.description}</p>
-                  </div>
-                </article>
+                    <div className="week-breakdown">
+                      <span className="breakdown-item completed"><strong>{week.completed}</strong> completed</span>
+                      <span className="breakdown-item partial"><strong>{week.partial}</strong> partial</span>
+                      <span className="breakdown-item difficult"><strong>{week.difficult}</strong> difficult</span>
+                      <span className="breakdown-item missed"><strong>{week.missed}</strong> missed</span>
+                    </div>
+                    <div className="week-footer">
+                      <span>{week.positiveDays}/7 positive days</span>
+                      <span>{week.pointsEarned} points</span>
+                    </div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           )}
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
-      <div className="section-card overall-stats">
-        <h3>Overall reward picture</h3>
-        <div className="overall-grid">
-          <div className="overall-stat">
-            <span className="stat-name">Weekly wins</span>
-            <span className="stat-num">{progress.weeklyCompletions}</span>
-          </div>
-          <div className="overall-stat">
-            <span className="stat-name">Best week</span>
-            <span className="stat-num">{progress.bestWeekCompletion || 0}%</span>
-          </div>
-          <div className="overall-stat">
-            <span className="stat-name">Monthly wins</span>
-            <span className="stat-num">{progress.monthlyCompletions}</span>
-          </div>
-          <div className="overall-stat">
-            <span className="stat-name">Active streak</span>
-            <span className="stat-num">{progress.activeStreak}</span>
-          </div>
-          <div className="overall-stat">
-            <span className="stat-name">Longest streak</span>
-            <span className="stat-num">{progress.longestStreak}</span>
-          </div>
-          <div className="overall-stat">
-            <span className="stat-name">Momentum points</span>
-            <span className="stat-num">{progress.momentumPoints}</span>
-          </div>
-        </div>
-      </div>
+      <PanelLayout className="split-progress-grid">
+        <Card className="section-card weekly-badges" tone="soft">
+          <CardHeader><CardTitle>Weekly badges</CardTitle></CardHeader>
+          <CardContent>
+            {weeklyBadges.length === 0 ? (
+              <p className="muted-text">Weekly badges unlock as your check-ins start holding their shape.</p>
+            ) : (
+              <div className="badges-grid">
+                {weeklyBadges.map((badge) => {
+                  const details = WEEKLY_BADGE_DETAILS[badge.badge];
+                  return (
+                    <Card key={badge.badge} className="weekly-badge-item" tone="soft">
+                      <CardContent>
+                        <div className="badge-info">
+                          <strong>{details.name}</strong>
+                          <p>{details.description}</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="section-card milestones-section" tone="soft">
+          <CardHeader><CardTitle>Milestones</CardTitle></CardHeader>
+          <CardContent>
+            {milestoneItems.length === 0 ? (
+              <p className="muted-text">Milestones appear once your weekly rhythm starts compounding.</p>
+            ) : (
+              <div className="milestones-list">
+                {milestoneItems.map((milestone) => (
+                  <Card key={milestone.id} className="milestone-item" tone="soft">
+                    <CardContent>
+                      <div className="milestone-content">
+                        <strong>{milestone.name}</strong>
+                        <p>{milestone.description}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </PanelLayout>
+
+      <Card className="section-card overall-stats" tone="soft">
+        <CardHeader><CardTitle>Overall reward picture</CardTitle></CardHeader>
+        <CardContent>
+          <GridLayout className="overall-grid">
+            <Card className="overall-stat" tone="soft"><CardContent><span className="stat-name">Weekly wins</span><span className="stat-num">{progress.weeklyCompletions}</span></CardContent></Card>
+            <Card className="overall-stat" tone="soft"><CardContent><span className="stat-name">Best week</span><span className="stat-num">{progress.bestWeekCompletion || 0}%</span></CardContent></Card>
+            <Card className="overall-stat" tone="soft"><CardContent><span className="stat-name">Monthly wins</span><span className="stat-num">{progress.monthlyCompletions}</span></CardContent></Card>
+            <Card className="overall-stat" tone="soft"><CardContent><span className="stat-name">Active streak</span><span className="stat-num">{progress.activeStreak}</span></CardContent></Card>
+            <Card className="overall-stat" tone="soft"><CardContent><span className="stat-name">Longest streak</span><span className="stat-num">{progress.longestStreak}</span></CardContent></Card>
+            <Card className="overall-stat" tone="soft"><CardContent><span className="stat-name">Momentum points</span><span className="stat-num">{progress.momentumPoints}</span></CardContent></Card>
+          </GridLayout>
+        </CardContent>
+      </Card>
     </section>
   );
 }

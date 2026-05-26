@@ -1,5 +1,4 @@
 import { Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
-import { motion } from "framer-motion";
 import {
   HiOutlineArrowTrendingUp,
   HiOutlineBolt,
@@ -18,6 +17,8 @@ import ResultPanel from "./dashboard/ResultPanel.jsx";
 import Sidebar from "./dashboard/Sidebar.jsx";
 import AdaptiveWidgetSkeleton from "./ai/AdaptiveWidgetSkeleton.jsx";
 import { useAdaptiveInsightsFeed } from "./ai/useAdaptiveInsightsFeed.js";
+import { Badge, Button, Card, Skeleton } from "./ui/index.js";
+import { DashboardContainer, GridLayout, MobileBottomNav, PanelLayout, SectionHeader } from "./layout/index.js";
 
 
 
@@ -806,9 +807,13 @@ function SectionLoadingCard({ title, description }) {
   return (
     <section className="section-loading-card">
       <div className="section-loading-pulse" />
-      <div>
+      <div className="section-loading-copy">
         <strong>{title}</strong>
         <p>{description}</p>
+      </div>
+      <div className="section-loading-lines" aria-hidden="true">
+        <Skeleton className="section-loading-lines__item section-loading-lines__item--wide" />
+        <Skeleton className="section-loading-lines__item" />
       </div>
     </section>
   );
@@ -822,7 +827,7 @@ function CompactLoadingSkeleton({ title, lines = 2 }) {
         <strong>{title}</strong>
         <div className="dashboard-compact-skeleton__lines">
           {Array.from({ length: lines }).map((_, index) => (
-            <span key={`${title}-${index}`} />
+            <Skeleton key={`${title}-${index}`} className="dashboard-compact-skeleton__line" />
           ))}
         </div>
       </div>
@@ -838,34 +843,12 @@ function LazySection({ title, description, children }) {
   );
 }
 
-function createMotionFallback(Tag) {
-  return function MotionFallback({ children, ...props }) {
-    const ComponentTag = Tag;
-    const rest = { ...props };
-    delete rest.initial;
-    delete rest.animate;
-    delete rest.exit;
-    delete rest.whileHover;
-    delete rest.whileTap;
-    delete rest.transition;
-    delete rest.variants;
-    delete rest.layout;
-    delete rest.layoutId;
-    delete rest.drag;
-    delete rest.dragConstraints;
-    delete rest.dragElastic;
-    delete rest.dragMomentum;
-
-    return <ComponentTag {...rest}>{children}</ComponentTag>;
-  };
-}
-
-const MotionSection = motion?.section || createMotionFallback("section");
-
 function Dashboard({ user }) {
   const userId = typeof user?.uid === "string" ? user.uid : "";
   const userEmail = typeof user?.email === "string" ? user.email : "";
+  const plannerFormRef = useRef(null);
   const resultPanelRef = useRef(null);
+  const analyticsPanelRef = useRef(null);
   const [activeTab, setActiveTab] = useState("planner");
   const [form, setForm] = useState(initialForm);
   const [profile, setProfile] = useState(initialProfile);
@@ -933,6 +916,7 @@ function Dashboard({ user }) {
     typeof window !== "undefined" ? window.innerWidth <= 768 : false,
   );
   const [showMobileAnalytics, setShowMobileAnalytics] = useState(false);
+  const [shouldHydrateAnalytics, setShouldHydrateAnalytics] = useState(false);
   const [quickAddDraft, setQuickAddDraft] = useState({
     type: "goal",
     title: "",
@@ -961,6 +945,66 @@ function Dashboard({ user }) {
 
     return () => mediaQuery.removeEventListener("change", handleChange);
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || shouldHydrateAnalytics) {
+      return undefined;
+    }
+
+    const analyticsShouldAutoLoad =
+      !isCompactMobile || showMobileAnalytics || ["daily", "weekly", "insights"].includes(activeTab);
+
+    if (!analyticsShouldAutoLoad) {
+      return undefined;
+    }
+
+    let cancelled = false;
+    let idleId = null;
+    let timeoutId = null;
+    let observer = null;
+
+    const hydrateAnalytics = () => {
+      if (cancelled) return;
+      AnalyticsChart.preload?.();
+      setShouldHydrateAnalytics(true);
+    };
+
+    const scheduleHydration = () => {
+      if ("requestIdleCallback" in window) {
+        idleId = window.requestIdleCallback(() => hydrateAnalytics(), { timeout: 1400 });
+      } else {
+        timeoutId = window.setTimeout(hydrateAnalytics, 280);
+      }
+    };
+
+    if (analyticsPanelRef.current && "IntersectionObserver" in window) {
+      observer = new IntersectionObserver((entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          hydrateAnalytics();
+          observer?.disconnect();
+          observer = null;
+        }
+      }, { rootMargin: isCompactMobile ? "180px 0px" : "120px 0px" });
+
+      observer.observe(analyticsPanelRef.current);
+      scheduleHydration();
+    } else {
+      scheduleHydration();
+    }
+
+    return () => {
+      cancelled = true;
+      if (observer) {
+        observer.disconnect();
+      }
+      if (idleId !== null && "cancelIdleCallback" in window) {
+        window.cancelIdleCallback(idleId);
+      }
+      if (timeoutId !== null) {
+        window.clearTimeout(timeoutId);
+      }
+    };
+  }, [activeTab, isCompactMobile, shouldHydrateAnalytics, showMobileAnalytics]);
 
   useEffect(() => {
     if (!userId) {
@@ -2316,6 +2360,7 @@ function Dashboard({ user }) {
   const mobileBottomNavItems = ["planner", "daily", "insights", "settings"];
   const shouldRenderAnalyticsChart =
     !isCompactMobile || showMobileAnalytics || ["daily", "weekly", "insights"].includes(activeTab);
+  const canRenderAnalyticsChart = shouldRenderAnalyticsChart && shouldHydrateAnalytics;
 
   return (
     <>
@@ -2347,46 +2392,43 @@ function Dashboard({ user }) {
             onLogout={handleLogout}
           />
 
-          <MotionSection
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-            className="dashboard-hero-grid"
-          >
-            <article className="saas-panel dashboard-hero-card dashboard-hero-card--primary">
-              <div className="dashboard-hero-copy">
-                <p className="dashboard-eyebrow">Adaptive life operating system</p>
-                <h2>{insightNarrative.greeting}</h2>
-                <p>{insightNarrative.recommendation}</p>
-              </div>
-              <div className="dashboard-hero-metrics">
+          <section className="dashboard-hero-grid">
+            <Card padded={false} className="dashboard-hero-card dashboard-hero-card--primary">
+              <SectionHeader
+                className="dashboard-hero-copy"
+                eyebrow="Adaptive life operating system"
+                title={insightNarrative.greeting}
+                description={insightNarrative.recommendation}
+              />
+              <GridLayout columns="auto" className="dashboard-hero-metrics md:grid-cols-3">
                 {plannerSnapshots.map((item) => (
-                  <div key={item.label} className="dashboard-hero-metric">
+                  <Card key={item.label} tone="soft" padded={false} className="dashboard-hero-metric">
                     <span>{item.label}</span>
                     <strong>{item.value}</strong>
                     <small>{item.hint}</small>
-                  </div>
+                  </Card>
                 ))}
-              </div>
-            </article>
+              </GridLayout>
+            </Card>
 
-            <article className="saas-panel dashboard-hero-card dashboard-hero-card--secondary">
-              <div className="dashboard-hero-secondary-head">
-                <p className="dashboard-eyebrow">AI guidance pulse</p>
-                <span className="hero-header-chip">{missionSummary.levelTitle}</span>
-              </div>
-              <h3>What the system sees right now</h3>
-              <div className="dashboard-guidance-list">
+            <Card padded={false} className="dashboard-hero-card dashboard-hero-card--secondary">
+              <SectionHeader
+                className="dashboard-hero-secondary-head"
+                eyebrow="AI guidance pulse"
+                title="What the system sees right now"
+                actions={<Badge className="hero-header-chip">{missionSummary.levelTitle}</Badge>}
+              />
+              <PanelLayout className="dashboard-guidance-list">
                 {intelligenceCards.map((card) => (
-                  <div key={card.label} className="dashboard-guidance-item">
+                  <Card key={card.label} tone="soft" padded={false} className="dashboard-guidance-item">
                     <span>{card.label}</span>
                     <strong>{card.value}</strong>
                     <p>{card.detail}</p>
-                  </div>
+                  </Card>
                 ))}
-              </div>
-            </article>
-          </MotionSection>
+              </PanelLayout>
+            </Card>
+          </section>
 
           <div className={`dashboard-mobile-nav${isMobileNavOpen ? " dashboard-mobile-nav--open" : ""}`}>
             {mobileNavItems.map((item) => (
@@ -2416,29 +2458,34 @@ function Dashboard({ user }) {
               >
                 {showResultPanel ? (
                   <div className="planner-workspace-grid">
-                    <div className="planner-workspace-grid__form">
+                    <div className="planner-workspace-grid__form" ref={plannerFormRef}>
                       {showMobilePlannerSkeleton && (
                         <div className="dashboard-mobile-skeletons dashboard-mobile-skeletons--planner">
                           <CompactLoadingSkeleton title="Preparing planner context" lines={3} />
+                          <CompactLoadingSkeleton title="Syncing adaptive defaults" lines={2} />
                         </div>
                       )}
                       {renderedTab}
                     </div>
                     <div className="planner-workspace-grid__result" ref={resultPanelRef}>
                       {isLoading ? (
-                        <section className="saas-panel result-loading-state">
+                        <Card padded={false} className="result-loading-state">
                           <div className="result-loading-state__pulse" />
                           <div className="result-loading-state__copy">
                             <p className="dashboard-eyebrow">AI is thinking</p>
                             <h3>Building your roadmap</h3>
                             <p>We&apos;re translating your routine, pressure, energy, and preferences into a calmer plan you can actually use.</p>
                           </div>
+                          <div className="result-loading-state__meta">
+                            <Badge className="hero-header-chip" tone="info">Adaptive memory syncing</Badge>
+                            <Badge className="hero-header-chip" tone="info">Planner output formatting</Badge>
+                          </div>
                           <div className="result-loading-state__skeletons">
                             <div className="result-skeleton-card" />
                             <div className="result-skeleton-card" />
                             <div className="result-skeleton-card" />
                           </div>
-                        </section>
+                        </Card>
                       ) : currentPlan ? (
                         <ResultPanel
                           currentPlan={currentPlan}
@@ -2463,27 +2510,36 @@ function Dashboard({ user }) {
                           onRate={() => handleTabChange("feedback")}
                         />
                       ) : (
-                        <section className="saas-panel result-empty-state">
-                          <p className="dashboard-eyebrow">AI result surface</p>
-                          <h3>Your plan will appear here</h3>
-                          <p>
-                            Once you generate a plan, this space becomes your adaptive roadmap, check-in surface, and guidance memory.
-                          </p>
-                          <div className="result-empty-state__points">
-                            <div>
+                        <Card padded={false} className="result-empty-state">
+                          <SectionHeader
+                            eyebrow="AI result surface"
+                            title="Your plan will appear here"
+                            description="Once you generate a plan, this space becomes your adaptive roadmap, check-in surface, and guidance memory."
+                          />
+                          <GridLayout columns="auto" className="result-empty-state__points">
+                            <Card tone="soft" padded={false}>
                               <strong>Timeline blocks</strong>
                               <span>Readable daily flow instead of one giant wall of text</span>
-                            </div>
-                            <div>
+                            </Card>
+                            <Card tone="soft" padded={false}>
                               <strong>Action layers</strong>
                               <span>Key shifts, today&apos;s focus, next 7 days, and longer-horizon guidance</span>
-                            </div>
-                            <div>
+                            </Card>
+                            <Card tone="soft" padded={false}>
                               <strong>Refine loop</strong>
                               <span>Adjust the plan without rebuilding everything from zero</span>
-                            </div>
+                            </Card>
+                          </GridLayout>
+                          <div className="result-empty-state__actions">
+                            <Button
+                              variant="secondary"
+                              type="button"
+                              onClick={() => plannerFormRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
+                            >
+                              Review planner inputs
+                            </Button>
                           </div>
-                        </section>
+                        </Card>
                       )}
                     </div>
                   </div>
@@ -2494,34 +2550,36 @@ function Dashboard({ user }) {
             </main>
 
             <aside className="dashboard-intelligence-rail">
+              <DashboardContainer>
               {showMobileInsightSkeleton && (
                 <div className="dashboard-mobile-skeletons dashboard-mobile-skeletons--insights">
                   <CompactLoadingSkeleton title="Syncing insight rail" lines={2} />
                   <CompactLoadingSkeleton title="Warming up progress cards" lines={3} />
                 </div>
               )}
-              <section className="saas-panel intelligence-panel intelligence-panel--highlight">
-                <div className="intelligence-panel__head">
-                  <p className="dashboard-eyebrow">Adaptive life state</p>
-                  <span className="hero-header-chip">{toDisplayText(adaptiveWorkspace?.workspaceMode?.label, "Focus")}</span>
-                </div>
-                <div className="intelligence-panel__list intelligence-panel__list--compact">
-                  <article className="intelligence-checkpoint is-done">
+              <Card padded={false} className="intelligence-panel intelligence-panel--highlight">
+                <SectionHeader
+                  className="intelligence-panel__head"
+                  eyebrow="Adaptive life state"
+                  actions={<Badge className="hero-header-chip">{toDisplayText(adaptiveWorkspace?.workspaceMode?.label, "Focus")}</Badge>}
+                />
+                <PanelLayout className="intelligence-panel__list intelligence-panel__list--compact">
+                  <Card tone="soft" padded={false} className="intelligence-checkpoint is-done">
                     <strong>Burnout risk</strong>
                     <span>{toDisplayText(behavioralInsights?.burnoutRisk?.label, "Manage closely")}</span>
-                  </article>
-                  <article className="intelligence-checkpoint">
+                  </Card>
+                  <Card tone="soft" padded={false} className="intelligence-checkpoint">
                     <strong>Mode</strong>
                     <span>{toDisplayText(adaptiveWorkspace?.workspaceMode?.summary, "Adaptive guidance is still loading.")}</span>
-                  </article>
-                  <article className="intelligence-checkpoint">
+                  </Card>
+                  <Card tone="soft" padded={false} className="intelligence-checkpoint">
                     <strong>Next shift</strong>
                     <span>{toDisplayText(adaptiveWorkspace?.roadmapIntelligence?.nextShift, formatDisplayLabel(insightNarrative.focus))}</span>
-                  </article>
-                </div>
-              </section>
+                  </Card>
+                </PanelLayout>
+              </Card>
 
-              <Suspense fallback={<AdaptiveWidgetSkeleton />}>
+              <Suspense fallback={<AdaptiveWidgetSkeleton title="Preparing adaptive intelligence" />}>
                 <WidgetErrorBoundary title="AI intelligence unavailable" description="The adaptive AI summary surface could not render.">
                   <AdaptiveIntelligenceRail
                     aiMeta={activeAiMeta}
@@ -2531,10 +2589,10 @@ function Dashboard({ user }) {
                 </WidgetErrorBoundary>
               </Suspense>
 
-              <Suspense fallback={<AdaptiveWidgetSkeleton />}>
+              <Suspense fallback={<AdaptiveWidgetSkeleton title="Preparing adaptive history" />}>
                 <WidgetErrorBoundary title="Adaptive history unavailable" description="The mirrored AI history surface could not render.">
                   {isLoadingAdaptiveInsights ? (
-                    <AdaptiveWidgetSkeleton />
+                    <AdaptiveWidgetSkeleton compact title="Loading mirrored memory" />
                   ) : (
                     <AdaptiveHistorySurface
                       adaptiveInsights={adaptiveInsights}
@@ -2548,67 +2606,89 @@ function Dashboard({ user }) {
               <LazySection title="Loading progress overview" description="Preparing the progress and momentum widget.">
                 <ProgressWidget completion={completion} progress={progress} plans={plans} goals={goals} habits={habits} behavioralInsights={behavioralInsights} />
               </LazySection>
-              {shouldRenderAnalyticsChart ? (
+              <div ref={analyticsPanelRef} className="dashboard-analytics-slot">
+              {canRenderAnalyticsChart ? (
                 <LazySection title="Loading analytics insights" description="Preparing productivity and mood charts.">
                   <AnalyticsChart checkins={checkins} progress={progress} behavioralInsights={behavioralInsights} />
                 </LazySection>
-              ) : (
-                <section className="saas-panel intelligence-panel intelligence-panel--compact-action">
-                  <div className="intelligence-panel__head">
-                    <p className="dashboard-eyebrow">Chart insights</p>
-                    <span className="hero-header-chip">Deferred on mobile</span>
+              ) : shouldRenderAnalyticsChart ? (
+                <Card padded={false} className="intelligence-panel intelligence-panel--compact-action intelligence-panel--deferred-chart">
+                  <SectionHeader
+                    className="intelligence-panel__head"
+                    eyebrow="Chart insights"
+                    actions={<Badge className="hero-header-chip">Preparing analytics</Badge>}
+                  />
+                  <p className="intelligence-panel__body">
+                    The deeper chart surface is loading in the background so the rest of your workspace can stay responsive.
+                  </p>
+                  <div className="dashboard-chart-placeholder">
+                    <Skeleton className="dashboard-chart-placeholder__hero" />
+                    <div className="dashboard-chart-placeholder__grid">
+                      <Skeleton className="dashboard-chart-placeholder__card" />
+                      <Skeleton className="dashboard-chart-placeholder__card" />
+                    </div>
                   </div>
+                </Card>
+              ) : (
+                <Card padded={false} className="intelligence-panel intelligence-panel--compact-action">
+                  <SectionHeader
+                    className="intelligence-panel__head"
+                    eyebrow="Chart insights"
+                    actions={<Badge className="hero-header-chip">Deferred on mobile</Badge>}
+                  />
                   <p className="intelligence-panel__body">
                     The full analytics surface is available when you open progress or insights, or you can load it here if you want the deeper read now.
                   </p>
-                  <button className="saas-button-secondary" type="button" onClick={() => setShowMobileAnalytics(true)}>
+                  <Button variant="secondary" type="button" onClick={() => setShowMobileAnalytics(true)}>
                     Load analytics
-                  </button>
-                </section>
+                  </Button>
+                </Card>
               )}
+              </div>
 
-              <section className="saas-panel intelligence-panel">
-                <div className="intelligence-panel__head">
-                  <p className="dashboard-eyebrow">AI memory engine</p>
-                  <span className="hero-header-chip">{Array.isArray(behavioralInsights?.memoryCards) ? behavioralInsights.memoryCards.length : 0} signals</span>
-                </div>
-                <div className="intelligence-panel__list">
+              <Card padded={false} className="intelligence-panel">
+                <SectionHeader
+                  className="intelligence-panel__head"
+                  eyebrow="AI memory engine"
+                  actions={<Badge className="hero-header-chip">{Array.isArray(behavioralInsights?.memoryCards) ? behavioralInsights.memoryCards.length : 0} signals</Badge>}
+                />
+                <PanelLayout className="intelligence-panel__list">
                   {(Array.isArray(behavioralInsights?.memoryCards) ? behavioralInsights.memoryCards : []).slice(0, 3).map((item, index) => (
-                    <article key={`${toDisplayText(item?.label, "memory")}-${index}`} className="intelligence-checkpoint">
+                    <Card key={`${toDisplayText(item?.label, "memory")}-${index}`} tone="soft" padded={false} className="intelligence-checkpoint">
                       <strong>{toDisplayText(item?.label, "Memory signal")}</strong>
                       <span>{toDisplayText(item?.value, "Unavailable")}</span>
                       <small>{toDisplayText(item?.detail, "Adaptive memory is still warming up.")}</small>
-                    </article>
+                    </Card>
                   ))}
-                </div>
-              </section>
+                </PanelLayout>
+              </Card>
 
-              <section className="saas-panel intelligence-panel">
-                <div className="intelligence-panel__head">
-                  <p className="dashboard-eyebrow">Future projection</p>
-                  <span className="hero-header-chip">{Array.isArray(behavioralInsights?.futureProjection) ? behavioralInsights.futureProjection.length : 0} paths</span>
-                </div>
-                <div className="intelligence-sample-list">
+              <Card padded={false} className="intelligence-panel">
+                <SectionHeader
+                  className="intelligence-panel__head"
+                  eyebrow="Future projection"
+                  actions={<Badge className="hero-header-chip">{Array.isArray(behavioralInsights?.futureProjection) ? behavioralInsights.futureProjection.length : 0} paths</Badge>}
+                />
+                <PanelLayout className="intelligence-sample-list">
                   {(Array.isArray(behavioralInsights?.futureProjection) ? behavioralInsights.futureProjection : []).slice(0, 3).map((projection, index) => (
-                    <article key={`${toDisplayText(projection, "projection")}-${index}`} className="intelligence-sample-card">
+                    <Card key={`${toDisplayText(projection, "projection")}-${index}`} tone="soft" padded={false} className="intelligence-sample-card">
                       <strong>Projected growth</strong>
                       <p>{toDisplayText(projection, "A clearer projection will appear as more behavior data arrives.")}</p>
-                    </article>
+                    </Card>
                   ))}
-                </div>
-              </section>
+                </PanelLayout>
+              </Card>
 
-              <section className="saas-panel intelligence-panel intelligence-panel--danger">
-                <div className="intelligence-panel__head">
-                  <p className="dashboard-eyebrow">Privacy and control</p>
-                </div>
+              <Card padded={false} className="intelligence-panel intelligence-panel--danger">
+                <SectionHeader className="intelligence-panel__head" eyebrow="Privacy and control" />
                 <p className="intelligence-panel__body">
                   Do not write passwords, account numbers, legal IDs, or medical records. Only store details needed to shape routines and future direction.
                 </p>
-                <button className="danger-link" type="button" onClick={handleDeleteMyData} disabled={isDeletingData}>
+                <Button variant="danger" type="button" onClick={handleDeleteMyData} disabled={isDeletingData}>
                   {isDeletingData ? "Deleting your data..." : "Delete my stored data"}
-                </button>
-              </section>
+                </Button>
+              </Card>
+              </DashboardContainer>
             </aside>
           </div>
         </div>
@@ -2626,7 +2706,7 @@ function Dashboard({ user }) {
         onSubmit={handleQuickAddSubmit}
       />
 
-      <nav className="dashboard-bottom-nav" aria-label="Mobile primary navigation">
+      <MobileBottomNav className="dashboard-bottom-nav" aria-label="Mobile primary navigation">
         {mobileBottomNavItems.map((item) => {
           const meta = tabMeta[item];
           const Icon = meta.icon;
@@ -2644,7 +2724,7 @@ function Dashboard({ user }) {
             </button>
           );
         })}
-      </nav>
+      </MobileBottomNav>
 
     </>
   );

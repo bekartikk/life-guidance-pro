@@ -207,13 +207,21 @@ function Login() {
 
         <form onSubmit={handleSubmit} className="auth-form-panel">
           <div className="auth-form-panel__head">
-            <p className="auth-eyebrow">Secure access</p>
+            <p className="auth-eyebrow">Adaptive access</p>
             <h2>{mode === "login" ? "Welcome back" : "Create your workspace"}</h2>
             <p>
               {mode === "login"
                 ? "Continue your adaptive planning journey."
                 : "Your account opens the full AI life operating system experience."}
             </p>
+          </div>
+
+          <div className="auth-intent-banner">
+            <HiOutlineSparkles className="h-4.5 w-4.5" />
+            <div>
+              <strong>{mode === "login" ? "Your adaptive workspace is ready" : "We will shape this around your real life"}</strong>
+              <span>{mode === "login" ? "Mood, focus, routines, and continuity stay connected across sessions." : "The AI uses your goals, energy, and pressure patterns to build a calmer starting point."}</span>
+            </div>
           </div>
 
           <div className="auth-mode-switch">

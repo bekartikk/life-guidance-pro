@@ -1,15 +1,15 @@
 @import "tailwindcss";
 
 @theme {
-  --color-lgp-bg: #0f172a;
-  --color-lgp-panel: rgba(255, 255, 255, 0.05);
-  --color-lgp-panel-strong: rgba(255, 255, 255, 0.08);
-  --color-lgp-line: rgba(255, 255, 255, 0.12);
-  --color-lgp-text: #e2e8f0;
-  --color-lgp-muted: #94a3b8;
-  --color-lgp-accent: #60a5fa;
-  --color-lgp-accent-2: #8b5cf6;
-  --color-lgp-success: #22c55e;
+  --color-lgp-bg: var(--ds-color-bg-app);
+  --color-lgp-panel: var(--ds-color-bg-panel-soft);
+  --color-lgp-panel-strong: var(--ds-color-bg-elevated);
+  --color-lgp-line: var(--ds-color-border-default);
+  --color-lgp-text: var(--ds-color-text-primary);
+  --color-lgp-muted: var(--ds-color-text-tertiary);
+  --color-lgp-accent: var(--ds-color-accent-blue);
+  --color-lgp-accent-2: var(--ds-color-accent-violet);
+  --color-lgp-success: var(--ds-color-success);
 }
 
 @layer base {
@@ -18,33 +18,29 @@
   }
 
   body {
-    font-family: Inter, "Segoe UI", system-ui, sans-serif;
-    background:
-      radial-gradient(circle at top left, rgba(96, 165, 250, 0.18), transparent 22%),
-      radial-gradient(circle at top right, rgba(139, 92, 246, 0.2), transparent 24%),
-      linear-gradient(180deg, #0f172a 0%, #111827 55%, #020617 100%);
-    color: #e2e8f0;
+    font-family: var(--ds-font-sans);
+    color: var(--ds-color-text-primary);
   }
 }
 
 @layer components {
   .saas-panel {
-    @apply rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-[0_20px_60px_rgba(0,0,0,0.25)];
+    @apply rounded-[var(--ds-radius-2xl)] border border-[color:var(--ds-color-border-default)] bg-white/5 backdrop-blur-xl shadow-[var(--ds-shadow-panel)];
   }
 
   .saas-pill {
-    @apply inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.22em] text-slate-300;
+    @apply inline-flex items-center gap-2 rounded-[var(--ds-radius-pill)] border border-[color:var(--ds-color-border-default)] bg-white/5 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.22em] text-[color:var(--ds-color-text-secondary)];
   }
 
   .saas-button-primary {
-    @apply inline-flex items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-violet-500 px-5 py-3 text-sm font-semibold text-white shadow-[0_14px_40px_rgba(99,102,241,0.35)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_44px_rgba(99,102,241,0.4)];
+    @apply inline-flex items-center justify-center rounded-[var(--ds-radius-pill)] bg-gradient-to-r from-cyan-300 to-blue-500 px-5 py-3 text-sm font-semibold text-slate-950 shadow-[var(--ds-shadow-glow)] transition duration-200 hover:-translate-y-0.5;
   }
 
   .saas-button-secondary {
-    @apply inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-slate-100 transition duration-200 hover:-translate-y-0.5 hover:bg-white/10;
+    @apply inline-flex items-center justify-center rounded-[var(--ds-radius-pill)] border border-[color:var(--ds-color-border-default)] bg-white/5 px-5 py-3 text-sm font-semibold text-[color:var(--ds-color-text-primary)] transition duration-200 hover:-translate-y-0.5 hover:bg-white/10;
   }
 
   .saas-input {
-    @apply w-full rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-3 text-sm text-slate-100 outline-none transition duration-200 placeholder:text-slate-500 focus:border-cyan-400/60 focus:ring-4 focus:ring-cyan-400/10;
+    @apply w-full rounded-[var(--ds-radius-lg)] border border-[color:var(--ds-color-border-default)] bg-slate-950/50 px-4 py-3 text-sm text-[color:var(--ds-color-text-primary)] outline-none transition duration-200 placeholder:text-[color:var(--ds-color-text-tertiary)] focus:border-[color:var(--ds-color-border-focus)] focus:ring-4 focus:ring-cyan-400/10;
   }
 }

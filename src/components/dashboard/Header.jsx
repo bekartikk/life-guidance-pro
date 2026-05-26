@@ -1,25 +1,7 @@
-import { motion } from "framer-motion";
 import { HiOutlineArrowLeftOnRectangle, HiOutlineBars3BottomLeft, HiOutlineMoon, HiOutlinePlus, HiOutlineSparkles } from "react-icons/hi2";
-
-function createMotionFallback(Tag) {
-  return function MotionFallback({ children, ...props }) {
-    const ComponentTag = Tag;
-    const rest = { ...props };
-    delete rest.initial;
-    delete rest.animate;
-    delete rest.exit;
-    delete rest.whileHover;
-    delete rest.whileTap;
-    delete rest.transition;
-    delete rest.variants;
-    delete rest.layout;
-    delete rest.layoutId;
-
-    return <ComponentTag {...rest}>{children}</ComponentTag>;
-  };
-}
-
-const MotionHeader = motion?.header || createMotionFallback("header");
+import { Badge, Button, Input } from "../ui/index.js";
+import { SectionHeader, TopNavbar } from "../layout/index.js";
+import { cn } from "../../lib/cn.js";
 
 function Header({
   title,
@@ -35,54 +17,52 @@ function Header({
   onLogout,
 }) {
   return (
-    <MotionHeader
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35 }}
-      className="saas-panel hero-header"
-    >
-      <div className="hero-header-copy">
-        <p className="saas-pill w-fit">
-          <HiOutlineSparkles className="h-3.5 w-3.5" />
-          Workspace
-        </p>
-        <div>
-          <h1>{title}</h1>
-          <p>{description}</p>
-        </div>
-      </div>
+    <header className="hero-header">
+      <TopNavbar className="hero-header ds-shell-card">
+        <SectionHeader
+          className="hero-header-copy"
+          eyebrow={(
+            <span className="inline-flex items-center gap-2">
+              <HiOutlineSparkles className="h-3.5 w-3.5" />
+              Workspace
+            </span>
+          )}
+          title={title}
+          description={description}
+        />
 
-      <div className="hero-header-actions">
-        <button type="button" onClick={onToggleMobileNav} className="saas-button-secondary hero-header-mobile-nav">
-          <HiOutlineBars3BottomLeft className="h-4 w-4" />
-          Menu
-        </button>
-        <label className="hero-search-shell">
-          <span>Search workspace</span>
-          <input
-            className="saas-input"
-            value={searchQuery}
-            onChange={onSearchChange}
-            placeholder="Find goals, plans, routines..."
-            aria-label="Search workspace"
-          />
-        </label>
-        {userEmail ? <span className="hero-header-chip">{userEmail}</span> : null}
-        <span className="hero-header-chip">{streakLabel}</span>
-        <button type="button" onClick={onToggleFocus} className="saas-button-secondary" aria-label={focusMode ? "Exit focus mode" : "Enable focus mode"}>
-          <HiOutlineMoon className="h-4 w-4" />
-          {focusMode ? "Exit Focus" : "Focus Mode"}
-        </button>
-        <button type="button" onClick={onQuickAdd} className="saas-button-primary" aria-label="Open quick add task dialog">
-          <HiOutlinePlus className="h-4 w-4" />
-          Add Task
-        </button>
-        <button type="button" onClick={onLogout} className="saas-button-secondary" aria-label="Log out">
-          <HiOutlineArrowLeftOnRectangle className="h-4 w-4" />
-          Logout
-        </button>
-      </div>
-    </MotionHeader>
+        <div className="hero-header-actions">
+          <Button type="button" onClick={onToggleMobileNav} variant="secondary" className="hero-header-mobile-nav">
+            <HiOutlineBars3BottomLeft className="h-4 w-4" />
+            Menu
+          </Button>
+          <label className="hero-search-shell">
+            <span>Search workspace</span>
+            <Input
+              value={searchQuery}
+              onChange={onSearchChange}
+              placeholder="Find goals, plans, routines..."
+              aria-label="Search workspace"
+              className={cn("saas-input", "min-w-[280px]")}
+            />
+          </label>
+          {userEmail ? <Badge className="hero-header-chip">{userEmail}</Badge> : null}
+          <Badge className="hero-header-chip">{streakLabel}</Badge>
+          <Button type="button" onClick={onToggleFocus} variant="secondary" aria-label={focusMode ? "Exit focus mode" : "Enable focus mode"}>
+            <HiOutlineMoon className="h-4 w-4" />
+            {focusMode ? "Exit Focus" : "Focus Mode"}
+          </Button>
+          <Button type="button" onClick={onQuickAdd} aria-label="Open quick add task dialog">
+            <HiOutlinePlus className="h-4 w-4" />
+            Add Task
+          </Button>
+          <Button type="button" onClick={onLogout} variant="secondary" aria-label="Log out">
+            <HiOutlineArrowLeftOnRectangle className="h-4 w-4" />
+            Logout
+          </Button>
+        </div>
+      </TopNavbar>
+    </header>
   );
 }
 

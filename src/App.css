@@ -8,7 +8,7 @@
    ROOT CSS VARIABLES - MODERN DESIGN SYSTEM
    ============================================================================ */
 
-:root {
+ :root {
   /* ---- Colors - Primary Palette ---- */
   --color-primary: #1a73e8;           /* Modern blue */
   --color-primary-dark: #1565c0;      /* Darker blue for hover */
@@ -127,6 +127,49 @@
   --z-modal: 1000;
   --z-tooltip: 1100;
   --z-notification: 1200;
+
+  /* ---- Design System Compatibility Overrides ---- */
+  --color-primary: var(--ds-color-accent-blue);
+  --color-primary-dark: #2f72ff;
+  --color-primary-light: #84c5ff;
+  --color-primary-bg: rgba(79, 140, 255, 0.12);
+  --color-secondary: var(--ds-color-text-secondary);
+  --color-secondary-light: var(--ds-color-text-tertiary);
+  --color-bg-primary: var(--ds-color-bg-panel-strong);
+  --color-bg-secondary: var(--ds-color-bg-canvas);
+  --color-bg-tertiary: var(--ds-color-bg-section);
+  --color-text-primary: var(--ds-color-text-primary);
+  --color-text-secondary: var(--ds-color-text-secondary);
+  --color-text-tertiary: var(--ds-color-text-tertiary);
+  --color-text-disabled: rgba(188, 203, 231, 0.56);
+  --color-success: var(--ds-color-success);
+  --color-success-bg: rgba(89, 227, 174, 0.1);
+  --color-error: var(--ds-color-danger);
+  --color-error-bg: rgba(255, 127, 159, 0.1);
+  --color-warning: var(--ds-color-warning);
+  --color-warning-bg: rgba(255, 180, 95, 0.1);
+  --color-info: var(--ds-color-info);
+  --color-info-bg: rgba(116, 184, 255, 0.12);
+  --color-border-default: var(--ds-color-border-default);
+  --color-border-hover: var(--ds-color-border-strong);
+  --color-border-focus: var(--ds-color-border-focus);
+  --color-divider: rgba(255, 255, 255, 0.08);
+  --font-primary: var(--ds-font-sans);
+  --font-mono: var(--ds-font-mono);
+  --shadow-sm: var(--ds-shadow-soft);
+  --shadow-md: var(--ds-shadow-soft);
+  --shadow-lg: var(--ds-shadow-panel);
+  --shadow-xl: var(--ds-shadow-panel);
+  --shadow-2xl: var(--ds-shadow-hero);
+  --transition-fast: var(--ds-duration-fast) var(--ds-ease-fade);
+  --transition-base: var(--ds-duration-base) var(--ds-ease-standard);
+  --transition-slow: var(--ds-duration-calm) var(--ds-ease-standard);
+  --transition-slower: 400ms var(--ds-ease-standard);
+  --radius-sm: var(--ds-radius-xs);
+  --radius-md: var(--ds-radius-sm);
+  --radius-lg: var(--ds-radius-md);
+  --radius-xl: var(--ds-radius-lg);
+  --radius-full: var(--ds-radius-pill);
 }
 
 /* ============================================================================

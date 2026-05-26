@@ -1,5 +1,6 @@
-import { motion } from "framer-motion";
 import { HiOutlineArrowTrendingUp, HiOutlineBolt, HiOutlineCheckBadge } from "react-icons/hi2";
+import { Badge, Card, CardContent, CardFooter, CardHeader, CardTitle } from "../ui/index.js";
+import { cn } from "../../lib/cn.js";
 
 const ICONS = {
   task: HiOutlineBolt,
@@ -7,49 +8,37 @@ const ICONS = {
   completed: HiOutlineCheckBadge,
 };
 
-function createMotionFallback(Tag) {
-  return function MotionFallback({ children, ...props }) {
-    const ComponentTag = Tag;
-    const rest = { ...props };
-    delete rest.initial;
-    delete rest.animate;
-    delete rest.exit;
-    delete rest.whileHover;
-    delete rest.whileTap;
-    delete rest.transition;
-    delete rest.variants;
-    delete rest.layout;
-    delete rest.layoutId;
-
-    return <ComponentTag {...rest}>{children}</ComponentTag>;
-  };
-}
-
-const MotionArticle = motion?.article || createMotionFallback("article");
+const toneClasses = {
+  task: "task-card-premium--task",
+  progress: "task-card-premium--progress",
+  completed: "task-card-premium--completed",
+};
 
 function TaskCard({ eyebrow, title, body, meta, tone = "task" }) {
   const Icon = ICONS[tone] || ICONS.task;
 
   return (
-    <MotionArticle
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ scale: 1.02, y: -2 }}
-      transition={{ duration: 0.25 }}
-      className="saas-panel task-card-premium"
-    >
-      <div className="task-card-head">
-        <div className="task-card-copy">
-          <p>{eyebrow}</p>
-          <h3>{title}</h3>
-        </div>
-        <div className="task-card-icon">
-          <Icon className="h-5 w-5" />
-        </div>
-      </div>
-      <p className="task-card-body">{body}</p>
-      {meta ? <span className="task-card-meta">{meta}</span> : null}
-    </MotionArticle>
+    <article className="task-card-motion-shell">
+      <Card padded={false} className={cn("task-card-premium", toneClasses[tone])}>
+        <CardHeader className="task-card-head">
+          <div className="task-card-copy">
+            <Badge className="task-card-eyebrow">{eyebrow}</Badge>
+            <CardTitle className="task-card-title">{title}</CardTitle>
+          </div>
+          <div className="task-card-icon">
+            <Icon className="h-5 w-5" />
+          </div>
+        </CardHeader>
+        <CardContent>
+          <p className="task-card-body">{body}</p>
+        </CardContent>
+        {meta ? (
+          <CardFooter>
+            <span className="task-card-meta">{meta}</span>
+          </CardFooter>
+        ) : null}
+      </Card>
+    </article>
   );
 }
 

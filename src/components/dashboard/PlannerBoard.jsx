@@ -1,4 +1,5 @@
 import TaskCard from "./TaskCard";
+import { GridLayout, PanelLayout } from "../layout/index.js";
 
 function PlannerBoard({ currentPlan, goals, habits, activeTab, onGoToTab, children }) {
   const activeGoals = goals.filter((goal) => goal.status !== "completed");
@@ -38,8 +39,8 @@ function PlannerBoard({ currentPlan, goals, habits, activeTab, onGoToTab, childr
   ];
 
   return (
-    <section className="flex flex-col gap-6">
-      <div className="grid gap-4 xl:grid-cols-3">
+    <PanelLayout className="planner-board-shell">
+      <GridLayout columns="auto" className="planner-board-grid xl:grid-cols-3">
         {cards.map((card) => (
           <button
             key={card.key}
@@ -54,12 +55,12 @@ function PlannerBoard({ currentPlan, goals, habits, activeTab, onGoToTab, childr
             <TaskCard {...card} />
           </button>
         ))}
-      </div>
+      </GridLayout>
 
-      <div key={activeTab} className="min-w-0">
+      <div key={activeTab} className="planner-board-surface min-w-0">
         {children}
       </div>
-    </section>
+    </PanelLayout>
   );
 }
 

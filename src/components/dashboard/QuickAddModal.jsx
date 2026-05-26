@@ -1,42 +1,6 @@
 import { Fragment } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import { HiOutlineXMark } from "react-icons/hi2";
-
-function isComponentLike(value) {
-  if (typeof value === "function") {
-    return true;
-  }
-
-  if (!value || typeof value !== "object") {
-    return false;
-  }
-
-  const reactType = value.$$typeof;
-  const description = typeof reactType === "symbol" ? reactType.description : "";
-
-  return description === "react.memo" || description === "react.forward_ref";
-}
-
-function createMotionFallback(Tag) {
-  return function MotionFallback({ children, ...props }) {
-    const ComponentTag = Tag;
-    const rest = { ...props };
-    delete rest.initial;
-    delete rest.animate;
-    delete rest.exit;
-    delete rest.whileHover;
-    delete rest.whileTap;
-    delete rest.transition;
-    delete rest.variants;
-    delete rest.layout;
-    delete rest.layoutId;
-
-    return <ComponentTag {...rest}>{children}</ComponentTag>;
-  };
-}
-
-const SafeAnimatePresence = isComponentLike(AnimatePresence) ? AnimatePresence : Fragment;
-const MotionDiv = motion?.div || createMotionFallback("div");
+import { Button, Input, Modal, Textarea } from "../ui/index.js";
 
 function QuickAddModal({
   isOpen,
@@ -50,20 +14,10 @@ function QuickAddModal({
   onSubmit,
 }) {
   return (
-    <SafeAnimatePresence>
+    <Fragment>
       {isOpen ? (
-        <MotionDiv
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[1200] flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm"
-        >
-          <MotionDiv
-            initial={{ opacity: 0, scale: 0.96, y: 18 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: 12 }}
-            className="saas-panel w-full max-w-xl p-6"
-          >
+        <Modal open={isOpen} onClose={onClose} className="z-[1200]">
+          <div className="w-full quick-add-modal-shell">
             <div className="mb-6 flex items-start justify-between gap-4">
               <div>
                 <p className="saas-pill w-fit">Quick add</p>
@@ -72,21 +26,16 @@ function QuickAddModal({
                   Drop in a goal, habit, or planner note without leaving your current flow.
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-slate-300 transition hover:bg-white/10"
-                aria-label="Close modal"
-              >
+              <Button type="button" onClick={onClose} variant="secondary" size="icon" className="rounded-2xl" aria-label="Close modal">
                 <HiOutlineXMark className="h-5 w-5" />
-              </button>
+              </Button>
             </div>
 
             <form className="space-y-4" onSubmit={onSubmit}>
               <div className="grid gap-4 md:grid-cols-2">
                 <label className="block text-sm font-medium text-slate-300">
                   Type
-                  <select className="saas-input mt-2" value={type} onChange={onTypeChange}>
+                  <select className="ds-input ds-focus-ring mt-2" value={type} onChange={onTypeChange}>
                     <option value="goal">Goal</option>
                     <option value="habit">Habit</option>
                     <option value="planner">Planner note</option>
@@ -95,8 +44,8 @@ function QuickAddModal({
 
                 <label className="block text-sm font-medium text-slate-300">
                   Title
-                  <input
-                    className="saas-input mt-2"
+                  <Input
+                    className="mt-2"
                     value={title}
                     onChange={onTitleChange}
                     placeholder="What should we capture?"
@@ -107,8 +56,8 @@ function QuickAddModal({
 
               <label className="block text-sm font-medium text-slate-300">
                 Notes
-                <textarea
-                  className="saas-input mt-2 min-h-[120px]"
+                <Textarea
+                  className="mt-2 min-h-[120px]"
                   value={note}
                   onChange={onNoteChange}
                   placeholder="Add just enough context to make the next step obvious."
@@ -116,18 +65,18 @@ function QuickAddModal({
               </label>
 
               <div className="flex flex-wrap justify-end gap-3 pt-2">
-                <button type="button" onClick={onClose} className="saas-button-secondary">
+                <Button type="button" onClick={onClose} variant="secondary">
                   Cancel
-                </button>
-                <button type="submit" className="saas-button-primary">
+                </Button>
+                <Button type="submit">
                   Save and continue
-                </button>
+                </Button>
               </div>
             </form>
-          </MotionDiv>
-        </MotionDiv>
+          </div>
+        </Modal>
       ) : null}
-    </SafeAnimatePresence>
+    </Fragment>
   );
 }
 

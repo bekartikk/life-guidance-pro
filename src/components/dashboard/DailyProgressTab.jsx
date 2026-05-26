@@ -1,4 +1,6 @@
-﻿import { useMemo } from "react";
+import { useMemo } from "react";
+import { Badge, Card, CardContent, CardHeader, CardTitle } from "../ui/index.js";
+import { GridLayout, PanelLayout, SectionHeader } from "../layout/index.js";
 import { getDateKey, getWeekEnd, getWeekKey, getWeekStart } from "../../services/rewards";
 
 const STATUS_META = {
@@ -84,278 +86,255 @@ function DailyProgressTab({ checkins, progress, rewards, behavioralInsights, ada
 
   return (
     <section className="daily-progress-panel in-workspace">
-      <div className="progress-header">
-        <div>
-          <p className="eyebrow">Daily Progress</p>
-          <h2>See the shape of your week</h2>
-          <p className="muted-text">Track the current week, spot friction early, and keep your momentum visible.</p>
-        </div>
-      </div>
+      <SectionHeader
+        eyebrow="Daily Progress"
+        title="See the shape of your week"
+        description="Track the current week, spot friction early, and keep your momentum visible."
+        className="progress-header"
+      />
 
-      <div className="summary-card">
-        <div className="summary-stat">
-          <span className="stat-label">Today's Status</span>
-          <span className="status-badge" style={{ backgroundColor: STATUS_META[todayCheckin?.status]?.color || "#8fa298" }}>
-            {todayCheckin ? STATUS_META[todayCheckin.status].label : "Waiting for check-in"}
-          </span>
-        </div>
-        <div className="summary-stat">
-          <span className="stat-label">This Week</span>
-          <span className="stat-value">{weekSummary.positiveDays}/7</span>
-        </div>
-        <div className="summary-stat">
-          <span className="stat-label">Weekly Score</span>
-          <span className="stat-value">{weekSummary.completionRate}%</span>
-        </div>
-        <div className="summary-stat">
-          <span className="stat-label">Points This Week</span>
-          <span className="stat-value">{weekSummary.pointsEarned}</span>
-        </div>
-        <div className="summary-stat">
-          <span className="stat-label">Life state</span>
-          <span className="stat-value">{behavioralInsights.lifeState.label}</span>
-        </div>
-        <div className="summary-stat">
-          <span className="stat-label">Workspace mode</span>
-          <span className="stat-value">{adaptiveWorkspace.workspaceMode.label}</span>
-        </div>
-      </div>
+      <GridLayout className="summary-card">
+        <Card className="summary-stat" tone="soft"><CardContent><span className="stat-label">Today's Status</span><Badge className="status-badge" style={{ backgroundColor: STATUS_META[todayCheckin?.status]?.color || "#8fa298" }}>{todayCheckin ? STATUS_META[todayCheckin.status].label : "Waiting for check-in"}</Badge></CardContent></Card>
+        <Card className="summary-stat" tone="soft"><CardContent><span className="stat-label">This Week</span><span className="stat-value">{weekSummary.positiveDays}/7</span></CardContent></Card>
+        <Card className="summary-stat" tone="soft"><CardContent><span className="stat-label">Weekly Score</span><span className="stat-value">{weekSummary.completionRate}%</span></CardContent></Card>
+        <Card className="summary-stat" tone="soft"><CardContent><span className="stat-label">Points This Week</span><span className="stat-value">{weekSummary.pointsEarned}</span></CardContent></Card>
+        <Card className="summary-stat" tone="soft"><CardContent><span className="stat-label">Life state</span><span className="stat-value">{behavioralInsights.lifeState.label}</span></CardContent></Card>
+        <Card className="summary-stat" tone="soft"><CardContent><span className="stat-label">Workspace mode</span><span className="stat-value">{adaptiveWorkspace.workspaceMode.label}</span></CardContent></Card>
+      </GridLayout>
 
-      <div className="split-progress-grid">
-        <div className="section-card">
-          <div className="section-card-header">
-            <div>
-              <h3>Adaptive AI read</h3>
-              <p className="muted-text">A short interpretation of what your recent days are teaching the system.</p>
-            </div>
-          </div>
-          <div className="goal-list">
+      <PanelLayout className="split-progress-grid">
+        <Card className="section-card" tone="soft">
+          <CardHeader className="section-card-header">
+            <SectionHeader title="Adaptive AI read" description="A short interpretation of what your recent days are teaching the system." />
+          </CardHeader>
+          <CardContent className="goal-list">
             {behavioralInsights.summaryCards.map((item) => (
-              <article key={item.label} className="goal-card">
-                <strong>{item.label}</strong>
-                <span className="goal-meta">{item.value}</span>
-                <p>{item.detail}</p>
-              </article>
+              <Card key={item.label} className="goal-card" tone="soft">
+                <CardContent>
+                  <strong>{item.label}</strong>
+                  <span className="goal-meta">{item.value}</span>
+                  <p>{item.detail}</p>
+                </CardContent>
+              </Card>
             ))}
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        <div className="section-card">
-          <div className="section-card-header">
-            <div>
-              <h3>Burnout prevention</h3>
-              <p className="muted-text">The system should intervene before pressure becomes collapse.</p>
-            </div>
-          </div>
-          <div className="goal-list">
-            <article className="goal-card">
-              <strong>Burnout risk</strong>
-              <span className="goal-meta">{behavioralInsights.burnoutRisk.score}% · {behavioralInsights.burnoutRisk.label}</span>
-              <p>{behavioralInsights.burnoutRisk.summary}</p>
-            </article>
+        <Card className="section-card" tone="soft">
+          <CardHeader className="section-card-header">
+            <SectionHeader title="Burnout prevention" description="The system should intervene before pressure becomes collapse." />
+          </CardHeader>
+          <CardContent className="goal-list">
+            <Card className="goal-card" tone="soft">
+              <CardContent>
+                <strong>Burnout risk</strong>
+                <span className="goal-meta">{behavioralInsights.burnoutRisk.score}% · {behavioralInsights.burnoutRisk.label}</span>
+                <p>{behavioralInsights.burnoutRisk.summary}</p>
+              </CardContent>
+            </Card>
             {behavioralInsights.adaptiveRecommendations.map((item) => (
-              <article key={item} className="goal-card">
-                <strong>Recommended adjustment</strong>
-                <p>{item}</p>
-              </article>
+              <Card key={item} className="goal-card" tone="soft">
+                <CardContent>
+                  <strong>Recommended adjustment</strong>
+                  <p>{item}</p>
+                </CardContent>
+              </Card>
             ))}
-          </div>
-        </div>
-      </div>
+          </CardContent>
+        </Card>
+      </PanelLayout>
 
-      <div className="section-card">
-        <div className="section-card-header">
-          <div>
-            <h3>Adaptive insight feed</h3>
-            <p className="muted-text">A quieter stream of what the system is learning from your recent days.</p>
-          </div>
-        </div>
-        <div className="goal-list">
+      <Card className="section-card" tone="soft">
+        <CardHeader className="section-card-header">
+          <SectionHeader title="Adaptive insight feed" description="A quieter stream of what the system is learning from your recent days." />
+        </CardHeader>
+        <CardContent className="goal-list">
           {adaptiveWorkspace.insightFeed.slice(0, 4).map((item) => (
-            <article key={item.id} className="goal-card">
-              <strong>{item.title}</strong>
-              <span className="goal-meta">{item.kind}</span>
-              <p>{item.detail}</p>
-            </article>
+            <Card key={item.id} className="goal-card" tone="soft">
+              <CardContent>
+                <strong>{item.title}</strong>
+                <span className="goal-meta">{item.kind}</span>
+                <p>{item.detail}</p>
+              </CardContent>
+            </Card>
           ))}
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
-      <div className="section-card weekly-calendar">
-        <div className="section-card-header">
-          <div>
-            <h3>Current week</h3>
-            <p className="muted-text">{weekRangeLabel}</p>
-          </div>
-          <p className="feedback-badge">{weekSummary.checkedInDays}/7 days recorded</p>
-        </div>
-        <div className="calendar-grid">
+      <Card className="section-card weekly-calendar" tone="elevated">
+        <CardHeader className="section-card-header">
+          <SectionHeader
+            title="Current week"
+            description={weekRangeLabel}
+            actions={<Badge className="feedback-badge" tone="info">{weekSummary.checkedInDays}/7 days recorded</Badge>}
+          />
+        </CardHeader>
+        <CardContent className="calendar-grid">
           {weekDays.map((day) => {
             const meta = day.status ? STATUS_META[day.status] : null;
             return (
-              <div key={day.dateKey} className={`calendar-day ${day.isToday ? "today" : ""} ${day.status ? "has-checkin" : ""}`}>
-                <div className="day-header">
-                  <span className="day-name">{day.label}</span>
-                  <span className="day-date">{day.displayDate}</span>
-                </div>
-                <div className="day-content">
-                  {meta ? (
-                    <>
-                      <span className="status-icon" style={{ color: meta.color }}>{meta.marker}</span>
-                      <span className="status-text">{meta.short}</span>
-                      {day.mood || day.energy || day.focus || day.loneliness ? (
-                        <span className="goal-meta">
-                          {day.mood ? `Mood ${day.mood}` : ""}
-                          {day.energy ? ` · Energy ${day.energy}` : ""}
-                        </span>
-                      ) : null}
-                      {day.note ? <p className="day-note">{day.note}</p> : null}
-                    </>
-                  ) : (
-                    <span className="no-checkin">No check-in yet</span>
-                  )}
-                </div>
-              </div>
+              <Card key={day.dateKey} className={`calendar-day ${day.isToday ? "today" : ""} ${day.status ? "has-checkin" : ""}`} tone="soft">
+                <CardContent>
+                  <div className="day-header">
+                    <span className="day-name">{day.label}</span>
+                    <span className="day-date">{day.displayDate}</span>
+                  </div>
+                  <div className="day-content">
+                    {meta ? (
+                      <>
+                        <span className="status-icon" style={{ color: meta.color }}>{meta.marker}</span>
+                        <span className="status-text">{meta.short}</span>
+                        {day.mood || day.energy || day.focus || day.loneliness ? (
+                          <span className="goal-meta">
+                            {day.mood ? `Mood ${day.mood}` : ""}
+                            {day.energy ? ` · Energy ${day.energy}` : ""}
+                          </span>
+                        ) : null}
+                        {day.note ? <p className="day-note">{day.note}</p> : null}
+                      </>
+                    ) : (
+                      <span className="no-checkin">No check-in yet</span>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             );
           })}
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
-      <div className="split-progress-grid">
-        <div className="section-card daily-stats">
-          <h3>Rhythm snapshot</h3>
-          <div className="stats-grid">
-            <div className="stat-card">
-              <span className="stat-name">Active streak</span>
-              <span className="stat-num">{progress.activeStreak}</span>
-            </div>
-            <div className="stat-card">
-              <span className="stat-name">Longest streak</span>
-              <span className="stat-num">{progress.longestStreak}</span>
-            </div>
-            <div className="stat-card">
-              <span className="stat-name">Completed days</span>
-              <span className="stat-num">{weekSummary.completed}</span>
-            </div>
-            <div className="stat-card">
-              <span className="stat-name">Comeback wins</span>
-              <span className="stat-num">{progress.comebackWins}</span>
-            </div>
-          </div>
-        </div>
+      <PanelLayout className="split-progress-grid">
+        <Card className="section-card daily-stats" tone="soft">
+          <CardHeader><CardTitle>Rhythm snapshot</CardTitle></CardHeader>
+          <CardContent>
+            <GridLayout className="stats-grid">
+              <Card className="stat-card" tone="soft"><CardContent><span className="stat-name">Active streak</span><span className="stat-num">{progress.activeStreak}</span></CardContent></Card>
+              <Card className="stat-card" tone="soft"><CardContent><span className="stat-name">Longest streak</span><span className="stat-num">{progress.longestStreak}</span></CardContent></Card>
+              <Card className="stat-card" tone="soft"><CardContent><span className="stat-name">Completed days</span><span className="stat-num">{weekSummary.completed}</span></CardContent></Card>
+              <Card className="stat-card" tone="soft"><CardContent><span className="stat-name">Comeback wins</span><span className="stat-num">{progress.comebackWins}</span></CardContent></Card>
+            </GridLayout>
+          </CardContent>
+        </Card>
 
-        <div className="section-card activity-section">
-          <h3>Recent check-ins</h3>
-          {recentCheckins.length === 0 ? (
-            <p className="muted-text">Your daily check-ins will show up here after you start marking your days.</p>
-          ) : (
-            <div className="activity-list">
-              {recentCheckins.map((checkin) => {
-                const meta = STATUS_META[checkin.status];
-                return (
-                  <article key={checkin.date} className="activity-card">
-                    <div className="activity-meta">
-                      <strong>{formatDayDate(checkin.date)}</strong>
-                      <span style={{ color: meta.color }}>{meta.label}</span>
-                    </div>
-                    {(checkin.mood || checkin.energy || checkin.focus || checkin.loneliness) ? (
-                      <span className="goal-meta">
-                        {checkin.mood ? `Mood ${checkin.mood}` : ""}
-                        {checkin.energy ? ` · Energy ${checkin.energy}` : ""}
-                        {checkin.focus ? ` · Focus ${checkin.focus}` : ""}
-                        {checkin.loneliness ? ` · Loneliness ${checkin.loneliness}` : ""}
-                      </span>
-                    ) : null}
-                    {(checkin.stress || checkin.motivation || checkin.sleepQuality || checkin.happiness) ? (
-                      <span className="goal-meta">
-                        {checkin.stress ? `Stress ${checkin.stress}` : ""}
-                        {checkin.motivation ? ` · Motivation ${checkin.motivation}` : ""}
-                        {checkin.sleepQuality ? ` · Sleep ${checkin.sleepQuality}` : ""}
-                        {checkin.happiness ? ` · Happiness ${checkin.happiness}` : ""}
-                      </span>
-                    ) : null}
-                    {checkin.difficultyReason ? <span className="goal-meta">Difficult because: {checkin.difficultyReason}</span> : null}
-                    {checkin.wins ? <span className="goal-meta">Micro-win: {checkin.wins}</span> : null}
-                    <p>{checkin.note || "No note saved for this day."}</p>
-                    {checkin.reflection ? <p className="day-note">{checkin.reflection}</p> : null}
-                  </article>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </div>
+        <Card className="section-card activity-section" tone="soft">
+          <CardHeader><CardTitle>Recent check-ins</CardTitle></CardHeader>
+          <CardContent>
+            {recentCheckins.length === 0 ? (
+              <p className="muted-text">Your daily check-ins will show up here after you start marking your days.</p>
+            ) : (
+              <div className="activity-list">
+                {recentCheckins.map((checkin) => {
+                  const meta = STATUS_META[checkin.status];
+                  return (
+                    <Card key={checkin.date} className="activity-card" tone="soft">
+                      <CardContent>
+                        <div className="activity-meta">
+                          <strong>{formatDayDate(checkin.date)}</strong>
+                          <span style={{ color: meta.color }}>{meta.label}</span>
+                        </div>
+                        {(checkin.mood || checkin.energy || checkin.focus || checkin.loneliness) ? (
+                          <span className="goal-meta">
+                            {checkin.mood ? `Mood ${checkin.mood}` : ""}
+                            {checkin.energy ? ` · Energy ${checkin.energy}` : ""}
+                            {checkin.focus ? ` · Focus ${checkin.focus}` : ""}
+                            {checkin.loneliness ? ` · Loneliness ${checkin.loneliness}` : ""}
+                          </span>
+                        ) : null}
+                        {(checkin.stress || checkin.motivation || checkin.sleepQuality || checkin.happiness) ? (
+                          <span className="goal-meta">
+                            {checkin.stress ? `Stress ${checkin.stress}` : ""}
+                            {checkin.motivation ? ` · Motivation ${checkin.motivation}` : ""}
+                            {checkin.sleepQuality ? ` · Sleep ${checkin.sleepQuality}` : ""}
+                            {checkin.happiness ? ` · Happiness ${checkin.happiness}` : ""}
+                          </span>
+                        ) : null}
+                        {checkin.difficultyReason ? <span className="goal-meta">Difficult because: {checkin.difficultyReason}</span> : null}
+                        {checkin.wins ? <span className="goal-meta">Micro-win: {checkin.wins}</span> : null}
+                        <p>{checkin.note || "No note saved for this day."}</p>
+                        {checkin.reflection ? <p className="day-note">{checkin.reflection}</p> : null}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </PanelLayout>
 
-      <div className="split-progress-grid">
-        <div className="section-card">
-          <div className="section-card-header">
-            <div>
-              <h3>Neglected life areas</h3>
-              <p className="muted-text">The AI uses these signals to rebalance routines before things start quietly slipping.</p>
-            </div>
-          </div>
-          <div className="goal-list">
+      <PanelLayout className="split-progress-grid">
+        <Card className="section-card" tone="soft">
+          <CardHeader className="section-card-header">
+            <SectionHeader title="Neglected life areas" description="The AI uses these signals to rebalance routines before things start quietly slipping." />
+          </CardHeader>
+          <CardContent className="goal-list">
             {behavioralInsights.neglectedAreas.length === 0 ? (
-              <article className="goal-card">
-                <strong>No major blind spot detected</strong>
-                <p>Your current signals look reasonably balanced. Keep logging honestly so this stays trustworthy.</p>
-              </article>
+              <Card className="goal-card" tone="soft">
+                <CardContent>
+                  <strong>No major blind spot detected</strong>
+                  <p>Your current signals look reasonably balanced. Keep logging honestly so this stays trustworthy.</p>
+                </CardContent>
+              </Card>
             ) : (
               behavioralInsights.neglectedAreas.map((item) => (
-                <article key={item.area} className="goal-card">
-                  <strong>{item.area}</strong>
-                  <p>{item.reason}</p>
-                </article>
+                <Card key={item.area} className="goal-card" tone="soft">
+                  <CardContent>
+                    <strong>{item.area}</strong>
+                    <p>{item.reason}</p>
+                  </CardContent>
+                </Card>
               ))
             )}
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        <div className="section-card">
-          <div className="section-card-header">
-            <div>
-              <h3>Reflection journal</h3>
-              <p className="muted-text">A calmer read of what you have been feeling, not just what you completed.</p>
-            </div>
-          </div>
-          <div className="goal-list">
-            <article className="goal-card">
-              <strong>{behavioralInsights.journal.headline}</strong>
-              <p>{behavioralInsights.journal.prompt}</p>
-            </article>
+        <Card className="section-card" tone="soft">
+          <CardHeader className="section-card-header">
+            <SectionHeader title="Reflection journal" description="A calmer read of what you have been feeling, not just what you completed." />
+          </CardHeader>
+          <CardContent className="goal-list">
+            <Card className="goal-card" tone="soft">
+              <CardContent>
+                <strong>{behavioralInsights.journal.headline}</strong>
+                <p>{behavioralInsights.journal.prompt}</p>
+              </CardContent>
+            </Card>
             {behavioralInsights.journal.entries.map((entry) => (
-              <article key={entry} className="goal-card">
-                <strong>Journal echo</strong>
-                <p>{entry}</p>
-              </article>
+              <Card key={entry} className="goal-card" tone="soft">
+                <CardContent>
+                  <strong>Journal echo</strong>
+                  <p>{entry}</p>
+                </CardContent>
+              </Card>
             ))}
-          </div>
-        </div>
-      </div>
+          </CardContent>
+        </Card>
+      </PanelLayout>
 
-      <div className="section-card rewards-section">
-        <div className="section-card-header">
-          <div>
-            <h3>Recent reward activity</h3>
-            <p className="muted-text">A quick look at the wins your routine has already unlocked.</p>
-          </div>
-        </div>
-        {recentRewards.length === 0 ? (
-          <p className="muted-text">Your point rewards and badges will appear here after plans, check-ins, and feedback.</p>
-        ) : (
-          <div className="activity-list reward-activity-list">
-            {recentRewards.map((reward, index) => (
-              <article key={`${reward.type}-${reward.createdAt || reward.date}-${index}`} className="activity-card reward-activity-card">
-                <div className="activity-meta">
-                  <strong>{buildRewardTitle(reward)}</strong>
-                  <span>{reward.points ? `+${reward.points} points` : reward.type.replace(/-/g, " ")}</span>
-                </div>
-                <p>{reward.date || "Saved just now"}</p>
-              </article>
-            ))}
-          </div>
-        )}
-      </div>
+      <Card className="section-card rewards-section" tone="soft">
+        <CardHeader className="section-card-header">
+          <SectionHeader title="Recent reward activity" description="A quick look at the wins your routine has already unlocked." />
+        </CardHeader>
+        <CardContent>
+          {recentRewards.length === 0 ? (
+            <p className="muted-text">Your point rewards and badges will appear here after plans, check-ins, and feedback.</p>
+          ) : (
+            <div className="activity-list reward-activity-list">
+              {recentRewards.map((reward, index) => (
+                <Card key={`${reward.type}-${reward.createdAt || reward.date}-${index}`} className="activity-card reward-activity-card" tone="soft">
+                  <CardContent>
+                    <div className="activity-meta">
+                      <strong>{buildRewardTitle(reward)}</strong>
+                      <span>{reward.points ? `+${reward.points} points` : reward.type.replace(/-/g, " ")}</span>
+                    </div>
+                    <p>{reward.date || "Saved just now"}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </section>
   );
 }
