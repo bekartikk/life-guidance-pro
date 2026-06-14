@@ -1,12 +1,16 @@
 import { Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
+
+
 import {
   HiOutlineArrowTrendingUp,
   HiOutlineBolt,
   HiOutlineChartBarSquare,
   HiOutlineClipboardDocumentList,
   HiOutlineFlag,
+  HiOutlinePlus,
   HiOutlineQueueList,
   HiOutlineSparkles,
+  HiOutlineUserCircle,
 } from "react-icons/hi2";
 import { sendEmailVerification, signOut } from "firebase/auth";
 import Header from "./dashboard/Header.jsx";
@@ -344,8 +348,8 @@ const adminEmails = String(import.meta.env.VITE_ADMIN_EMAILS || "").split(",").m
 const requiredFields = ["currentRoutine", "workOrStudy", "personalChallenges", "futureConfusion", "goals", "hobbies", "happinessSources"];
 const navigationItems = ["planner", "goals", "habits", "daily", "weekly", "review", "monthly", "career", "income", "routine", "chat", "achievements", "missions", "insights", "system", "history", "profile", "feedback", "reminders", "support", "settings", "admin"];
 const sidebarGroups = [
-  { label: "Workspace", items: ["planner", "goals", "habits", "routine", "career"] },
-  { label: "Intelligence", items: ["daily", "weekly", "review", "monthly", "insights", "chat", "achievements", "missions"] },
+  { label: "Workspace", items: ["planner", "daily", "habits", "goals", "missions", "routine"] },
+  { label: "Growth", items: ["career", "income", "chat", "weekly", "review", "insights"] },
   { label: "Memory", items: ["history", "feedback", "system", "reminders", "support", "settings", "admin"] },
 ];
 const tabMeta = {
@@ -410,7 +414,7 @@ const tabMeta = {
     icon: HiOutlineBolt,
   },
   missions: {
-    label: "Missions",
+    label: "Tasks",
     description: "Track the next level, streak pressure, and the smallest useful push forward.",
     icon: HiOutlineArrowTrendingUp,
   },
@@ -2355,9 +2359,53 @@ function Dashboard({ user }) {
     },
   ];
   const showResultPanel = activeTab === "planner";
+  const dashboardGreetingName = (profile.fullName || user?.displayName || "Alex").split(" ")[0] || "Alex";
+  const dashboardKpis = [
+    { label: "Momentum Score", value: `${Math.min(100, Math.max(0, progress.momentumPoints || 0))}%`, hint: `${progress.activeStreak || 0} day streak` },
+    { label: "Focus Time", value: currentPlan ? "4h 20m" : "Ready", hint: currentPlan ? "Protected today" : "Generate a plan" },
+    { label: "Tasks Completed", value: `${completion.completed}/${completion.total || 4}`, hint: completion.total ? "Plan actions" : "Starter checklist" },
+    { label: "Goal Progress", value: `${Math.min(100, Math.round(completion.percent || 0))}%`, hint: `${goals.filter((goal) => goal.status !== "completed").length} active goals` },
+  ];
+  const todayTimeline = [
+    { time: "09:00", title: "Deep Work", note: "Most important focus block" },
+    { time: "11:00", title: "Class", note: "Learning or work session" },
+    { time: "01:00", title: "Break", note: "Recovery and reset" },
+    { time: "02:00", title: "Project Work", note: "Move one outcome forward" },
+    { time: "05:00", title: "Review", note: "Close loops and adjust tomorrow" },
+  ];
+  const dashboardTasks = [
+    currentPlan ? currentPlan.title : "Generate today's AI plan",
+    goals[0]?.title || "Choose one priority goal",
+    habits[0]?.title || "Complete one tiny habit",
+  ];
+  const habitPreview = habits.slice(0, 3).map((habit, index) => ({
+    title: habit.title,
+    streak: habit.streak || progress.activeStreak || index + 1,
+    percent: habit.isTodayComplete ? 100 : Math.max(32, 72 - index * 14),
+  }));
+  const fallbackHabitPreview = [
+    { title: "Morning routine", streak: progress.activeStreak || 3, percent: 76 },
+    { title: "Study session", streak: 5, percent: 62 },
+    { title: "Evening review", streak: 2, percent: 48 },
+  ];
+  const dashboardHabits = habitPreview.length ? habitPreview : fallbackHabitPreview;
+  const aiCoachCards = [
+    { title: "Today's Focus", body: formatDisplayLabel(insightNarrative.focus) },
+    { title: "Why This Focus", body: personalizationInsights.nextMove },
+    { title: "Recovery Suggestion", body: personalizationInsights.lowEnergyPattern },
+    { title: "Your Pattern", body: personalizationInsights.routineStyle },
+    { title: "Quick Actions", body: "Review plan, log check-in, or adjust intensity." },
+  ];
   const showMobilePlannerSkeleton = showResultPanel && (plannerBootstrapPending || isLoading || isAdjusting);
   const showMobileInsightSkeleton = progressPanelPending || sectionLoading.profile;
-  const mobileBottomNavItems = ["planner", "daily", "insights", "settings"];
+  const mobileBottomNavItems = [
+    { key: "home", label: "Home", icon: HiOutlineChartBarSquare, action: () => handleTabChange("planner") },
+    { key: "plan", label: "Plan", icon: HiOutlineClipboardDocumentList, action: () => handleTabChange("planner") },
+    { key: "quick-add", label: "Add", icon: HiOutlinePlus, action: () => setIsQuickAddOpen(true), isPrimary: true },
+    { key: "coach", label: "AI Coach", icon: HiOutlineSparkles, action: () => handleTabChange("chat") },
+    { key: "insights", label: "Insights", icon: HiOutlineChartBarSquare, action: () => handleTabChange("insights") },
+    { key: "profile", label: "Profile", icon: HiOutlineUserCircle, action: () => handleTabChange("profile") },
+  ];
   const shouldRenderAnalyticsChart =
     !isCompactMobile || showMobileAnalytics || ["daily", "weekly", "insights"].includes(activeTab);
   const canRenderAnalyticsChart = shouldRenderAnalyticsChart && shouldHydrateAnalytics;
@@ -2375,6 +2423,7 @@ function Dashboard({ user }) {
           isCollapsed={isSidebarCollapsed}
           onToggle={() => setIsSidebarCollapsed((current) => !current)}
           onSelect={handleTabChange}
+          userEmail={user?.email || ""}
         />
 
         <div className="dashboard-main-frame">
@@ -2449,6 +2498,90 @@ function Dashboard({ user }) {
 
           <div className="dashboard-content-grid">
             <main className="dashboard-center-column">
+              <section className="dashboard-command-center" aria-label="Daily productivity overview">
+                <div className="dashboard-command-center__head">
+                  <div>
+                    <p className="dashboard-eyebrow">Home</p>
+                    <h2>Hi {dashboardGreetingName} 👋</h2>
+                    <p>Your AI coach has organized today into focus, recovery, and steady progress.</p>
+                  </div>
+                  <Badge className="hero-header-chip">AI Coach active</Badge>
+                </div>
+
+                <div className="dashboard-kpi-grid">
+                  {dashboardKpis.map((item) => (
+                    <Card key={item.label} tone="soft" padded={false} className="dashboard-kpi-card">
+                      <span>{item.label}</span>
+                      <strong>{item.value}</strong>
+                      <small>{item.hint}</small>
+                    </Card>
+                  ))}
+                </div>
+
+                <div className="dashboard-productivity-grid">
+                  <Card padded={false} className="dashboard-plan-card">
+                    <SectionHeader eyebrow="Today's plan" title="Daily planner timeline" />
+                    <div className="dashboard-timeline-list">
+                      {todayTimeline.map((item) => (
+                        <div key={`${item.time}-${item.title}`} className="dashboard-timeline-row">
+                          <time>{item.time}</time>
+                          <div>
+                            <strong>{item.title}</strong>
+                            <span>{item.note}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </Card>
+
+                  <div className="dashboard-productivity-stack">
+                    <Card padded={false} className="dashboard-checklist-card">
+                      <SectionHeader eyebrow="Tasks" title="Priority checklist" />
+                      <div className="dashboard-checklist">
+                        {dashboardTasks.map((task, index) => (
+                          <label key={`${task}-${index}`} className="dashboard-check-item">
+                            <input type="checkbox" readOnly checked={index === 0 && Boolean(currentPlan)} />
+                            <span>{task}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </Card>
+
+                    <Card padded={false} className="dashboard-habits-card">
+                      <SectionHeader eyebrow="Habits" title="Streak rhythm" />
+                      <div className="dashboard-habit-list">
+                        {dashboardHabits.map((habit) => (
+                          <div key={habit.title} className="dashboard-habit-row">
+                            <div>
+                              <strong>{habit.title}</strong>
+                              <span>{habit.streak} day streak</span>
+                            </div>
+                            <div className="dashboard-habit-progress" aria-hidden="true">
+                              <span style={{ width: `${habit.percent}%` }} />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </Card>
+                  </div>
+
+                  <Card padded={false} className="dashboard-weekly-card">
+                    <SectionHeader eyebrow="Weekly overview" title="Progress snapshot" />
+                    <div className="dashboard-weekly-visual">
+                      <div className="dashboard-weekly-ring" style={{ "--weekly-progress": `${Math.min(100, Math.max(0, completion.percent || 0))}%` }}>
+                        <strong>{Math.min(100, Math.round(completion.percent || 0))}%</strong>
+                        <span>complete</span>
+                      </div>
+                      <div className="dashboard-mini-chart" aria-hidden="true">
+                        {[48, 64, 52, 76, 88, 70, 82].map((height, index) => (
+                          <span key={index} style={{ height: `${height}%` }} />
+                        ))}
+                      </div>
+                    </div>
+                  </Card>
+                </div>
+              </section>
+
               <PlannerBoard
                 currentPlan={currentPlan}
                 goals={goals}
@@ -2551,57 +2684,76 @@ function Dashboard({ user }) {
 
             <aside className="dashboard-intelligence-rail">
               <DashboardContainer>
-              {showMobileInsightSkeleton && (
-                <div className="dashboard-mobile-skeletons dashboard-mobile-skeletons--insights">
-                  <CompactLoadingSkeleton title="Syncing insight rail" lines={2} />
-                  <CompactLoadingSkeleton title="Warming up progress cards" lines={3} />
-                </div>
-              )}
-              <Card padded={false} className="intelligence-panel intelligence-panel--highlight">
-                <SectionHeader
-                  className="intelligence-panel__head"
-                  eyebrow="Adaptive life state"
-                  actions={<Badge className="hero-header-chip">{toDisplayText(adaptiveWorkspace?.workspaceMode?.label, "Focus")}</Badge>}
-                />
-                <PanelLayout className="intelligence-panel__list intelligence-panel__list--compact">
-                  <Card tone="soft" padded={false} className="intelligence-checkpoint is-done">
-                    <strong>Burnout risk</strong>
-                    <span>{toDisplayText(behavioralInsights?.burnoutRisk?.label, "Manage closely")}</span>
-                  </Card>
-                  <Card tone="soft" padded={false} className="intelligence-checkpoint">
-                    <strong>Mode</strong>
-                    <span>{toDisplayText(adaptiveWorkspace?.workspaceMode?.summary, "Adaptive guidance is still loading.")}</span>
-                  </Card>
-                  <Card tone="soft" padded={false} className="intelligence-checkpoint">
-                    <strong>Next shift</strong>
-                    <span>{toDisplayText(adaptiveWorkspace?.roadmapIntelligence?.nextShift, formatDisplayLabel(insightNarrative.focus))}</span>
-                  </Card>
-                </PanelLayout>
-              </Card>
-
-              <Suspense fallback={<AdaptiveWidgetSkeleton title="Preparing adaptive intelligence" />}>
-                <WidgetErrorBoundary title="AI intelligence unavailable" description="The adaptive AI summary surface could not render.">
-                  <AdaptiveIntelligenceRail
-                    aiMeta={activeAiMeta}
-                    behavioralInsights={behavioralInsights}
-                    checkins={checkins}
+              <div className="dashboard-intelligence-rail__core">
+                {showMobileInsightSkeleton && (
+                  <div className="dashboard-mobile-skeletons dashboard-mobile-skeletons--insights">
+                    <CompactLoadingSkeleton title="Syncing insight rail" lines={2} />
+                    <CompactLoadingSkeleton title="Warming up progress cards" lines={3} />
+                  </div>
+                )}
+                <Card padded={false} className="intelligence-panel intelligence-panel--highlight">
+                  <SectionHeader
+                    className="intelligence-panel__head"
+                    eyebrow="Adaptive life state"
+                    actions={<Badge className="hero-header-chip">{toDisplayText(adaptiveWorkspace?.workspaceMode?.label, "Focus")}</Badge>}
                   />
-                </WidgetErrorBoundary>
-              </Suspense>
+                  <PanelLayout className="intelligence-panel__list intelligence-panel__list--compact">
+                    <Card tone="soft" padded={false} className="intelligence-checkpoint is-done">
+                      <strong>Burnout risk</strong>
+                      <span>{toDisplayText(behavioralInsights?.burnoutRisk?.label, "Manage closely")}</span>
+                    </Card>
+                    <Card tone="soft" padded={false} className="intelligence-checkpoint">
+                      <strong>Mode</strong>
+                      <span>{toDisplayText(adaptiveWorkspace?.workspaceMode?.summary, "Adaptive guidance is still loading.")}</span>
+                    </Card>
+                    <Card tone="soft" padded={false} className="intelligence-checkpoint">
+                      <strong>Next shift</strong>
+                      <span>{toDisplayText(adaptiveWorkspace?.roadmapIntelligence?.nextShift, formatDisplayLabel(insightNarrative.focus))}</span>
+                    </Card>
+                  </PanelLayout>
+                </Card>
 
-              <Suspense fallback={<AdaptiveWidgetSkeleton title="Preparing adaptive history" />}>
-                <WidgetErrorBoundary title="Adaptive history unavailable" description="The mirrored AI history surface could not render.">
-                  {isLoadingAdaptiveInsights ? (
-                    <AdaptiveWidgetSkeleton compact title="Loading mirrored memory" />
-                  ) : (
-                    <AdaptiveHistorySurface
-                      adaptiveInsights={adaptiveInsights}
-                      activeAiMeta={activeAiMeta}
+                <Card padded={false} className="dashboard-ai-coach-panel">
+                  <SectionHeader
+                    className="intelligence-panel__head"
+                    eyebrow="AI Coach panel"
+                    title="Today's guidance"
+                    actions={<Badge className="hero-header-chip">Live</Badge>}
+                  />
+                  <div className="dashboard-ai-coach-list">
+                    {aiCoachCards.map((item) => (
+                      <Card key={item.title} tone="soft" padded={false} className="dashboard-ai-coach-card">
+                        <strong>{item.title}</strong>
+                        <p>{item.body}</p>
+                      </Card>
+                    ))}
+                  </div>
+                </Card>
+
+                <Suspense fallback={<AdaptiveWidgetSkeleton title="Preparing adaptive intelligence" />}>
+                  <WidgetErrorBoundary title="AI intelligence unavailable" description="The adaptive AI summary surface could not render.">
+                    <AdaptiveIntelligenceRail
+                      aiMeta={activeAiMeta}
                       behavioralInsights={behavioralInsights}
+                      checkins={checkins}
                     />
-                  )}
-                </WidgetErrorBoundary>
-              </Suspense>
+                  </WidgetErrorBoundary>
+                </Suspense>
+
+                <Suspense fallback={<AdaptiveWidgetSkeleton title="Preparing adaptive history" />}>
+                  <WidgetErrorBoundary title="Adaptive history unavailable" description="The mirrored AI history surface could not render.">
+                    {isLoadingAdaptiveInsights ? (
+                      <AdaptiveWidgetSkeleton compact title="Loading mirrored memory" />
+                    ) : (
+                      <AdaptiveHistorySurface
+                        adaptiveInsights={adaptiveInsights}
+                        activeAiMeta={activeAiMeta}
+                        behavioralInsights={behavioralInsights}
+                      />
+                    )}
+                  </WidgetErrorBoundary>
+                </Suspense>
+              </div>
 
               <LazySection title="Loading progress overview" description="Preparing the progress and momentum widget.">
                 <ProgressWidget completion={completion} progress={progress} plans={plans} goals={goals} habits={habits} behavioralInsights={behavioralInsights} />
@@ -2708,19 +2860,23 @@ function Dashboard({ user }) {
 
       <MobileBottomNav className="dashboard-bottom-nav" aria-label="Mobile primary navigation">
         {mobileBottomNavItems.map((item) => {
-          const meta = tabMeta[item];
-          const Icon = meta.icon;
-          const isActive = item === activeTab;
+          const Icon = item.icon;
+          const isActive =
+            (item.key === "plan" && activeTab === "planner") ||
+            (item.key === "coach" && activeTab === "chat") ||
+            (item.key === "insights" && activeTab === "insights") ||
+            (item.key === "profile" && activeTab === "profile");
 
           return (
             <button
-              key={item}
+              key={item.key}
               type="button"
-              className={`dashboard-bottom-nav__item${isActive ? " active" : ""}`}
-              onClick={() => handleTabChange(item)}
+              className={`dashboard-bottom-nav__item${isActive ? " active" : ""}${item.isPrimary ? " dashboard-bottom-nav__item--primary" : ""}`}
+              onClick={item.action}
+              aria-label={item.label}
             >
               <Icon className="h-4 w-4" />
-              <span>{meta.label}</span>
+              <span>{item.label}</span>
             </button>
           );
         })}

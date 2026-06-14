@@ -159,48 +159,50 @@ function Login() {
             ))}
           </div>
 
-          <div className="auth-onboarding-card">
-            <div className="auth-onboarding-card__head">
-              <span>Setup journey</span>
-              <strong>5 AI-guided stages</strong>
+          <div className="auth-story-panel__modules">
+            <div className="auth-onboarding-card">
+              <div className="auth-onboarding-card__head">
+                <span>Setup journey</span>
+                <strong>5 AI-guided stages</strong>
+              </div>
+              <div className="auth-onboarding-steps">
+                {onboardingSteps.map((step, index) => (
+                  <article key={step} className="auth-onboarding-step">
+                    <span>{String(index + 1).padStart(2, "0")}</span>
+                    <p>{step}</p>
+                  </article>
+                ))}
+              </div>
             </div>
-            <div className="auth-onboarding-steps">
-              {onboardingSteps.map((step, index) => (
-                <article key={step} className="auth-onboarding-step">
-                  <span>{String(index + 1).padStart(2, "0")}</span>
-                  <p>{step}</p>
-                </article>
-              ))}
-            </div>
-          </div>
 
-          <div className="auth-coach-card">
-            <div className="auth-coach-card__head">
-              <span>AI personality preview</span>
-              <strong>{selectedCoach.title}</strong>
-            </div>
-            <div className="auth-coach-grid">
-              {coachModes.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <button
-                    key={item.title}
-                    type="button"
-                    className={item.title === selectedMode ? "auth-coach-option is-active" : "auth-coach-option"}
-                    onClick={() => {
-                      setSelectedMode(item.title);
-                      trackEvent("onboarding_coach_mode_selected", { mode: item.title });
-                    }}
-                  >
-                    <Icon className="h-4.5 w-4.5" />
-                    <span>{item.title}</span>
-                  </button>
-                );
-              })}
-            </div>
-            <div className="auth-coach-preview">
-              <CoachIcon className="h-5 w-5" />
-              <p>{selectedCoach.description}</p>
+            <div className="auth-coach-card">
+              <div className="auth-coach-card__head">
+                <span>AI personality preview</span>
+                <strong>{selectedCoach.title}</strong>
+              </div>
+              <div className="auth-coach-grid">
+                {coachModes.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <button
+                      key={item.title}
+                      type="button"
+                      className={item.title === selectedMode ? "auth-coach-option is-active" : "auth-coach-option"}
+                      onClick={() => {
+                        setSelectedMode(item.title);
+                        trackEvent("onboarding_coach_mode_selected", { mode: item.title });
+                      }}
+                    >
+                      <Icon className="h-4.5 w-4.5" />
+                      <span>{item.title}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="auth-coach-preview">
+                <CoachIcon className="h-5 w-5" />
+                <p>{selectedCoach.description}</p>
+              </div>
             </div>
           </div>
         </aside>
@@ -224,83 +226,85 @@ function Login() {
             </div>
           </div>
 
-          <div className="auth-mode-switch">
+          <div className="auth-form-panel__stack">
+            <div className="auth-mode-switch">
+              <button
+                type="button"
+                className={mode === "login" ? "is-active" : ""}
+                onClick={() => setMode("login")}
+              >
+                Log in
+              </button>
+              <button
+                type="button"
+                className={mode === "signup" ? "is-active" : ""}
+                onClick={() => setMode("signup")}
+              >
+                Sign up
+              </button>
+            </div>
+
+            <div className="auth-input-grid">
+              <label>
+                Email
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  placeholder="you@example.com"
+                  required
+                />
+              </label>
+
+              <label>
+                Password
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  placeholder="Minimum 6 characters"
+                  minLength="6"
+                  required
+                />
+              </label>
+            </div>
+
+            {message ? (
+              <p className={isSuccessMessage ? "auth-message auth-message--success" : "auth-message auth-message--error"}>
+                {message}
+              </p>
+            ) : null}
+
+            <button disabled={isLoading} className="auth-primary-button">
+              {isLoading
+                ? "Please wait..."
+                : mode === "login"
+                  ? "Enter dashboard"
+                  : "Create my workspace"}
+            </button>
+
             <button
               type="button"
-              className={mode === "login" ? "is-active" : ""}
-              onClick={() => setMode("login")}
+              onClick={handleGoogleSignIn}
+              disabled={isGoogleLoading}
+              className="auth-secondary-button"
             >
-              Log in
-            </button>
-            <button
-              type="button"
-              className={mode === "signup" ? "is-active" : ""}
-              onClick={() => setMode("signup")}
-            >
-              Sign up
-            </button>
-          </div>
-
-          <div className="auth-input-grid">
-            <label>
-              Email
-              <input
-                type="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                placeholder="you@example.com"
-                required
-              />
-            </label>
-
-            <label>
-              Password
-              <input
-                type="password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                placeholder="Minimum 6 characters"
-                minLength="6"
-                required
-              />
-            </label>
-          </div>
-
-          {message ? (
-            <p className={isSuccessMessage ? "auth-message auth-message--success" : "auth-message auth-message--error"}>
-              {message}
-            </p>
-          ) : null}
-
-          <button disabled={isLoading} className="auth-primary-button">
-            {isLoading
-              ? "Please wait..."
-              : mode === "login"
-                ? "Enter dashboard"
-                : "Create my workspace"}
-          </button>
-
-          <button
-            type="button"
-            onClick={handleGoogleSignIn}
-            disabled={isGoogleLoading}
-            className="auth-secondary-button"
-          >
-            <HiOutlineSparkles className="h-4.5 w-4.5" />
-            {isGoogleLoading ? "Connecting..." : "Continue with Google"}
-          </button>
-
-          <div className="auth-form-actions">
-            <button
-              type="button"
-              onClick={() => setMode(mode === "login" ? "signup" : "login")}
-            >
-              {mode === "login" ? "Need an account?" : "Already have an account?"}
+              <HiOutlineSparkles className="h-4.5 w-4.5" />
+              {isGoogleLoading ? "Connecting..." : "Continue with Google"}
             </button>
 
-            <button type="button" onClick={handleResetPassword} disabled={isSendingReset}>
-              {isSendingReset ? "Sending..." : "Forgot password?"}
-            </button>
+            <div className="auth-form-actions">
+              <button
+                type="button"
+                onClick={() => setMode(mode === "login" ? "signup" : "login")}
+              >
+                {mode === "login" ? "Need an account?" : "Already have an account?"}
+              </button>
+
+              <button type="button" onClick={handleResetPassword} disabled={isSendingReset}>
+                {isSendingReset ? "Sending..." : "Forgot password?"}
+              </button>
+            </div>
           </div>
         </form>
       </div>

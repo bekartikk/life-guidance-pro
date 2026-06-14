@@ -20,21 +20,21 @@ import { Badge, Button, Card, CardContent } from "../ui/index.js";
 import { Sidebar as SidebarShell } from "../layout/index.js";
 
 const ITEM_META = {
-  dashboard: { label: "Dashboard", icon: HiOutlineChartBarSquare },
-  planner: { label: "Planner", icon: HiOutlineClipboardDocumentList },
+  dashboard: { label: "Home", icon: HiOutlineChartBarSquare },
+  planner: { label: "Plan", icon: HiOutlineClipboardDocumentList },
   goals: { label: "Goals", icon: HiOutlineFlag },
   habits: { label: "Habits", icon: HiOutlineQueueList },
-  daily: { label: "Progress", icon: HiOutlineChartBarSquare },
-  weekly: { label: "Weekly", icon: HiOutlineChartBarSquare },
-  review: { label: "Review", icon: HiOutlineSparkles },
+  daily: { label: "Check-In", icon: HiOutlineChartBarSquare },
+  weekly: { label: "Analytics", icon: HiOutlineChartBarSquare },
+  review: { label: "Journal", icon: HiOutlineSparkles },
   monthly: { label: "Monthly", icon: HiOutlineArchiveBox },
-  routine: { label: "Routines", icon: HiOutlineCalendarDays },
+  routine: { label: "Study Center", icon: HiOutlineCalendarDays },
   career: { label: "Career", icon: HiOutlineLightBulb },
-  income: { label: "Income", icon: HiOutlineRocketLaunch },
+  income: { label: "Resources", icon: HiOutlineRocketLaunch },
   insights: { label: "Insights", icon: HiOutlineSparkles },
   chat: { label: "AI Coach", icon: HiOutlineChatBubbleLeftRight },
-  achievements: { label: "Achievements", icon: HiOutlineTrophy },
-  missions: { label: "Missions", icon: HiOutlineBolt },
+  achievements: { label: "Focus Timer", icon: HiOutlineTrophy },
+  missions: { label: "Tasks", icon: HiOutlineBolt },
   history: { label: "History", icon: HiOutlineClipboardDocumentList },
   feedback: { label: "Feedback", icon: HiOutlineChatBubbleLeftRight },
   reminders: { label: "Reminders", icon: HiOutlineCalendarDays },
@@ -44,22 +44,22 @@ const ITEM_META = {
   settings: { label: "Settings", icon: HiOutlineCog6Tooth },
 };
 
-function Sidebar({ items, activeItem, isCollapsed, onToggle, onSelect }) {
+function Sidebar({ items, activeItem, isCollapsed, onToggle, onSelect, userEmail = "" }) {
   return (
     <aside
       className="sidebar-shell sticky top-6 hidden h-[calc(100vh-48px)] shrink-0 overflow-hidden lg:block"
       style={{ width: isCollapsed ? 92 : 280 }}
     >
       <SidebarShell className="h-full rounded-[28px] p-4">
-        <div className="mb-6 flex items-center justify-between gap-3 border-b border-white/8 pb-5">
+        <div className="mb-6 flex items-center justify-between gap-3 border-b border-blue-100 pb-5">
           <div className="flex items-center gap-3 overflow-hidden">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-300 via-blue-500 to-violet-500 text-slate-950 shadow-[var(--ds-shadow-glow)]">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 via-sky-400 to-violet-500 text-white shadow-[var(--ds-shadow-glow)]">
               <HiOutlineSparkles className="h-5 w-5" />
             </div>
             {!isCollapsed && (
               <div className="min-w-0">
-                <p className="truncate text-sm font-semibold tracking-tight text-slate-50">Life Guidance Pro</p>
-                <p className="truncate text-xs uppercase tracking-[0.18em] text-slate-500">Planning OS</p>
+                <p className="truncate text-sm font-semibold tracking-tight text-slate-950">Life Guidance Pro</p>
+                <p className="truncate text-xs uppercase tracking-[0.18em] text-slate-500">AI Coach</p>
               </div>
             )}
           </div>
@@ -81,12 +81,12 @@ function Sidebar({ items, activeItem, isCollapsed, onToggle, onSelect }) {
             <CardContent className="gap-3">
               <Badge className="w-fit">Today&apos;s posture</Badge>
               <div className="flex items-start gap-3">
-                <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-2xl bg-emerald-400/10 text-emerald-300">
+                <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
                   <HiOutlineBolt className="h-4.5 w-4.5" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-slate-100">One clear next step</p>
-                  <p className="mt-1 text-sm leading-6 text-slate-400">Stay with the current plan, protect one task, and let the dashboard do less at once.</p>
+                  <p className="text-sm font-semibold text-slate-950">One clear next step</p>
+                  <p className="mt-1 text-sm leading-6 text-slate-500">Stay with the current plan, protect one task, and let the dashboard do less at once.</p>
                 </div>
               </div>
             </CardContent>
@@ -113,8 +113,8 @@ function Sidebar({ items, activeItem, isCollapsed, onToggle, onSelect }) {
                     aria-current={isActive ? "page" : undefined}
                     className={`group flex items-center gap-3 rounded-2xl px-3 py-3 text-left transition ${
                       isActive
-                        ? "bg-gradient-to-r from-cyan-300 via-blue-500 to-violet-500 text-slate-950 shadow-[var(--ds-shadow-glow)]"
-                        : "border border-white/5 bg-white/0 text-slate-300 hover:bg-white/5"
+                        ? "bg-gradient-to-r from-blue-500 via-sky-400 to-violet-500 text-white shadow-[var(--ds-shadow-glow)]"
+                        : "border border-blue-100 bg-white/70 text-slate-600 hover:bg-blue-50"
                     }`}
                   >
                     <Icon className="h-5 w-5 shrink-0" />
@@ -136,12 +136,12 @@ function Sidebar({ items, activeItem, isCollapsed, onToggle, onSelect }) {
         </nav>
 
         {!isCollapsed && (
-          <Card className="mt-6 rounded-[24px] bg-gradient-to-br from-slate-900/90 via-slate-900/85 to-slate-800/70 p-4 text-sm text-slate-300 shadow-[0_20px_40px_rgba(2,6,23,0.35)]">
+          <Card className="mt-6 rounded-[24px] border border-blue-100 bg-gradient-to-br from-white via-blue-50 to-violet-50 p-4 text-sm text-slate-600 shadow-[0_20px_40px_rgba(37,99,235,0.12)]">
             <CardContent className="gap-2">
-              <Badge className="w-fit border-blue-200/20 bg-blue-200/10 text-blue-200/90">Focus mode</Badge>
-              <p className="font-semibold text-slate-50">Reduce the noise.</p>
-              <p className="leading-6 text-slate-400">
-                Keep one clear next step visible and let the rest fade into the background.
+              <Badge className="w-fit border-blue-200 bg-blue-100 text-blue-700">Profile</Badge>
+              <p className="font-semibold text-slate-950">{userEmail || "Your workspace"}</p>
+              <p className="leading-6 text-slate-500">
+                Personal coaching, progress, memory, and planning stay connected here.
               </p>
             </CardContent>
           </Card>

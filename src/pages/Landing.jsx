@@ -6,12 +6,12 @@ import {
   HiOutlineBolt,
   HiOutlineBriefcase,
   HiOutlineCalendarDays,
-  HiOutlineChartBarSquare,
   HiOutlineCheckBadge,
   HiOutlineHeart,
-  HiOutlineLightBulb,
   HiOutlineMoon,
+  HiOutlinePlayCircle,
   HiOutlineRocketLaunch,
+  HiOutlineShieldCheck,
   HiOutlineSparkles,
   HiOutlineUserGroup,
 } from "react-icons/hi2";
@@ -22,67 +22,53 @@ const audienceCards = [
   {
     title: "Students",
     icon: HiOutlineAcademicCap,
-    struggle: "Inconsistency, exam pressure, low motivation, and no clear direction.",
-    help: "The AI turns scattered days into a realistic study rhythm, skill roadmap, and recovery-aware routine.",
-    outcome: "More structure, less panic, and a clearer path into career-building work.",
+    struggle: "Assignments, study sessions, exam pressure, and unclear priorities.",
+    help: "The AI builds a calm study rhythm with assignments, exams, and recovery in one plan.",
+    outcome: "More clarity before class, fewer missed tasks, and steadier progress.",
   },
   {
     title: "Employees",
     icon: HiOutlineBriefcase,
-    struggle: "Work stress, low energy after hours, health neglect, and future confusion.",
-    help: "The system balances work, recovery, money goals, and personal growth in one operating plan.",
-    outcome: "A calmer week with better focus, stronger routines, and less burnout drift.",
+    struggle: "Meetings, deep work, energy dips, work goals, and after-hours pressure.",
+    help: "The workspace protects focus time while balancing recovery and growth.",
+    outcome: "A calmer workweek with sharper priorities and less burnout drift.",
   },
   {
     title: "Freelancers",
     icon: HiOutlineRocketLaunch,
-    struggle: "Unstable schedules, creative overwhelm, inconsistent output, and pressure to earn.",
-    help: "The AI creates focus blocks, client-work rhythms, and a momentum system you can repeat.",
-    outcome: "Higher consistency, clearer output, and more stable growth without chaos.",
+    struggle: "Clients, projects, revenue goals, creative focus, and unstable schedules.",
+    help: "The AI connects project work, admin, outreach, and recovery into one rhythm.",
+    outcome: "More consistent delivery and a cleaner path to sustainable revenue.",
   },
   {
-    title: "Creators",
+    title: "Entrepreneurs",
     icon: HiOutlineSparkles,
-    struggle: "Too many ideas, weak execution systems, and hobbies that never turn into leverage.",
-    help: "It connects creative energy to practice, portfolio work, learning, and monetization experiments.",
-    outcome: "From scattered inspiration to a visible creative growth engine.",
-  },
-  {
-    title: "People feeling lost",
-    icon: HiOutlineLightBulb,
-    struggle: "Confusion, loneliness, decision fatigue, and not knowing what matters next.",
-    help: "The AI helps uncover patterns, simplify direction, and make the next step feel possible again.",
-    outcome: "Clarity, steadier routines, and less pressure to figure out everything at once.",
-  },
-  {
-    title: "Burned-out individuals",
-    icon: HiOutlineHeart,
-    struggle: "Stress, emotional heaviness, unreliable energy, and repeated routine collapse.",
-    help: "The planner lowers intensity, protects recovery, and adapts expectations based on real-life conditions.",
-    outcome: "A gentler, safer system that still builds forward motion.",
+    struggle: "Business goals, growth metrics, planning cycles, and decision fatigue.",
+    help: "The platform keeps priorities, experiments, and personal capacity aligned.",
+    outcome: "Better weekly direction with fewer scattered initiatives.",
   },
 ];
 
 const workflowSteps = [
   {
     step: "01",
-    title: "You share your real life",
-    body: "Routine, goals, emotional pressure, hobbies, energy, career interests, and what actually makes life harder or better.",
+    title: "Understand",
+    body: "Mood, energy, goals, pressure, schedule, and patterns become one clear life context.",
   },
   {
     step: "02",
-    title: "The AI reads patterns",
-    body: "It looks for consistency drops, pressure cycles, energy rhythms, and the gap between ideal plans and real behavior.",
+    title: "Plan",
+    body: "The AI creates realistic daily timelines, task priorities, habits, and recovery space.",
   },
   {
     step: "03",
-    title: "Adaptive guidance is generated",
-    body: "You get routines, roadmaps, recovery balance, skill strategy, and hobby-to-income pathways shaped around your reality.",
+    title: "Execute",
+    body: "Checklists, focus blocks, reminders, and AI coaching keep the day moving without overwhelm.",
   },
   {
     step: "04",
-    title: "Daily feedback keeps it alive",
-    body: "Mood, stress, missed tasks, burnout signals, and changing goals feed the next version instead of breaking the system.",
+    title: "Improve",
+    body: "Weekly patterns, momentum, and recommendations evolve as your real behavior changes.",
   },
 ];
 
@@ -179,9 +165,9 @@ const mobileSectionLinks = [
 ];
 
 const landingMetrics = [
-  { label: "Life state", value: "Adaptive", note: "Plans shift with stress, energy, and reality." },
-  { label: "Guidance depth", value: "Multi-layer", note: "Routine, roadmap, motivation, and recovery." },
-  { label: "AI memory", value: "Pattern-aware", note: "It learns what works and what keeps collapsing." },
+  { label: "Momentum", value: "87%", note: "Your week is moving in the right direction." },
+  { label: "Focus time", value: "4h 20m", note: "Protected blocks are prioritized first." },
+  { label: "Goal progress", value: "68%", note: "Personal goals stay connected to daily work." },
 ];
 
 const heroSignals = [
@@ -228,21 +214,32 @@ function Landing() {
 
         <div className="landing-nav__actions">
           <Link to="/login" className="landing-button landing-button--ghost" onClick={() => trackEvent("landing_cta_clicked", { cta: "nav_login" })}>Log in</Link>
-          <Link to="/login" className="landing-button landing-button--primary" onClick={() => trackEvent("landing_cta_clicked", { cta: "nav_start_planning" })}>Start Planning</Link>
+          <Link to="/login" className="landing-button landing-button--primary" onClick={() => trackEvent("landing_cta_clicked", { cta: "nav_start_planning" })}>Get Started Free</Link>
         </div>
       </nav>
 
       <section className="landing-hero">
         <div className="landing-hero__copy">
-          <p className="landing-eyebrow">Adaptive AI guidance for real life</p>
-          <h1>Design a life that actually fits you.</h1>
+          <p className="landing-eyebrow">Adaptive AI productivity coach</p>
+          <h1>Plan Smarter. Live Better. Achieve More.</h1>
           <p className="landing-hero__lead">
-            Life Guidance Pro is an AI-powered life operating system that helps students, employees, creators, and overwhelmed people build routines, direction, momentum, and balance with intelligent adaptive planning.
+            Life Guidance Pro is your friendly AI life companion for planning days, tracking goals, building habits, and understanding the patterns behind your best weeks.
           </p>
           <div className="landing-hero__actions">
-            <Link to="/login" className="landing-button landing-button--primary" onClick={() => trackEvent("landing_cta_clicked", { cta: "hero_start_planning" })}>Start Planning</Link>
-            <a href="#demo" className="landing-button landing-button--secondary" onClick={() => trackEvent("landing_cta_clicked", { cta: "hero_explore_demo" })}>Explore Demo</a>
-            <a href="#how" className="landing-button landing-button--ghost" onClick={() => trackEvent("landing_cta_clicked", { cta: "hero_how_ai_works" })}>See How AI Works</a>
+            <Link to="/login" className="landing-button landing-button--primary" onClick={() => trackEvent("landing_cta_clicked", { cta: "hero_start_planning" })}>Get Started Free</Link>
+            <a href="#demo" className="landing-button landing-button--secondary" onClick={() => trackEvent("landing_cta_clicked", { cta: "hero_explore_demo" })}>
+              <HiOutlinePlayCircle className="h-4 w-4" />
+              Watch Demo
+            </a>
+          </div>
+          <div className="landing-social-proof" aria-label="User social proof">
+            <div className="landing-social-proof__avatars">
+              <span>AK</span>
+              <span>JS</span>
+              <span>MN</span>
+              <span>RL</span>
+            </div>
+            <p>Trusted by students, employees, freelancers, and founders planning calmer weeks.</p>
           </div>
           <div className="landing-hero__signals">
             {heroSignals.map((signal) => {
@@ -267,6 +264,19 @@ function Landing() {
         </div>
 
         <div className="landing-hero__visual">
+          <div className="landing-student-illustration" aria-hidden="true">
+            <div className="landing-student-illustration__halo" />
+            <div className="landing-student-illustration__person">
+              <span className="landing-student-illustration__head" />
+              <span className="landing-student-illustration__hair" />
+              <span className="landing-student-illustration__body" />
+              <span className="landing-student-illustration__arm landing-student-illustration__arm--left" />
+              <span className="landing-student-illustration__arm landing-student-illustration__arm--right" />
+              <span className="landing-student-illustration__tablet" />
+            </div>
+            <div className="landing-floating-note landing-floating-note--top">Today: 4 focus blocks</div>
+            <div className="landing-floating-note landing-floating-note--bottom">AI Coach: lighter evening</div>
+          </div>
           <article className="landing-dashboard-preview">
             <div className="landing-dashboard-preview__head">
               <div>
@@ -356,8 +366,8 @@ function Landing() {
 
       <section id="how" className="landing-section landing-section--workflow">
         <div className="landing-section__intro">
-          <p className="landing-eyebrow">How the AI works</p>
-          <h2>Not a static planner. A closed-loop guidance engine.</h2>
+          <p className="landing-eyebrow">Features</p>
+          <h2>Understand, plan, execute, and improve with one calm system.</h2>
         </div>
         <button
           type="button"
@@ -575,8 +585,8 @@ function Landing() {
 
       <section id="trust" className="landing-section landing-section--trust">
         <div className="landing-section__intro">
-          <p className="landing-eyebrow">Trust & safety</p>
-          <h2>Supportive, private, and under your control.</h2>
+          <p className="landing-eyebrow">Privacy first</p>
+          <h2>Your life data stays protected while your AI coach gets smarter.</h2>
         </div>
         <button
           type="button"
@@ -588,6 +598,16 @@ function Landing() {
         </button>
         <div className={`landing-mobile-panel ${expandedMobileSection === "trust" ? "is-open" : ""}`}>
           <p className="landing-mobile-summary">Your plans stay editable, private, and under your control. The AI supports you without trying to replace your judgment.</p>
+          <div className="landing-privacy-banner">
+            <div className="landing-privacy-banner__shield">
+              <HiOutlineShieldCheck className="h-10 w-10" />
+            </div>
+            <div>
+              <span>Secure adaptive memory</span>
+              <h3>Private by design, useful by default.</h3>
+              <p>Your routines, check-ins, goals, and recommendations are used to improve your planning experience while keeping your personal system under your control.</p>
+            </div>
+          </div>
           <div className="landing-trust-grid">
             <article className="landing-trust-card">
               <HiOutlineUserGroup className="h-5 w-5" />

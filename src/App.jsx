@@ -68,6 +68,7 @@ function safeLazy(loader, title) {
 const Landing = safeLazy(() => import("./pages/Landing.jsx"), "Landing");
 const Login = safeLazy(() => import("./components/Login.jsx"), "Login");
 const Dashboard = safeLazy(() => import("./components/Dashboard.jsx"), "Dashboard");
+const LightThemeDemo = safeLazy(() => import("./pages/LightThemeDemo.jsx"), "Light Theme Demo");
 
 function ProtectedRoute({ user, children }) {
   if (!user) return <Navigate to="/login" replace />;
@@ -120,6 +121,12 @@ function AppRoutes({ user }) {
             <ProtectedRoute user={user}>
               <Dashboard user={user} />
             </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/light-theme"
+          element={
+            <LightThemeDemo />
           }
         />
         <Route path="*" element={<Navigate to="/" replace />} />

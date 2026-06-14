@@ -1,5 +1,5 @@
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 
   --ds-font-sans: Inter, "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   --ds-font-serif: "Inter Tight", Inter, "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
@@ -39,44 +39,44 @@
   --ds-radius-xs: 6px;
   --ds-radius-sm: 8px;
   --ds-radius-md: 12px;
-  --ds-radius-lg: 16px;
-  --ds-radius-xl: 20px;
+  --ds-radius-lg: 20px;
+  --ds-radius-xl: 22px;
   --ds-radius-2xl: 24px;
   --ds-radius-pill: 999px;
 
-  --ds-color-bg-app: #0a0f1d;
-  --ds-color-bg-canvas: #0d1723;
-  --ds-color-bg-section: #101b28;
-  --ds-color-bg-panel: rgba(17, 25, 40, 0.82);
-  --ds-color-bg-panel-strong: rgba(22, 31, 49, 0.92);
-  --ds-color-bg-panel-soft: rgba(255, 255, 255, 0.055);
-  --ds-color-bg-overlay: rgba(8, 12, 24, 0.8);
-  --ds-color-bg-elevated: rgba(255, 255, 255, 0.1);
+  --ds-color-bg-app: #f6f9ff;
+  --ds-color-bg-canvas: #ffffff;
+  --ds-color-bg-section: #eef5ff;
+  --ds-color-bg-panel: rgba(255, 255, 255, 0.86);
+  --ds-color-bg-panel-strong: rgba(255, 255, 255, 0.96);
+  --ds-color-bg-panel-soft: rgba(239, 246, 255, 0.72);
+  --ds-color-bg-overlay: rgba(15, 23, 42, 0.28);
+  --ds-color-bg-elevated: #ffffff;
 
-  --ds-color-border-default: rgba(183, 198, 255, 0.16);
-  --ds-color-border-strong: rgba(199, 211, 255, 0.28);
-  --ds-color-border-focus: rgba(125, 217, 176, 0.58);
+  --ds-color-border-default: #e5eaf5;
+  --ds-color-border-strong: #d6e2f4;
+  --ds-color-border-focus: rgba(59, 130, 246, 0.58);
 
-  --ds-color-text-primary: #f7fbff;
-  --ds-color-text-secondary: rgba(247, 251, 255, 0.78);
-  --ds-color-text-tertiary: rgba(247, 251, 255, 0.54);
-  --ds-color-text-muted: rgba(247, 251, 255, 0.62);
-  --ds-color-text-inverse: #07111e;
+  --ds-color-text-primary: #0f172a;
+  --ds-color-text-secondary: #334155;
+  --ds-color-text-tertiary: #64748b;
+  --ds-color-text-muted: #64748b;
+  --ds-color-text-inverse: #ffffff;
 
-  --ds-color-accent-cyan: #6ed8e6;
-  --ds-color-accent-blue: #7b8ff5;
-  --ds-color-accent-violet: #b5a3f5;
-  --ds-color-accent-teal: #7dd9b0;
+  --ds-color-accent-cyan: #60a5fa;
+  --ds-color-accent-blue: #3b82f6;
+  --ds-color-accent-violet: #8b5cf6;
+  --ds-color-accent-teal: #14b8a6;
 
-  --ds-color-success: #7dd9b0;
-  --ds-color-warning: #ffb45f;
-  --ds-color-danger: #ff7f9f;
-  --ds-color-info: #a7c4ff;
+  --ds-color-success: #10b981;
+  --ds-color-warning: #f59e0b;
+  --ds-color-danger: #ef4444;
+  --ds-color-info: #3b82f6;
 
-  --ds-shadow-soft: 0 8px 24px rgba(5, 10, 24, 0.16);
-  --ds-shadow-panel: 0 22px 56px rgba(3, 8, 20, 0.28);
-  --ds-shadow-hero: 0 28px 78px rgba(6, 12, 28, 0.34);
-  --ds-shadow-glow: 0 0 0 1px rgba(125, 217, 176, 0.1), 0 18px 44px rgba(123, 143, 245, 0.18);
+  --ds-shadow-soft: 0 10px 30px rgba(37, 99, 235, 0.08);
+  --ds-shadow-panel: 0 24px 60px rgba(15, 23, 42, 0.1);
+  --ds-shadow-hero: 0 32px 90px rgba(37, 99, 235, 0.14);
+  --ds-shadow-glow: 0 0 0 1px rgba(59, 130, 246, 0.1), 0 20px 48px rgba(59, 130, 246, 0.16);
 
   --ds-duration-fast: 160ms;
   --ds-duration-base: 220ms;
@@ -99,10 +99,9 @@ body {
   font-family: var(--ds-font-sans);
   color: var(--ds-color-text-primary);
   background:
-    radial-gradient(circle at 12% 10%, rgba(125, 217, 176, 0.14), transparent 22%),
-    radial-gradient(circle at 88% 12%, rgba(181, 163, 245, 0.18), transparent 24%),
-    radial-gradient(circle at 52% 100%, rgba(123, 143, 245, 0.12), transparent 28%),
-    linear-gradient(135deg, #1a1040 0%, #0d2a3a 42%, #0a2218 100%);
+    radial-gradient(circle at 10% 8%, rgba(96, 165, 250, 0.22), transparent 24%),
+    radial-gradient(circle at 86% 10%, rgba(139, 92, 246, 0.13), transparent 24%),
+    linear-gradient(180deg, #f6f9ff 0%, #ffffff 46%, #eef5ff 100%);
 }
 
 *,
@@ -170,12 +169,12 @@ body {
   font-weight: 700;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: #9fdcff;
+  color: #3b82f6;
 }
 
 .ds-glass {
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 251, 255, 0.82)),
     var(--ds-color-bg-panel);
   border: 1px solid var(--ds-color-border-default);
   backdrop-filter: blur(var(--ds-panel-blur));
@@ -185,16 +184,16 @@ body {
 
 .ds-glass-strong {
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04)),
-    rgba(19, 28, 44, 0.88);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(239, 246, 255, 0.9)),
+    rgba(255, 255, 255, 0.88);
+  border: 1px solid #e5eaf5;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   box-shadow: var(--ds-shadow-hero);
 }
 
 .ds-glass-soft {
-  background: rgba(255, 255, 255, 0.065);
+  background: rgba(255, 255, 255, 0.74);
   border: 1px solid var(--ds-color-border-default);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
