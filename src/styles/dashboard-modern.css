@@ -1722,6 +1722,10 @@
     display: inline-flex;
   }
 
+  .dashboard-bottom-nav {
+    display: grid;
+  }
+
   .dashboard-mobile-nav {
     display: flex;
   }
