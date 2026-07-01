@@ -23,6 +23,7 @@ import Sidebar from "./dashboard/Sidebar.jsx";
 import AdaptiveWidgetSkeleton from "./ai/AdaptiveWidgetSkeleton.jsx";
 import { useAdaptiveInsightsFeed } from "./ai/useAdaptiveInsightsFeed.js";
 import { useWorkspaceData } from "../hooks/useWorkspaceData.js";
+import { usePlanGeneration } from "../hooks/usePlanGeneration.js";
 import { Badge, Button, Card, Skeleton } from "./ui/index.js";
 import { DashboardContainer, GridLayout, MobileBottomNav, PanelLayout, SectionHeader } from "./layout/index.js";
 
@@ -50,7 +51,6 @@ import {
   saveHabitRecord,
   saveHobbyPlanRecord,
   saveMonthlyReviewRecord,
-  savePlanRecord,
   saveReminderSettings,
   saveRoutineBuilderRecord,
   saveUserProfile,
@@ -61,7 +61,7 @@ import {
 } from "../services/appData";
 import { getDateKey } from "../services/rewards";
 import { applyRewardAction, submitDailyCheckin } from "../services/progressData";
-import { logPlanGeneration, logPlanFeedback, logPlanAdjustment, logCheckinPattern } from "../services/dataCollection";
+import { logPlanFeedback, logCheckinPattern } from "../services/dataCollection";
 import { buildBehavioralInsights } from "../services/behavioralInsights";
 import { buildAdaptiveIntelligence } from "../ai/orchestration/adaptiveIntelligence.js";
 import { buildAiRequestContext } from "../ai/orchestration/buildAiRequestContext.js";
@@ -455,11 +455,6 @@ function formatDate(value) {
   return new Intl.DateTimeFormat("en", { dateStyle: "medium", timeStyle: "short" }).format(dateValue);
 }
 
-function createPlanTitle(form) {
-  const goalWords = form.goals.trim().split(/\s+/).slice(0, 7).join(" ");
-  return goalWords || `${form.planDuration} ${form.roadmapFocus} plan`;
-}
-
 function buildPlannerProfile(form, profile) {
   return { ...form, profileContext: profile };
 }
@@ -836,8 +831,6 @@ function Dashboard({ user }) {
   const [feedbackRating, setFeedbackRating] = useState(5);
   const [statusMessage, setStatusMessage] = useState("");
   const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [isAdjusting, setIsAdjusting] = useState(false);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
   const [isSubmittingCheckin, setIsSubmittingCheckin] = useState(false);
@@ -1119,6 +1112,30 @@ function Dashboard({ user }) {
     },
     [adaptiveWorkspace, behavioralInsights, checkins, progress],
   );
+  const {
+    isLoading,
+    isAdjusting,
+    requestPlan,
+    mergeRewardResult,
+  } = usePlanGeneration({
+    form,
+    profile,
+    consentChecked,
+    requiredFields,
+    userId,
+    userEmail,
+    currentPlan,
+    aiRequestContext,
+    setError,
+    setStatusMessage,
+    setPlans,
+    setCurrentPlan,
+    setFollowupAiMeta,
+    setAdjustmentRequest,
+    setActiveTab,
+    setProgress,
+    setRewardEvents,
+  });
   const activeAiMeta = followupAiMeta || currentPlan?.aiMeta || null;
   const { adaptiveInsights, isLoadingAdaptiveInsights } = useAdaptiveInsightsFeed({
     userId,
@@ -1275,104 +1292,6 @@ function Dashboard({ user }) {
     setForm((current) => ({ ...current, ...buildAutofillFromProfile(profile) }));
     setActiveTab("planner");
     setStatusMessage("Your saved profile has been applied to the planner.");
-  };
-
-  const validatePlanner = () => {
-    if (requiredFields.find((field) => !form[field].trim())) {
-      setError("Please complete the main questions before generating your plan.");
-      return false;
-    }
-    if (!consentChecked) {
-      setError("Please confirm the privacy checkbox before generating a plan.");
-      return false;
-    }
-    return true;
-  };
-
-  const mergeRewardResult = (result) => {
-    if (!result) return;
-    setProgress((current) => ({ ...current, ...result.progress }));
-    if (result.rewards?.length) {
-      const stampedRewards = result.rewards.map((reward, index) => ({
-        id: `${Date.now()}-${index}-${reward.reason}`,
-        ...reward,
-        createdAt: new Date().toISOString(),
-      }));
-      setRewardEvents((current) => [...stampedRewards, ...current]);
-    }
-  };
-
-  const requestPlan = async ({ adjustment = "" } = {}) => {
-    setError("");
-    setStatusMessage("");
-    if (!validatePlanner()) return;
-    adjustment ? setIsAdjusting(true) : setIsLoading(true);
-    try {
-      const response = await fetch(`${API_BASE}/api/guidance`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          profile: buildPlannerProfile(form, profile),
-          userEmail,
-          userId,
-          planId: currentPlan?.id || null,
-          previousPlan: currentPlan?.result || "",
-          adjustmentRequest: adjustment,
-          aiContext: aiRequestContext,
-        }),
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || "Could not create your plan.");
-      const savedPlan = await savePlanRecord({
-        userId,
-        userEmail,
-        title: createPlanTitle(form),
-        profileSnapshot: form,
-        profileSummary: profile,
-        result: data.plan,
-        aiMeta: data.aiMeta || null,
-        adjustment,
-      });
-      const rewardResult = await applyRewardAction(userId, {
-        type: adjustment ? "plan-adjusted" : "plan-created",
-        planId: savedPlan.id,
-        roadmapFocus: form.roadmapFocus,
-      });
-      mergeRewardResult(rewardResult);
-      
-      // Log data for AI improvement
-      if (adjustment) {
-        await logPlanAdjustment(userId, {
-          originalFocus: currentPlan?.profileSnapshot?.roadmapFocus,
-          adjustmentRequest: adjustment,
-          planDuration: form.planDuration,
-        });
-      } else {
-        await logPlanGeneration(userId, {
-          profile: buildPlannerProfile(form, profile),
-          plan: data.plan,
-          adjustmentRequest: null,
-        });
-      }
-      trackEvent(adjustment ? "plan_adjusted" : "plan_generated", {
-        roadmap_focus: form.roadmapFocus,
-        duration: form.planDuration,
-        preferred_tone: form.preferredTone,
-        has_profile_context: Boolean(profile.fullName || profile.mainGoal),
-      });
-      
-      setPlans((current) => [savedPlan, ...current]);
-      setCurrentPlan(savedPlan);
-      setFollowupAiMeta(null);
-      setAdjustmentRequest("");
-      setActiveTab("planner");
-      setStatusMessage(adjustment ? "Plan updated successfully. Your revised plan is ready below." : "Plan generated successfully. Your new guidance plan is ready below.");
-    } catch (requestError) {
-      setError(requestError.message || "Something went wrong while creating your plan.");
-    } finally {
-      setIsLoading(false);
-      setIsAdjusting(false);
-    }
   };
 
   const handleSaveProfile = async (event) => {
@@ -2729,6 +2648,4 @@ function Dashboard({ user }) {
 }
 
 export default Dashboard;
-
-
 
