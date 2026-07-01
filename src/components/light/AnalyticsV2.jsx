@@ -206,7 +206,7 @@ export default function AnalyticsV2() {
       value: "78",
       delta: "+12%",
       deltaType: "positive",
-      icon: HiOutlineTrendingUp,
+      icon: HiOutlineArrowTrendingUp,
       subtitle: "Above your monthly average",
     },
     {

@@ -305,5 +305,5 @@ app.use((error, req, res, next) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Life Guidance API running on port ${PORT} with ${activeProvider}:${activeModel}`);
+  console.info(`Life Guidance API running on port ${PORT} with ${activeProvider}:${activeModel}`);
 });
