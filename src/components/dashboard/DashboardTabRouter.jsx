@@ -12,6 +12,7 @@ import {
 import { WidgetErrorBoundary } from "../AppErrorBoundary.jsx";
 import PlannerTab from "./PlannerTab.jsx";
 import { AnalyticsV2, StudyCenter } from "../light/index.js";
+import { LoadingCard } from "../skeletons/index.js";
 
 const LAZY_IMPORT_TIMEOUT_MS = 8000;
 
@@ -379,10 +380,7 @@ function DashboardTabRouter({
     return (
       <>
         {plannerBootstrapPending && (
-          <SectionLoadingCard
-            title="Loading your saved context"
-            description="WeÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾Ãƒâ€šÃ‚Â¢re pulling in your latest plans, profile, and feedback so the planner can start from your real history."
-          />
+          <LoadingCard lines={3} showBadge={false} showAction={false} />
         )}
         <PlannerTab
           form={form}
@@ -404,9 +402,10 @@ function DashboardTabRouter({
 
   if (tabLoadingConfig[activeTab]) {
     return (
-      <SectionLoadingCard
-        title={`Loading ${activeTab} data`}
-        description="This section is filling in from your saved workspace so the content reflects your latest state."
+      <LoadingCard
+        lines={3}
+        showBadge={false}
+        showAction={false}
       />
     );
   }

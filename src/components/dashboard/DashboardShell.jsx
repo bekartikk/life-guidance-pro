@@ -9,6 +9,8 @@ import AdaptiveWidgetSkeleton from "../ai/AdaptiveWidgetSkeleton.jsx";
 import { WidgetErrorBoundary } from "../AppErrorBoundary.jsx";
 import { Badge, Button, Card, Skeleton } from "../ui/index.js";
 import { DashboardContainer, GridLayout, MobileBottomNav, PanelLayout, SectionHeader } from "../layout/index.js";
+import { LoadingCard } from "../skeletons/index.js";
+import { ErrorAlert } from "../ui/feedback/index.js";
 const LAZY_IMPORT_TIMEOUT_MS = 8000;
 
 function LazyImportFallback({ title }) {
@@ -295,7 +297,7 @@ export default function DashboardShell({
           </div>
 
           {statusMessage && <div className={`status-toast ${statusTone === "info" ? "status-toast-info" : "status-toast-success"}`}>{statusMessage}</div>}
-          {error && <p className="error-message">{error}</p>}
+          {error && <ErrorAlert>{error}</ErrorAlert>}
           {isLoadingWorkspace && <SectionLoadingCard title="Syncing your workspace" description="WeÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢re warming up your saved planner data section by section so you can keep using the app while it loads." />}
 
           <div className="dashboard-content-grid">
@@ -396,8 +398,8 @@ export default function DashboardShell({
                     <div className="planner-workspace-grid__form" ref={plannerFormRef}>
                       {showMobilePlannerSkeleton && (
                         <div className="dashboard-mobile-skeletons dashboard-mobile-skeletons--planner">
-                          <CompactLoadingSkeleton title="Preparing planner context" lines={3} />
-                          <CompactLoadingSkeleton title="Syncing adaptive defaults" lines={2} />
+                          <LoadingCard lines={3} showBadge={false} />
+                          <LoadingCard lines={2} showBadge={false} />
                         </div>
                       )}
                       {renderedTab}
@@ -489,8 +491,8 @@ export default function DashboardShell({
               <div className="dashboard-intelligence-rail__core">
                 {showMobileInsightSkeleton && (
                   <div className="dashboard-mobile-skeletons dashboard-mobile-skeletons--insights">
-                    <CompactLoadingSkeleton title="Syncing insight rail" lines={2} />
-                    <CompactLoadingSkeleton title="Warming up progress cards" lines={3} />
+                    <LoadingCard lines={2} showBadge={false} />
+                    <LoadingCard lines={3} showBadge={false} />
                   </div>
                 )}
                 <Card padded={false} className="intelligence-panel intelligence-panel--highlight">
