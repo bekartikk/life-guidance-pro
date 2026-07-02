@@ -12,6 +12,7 @@ import {
   buildGuidanceUserPrompt,
 } from "../prompts/guidancePrompts.js";
 import { followupSchema, guidancePlanSchema } from "../prompts/schemas.js";
+import { buildCompactContextPack, summarizeConversationTurn } from "./context/adaptiveContextEngine.js";
 
 const runtimeConfig = {
   cacheTtlMs: Number(process.env.AI_CACHE_TTL_MS || 120000),
@@ -276,8 +277,19 @@ async function prepareIntelligence(input) {
     aiContext: input.aiContext,
     profile: input.profile,
   });
+  const contextPack = buildCompactContextPack({
+    profile: input.profile,
+    aiContext: input.aiContext,
+    adjustmentRequest: input.adjustmentRequest,
+    previousPlan: input.previousPlan,
+    currentPlan: input.currentPlan,
+    followUpPrompt: input.followUpPrompt,
+    memory,
+    semanticMemory,
+    conversationSummary: input.conversationSummary,
+  });
 
-  return { adaptiveState, personality, memory, recommendations, semanticMemory };
+  return { adaptiveState, personality, memory, recommendations, semanticMemory, contextPack };
 }
 
 export async function generateAdaptivePlan(input) {
@@ -313,6 +325,13 @@ export async function generateAdaptivePlan(input) {
   }
 
   try {
+    const conversationSummary = summarizeConversationTurn({
+      previousSummary: input.conversationSummary,
+      turnType: "guidance",
+      adjustmentRequest: input.adjustmentRequest,
+      followUpPrompt: input.followUpPrompt,
+    });
+    const contextPack = intelligence.contextPack;
     const payload = await provider.generateStructured({
       systemPrompt: buildGuidanceSystemPrompt({
         personality: intelligence.personality,
@@ -326,6 +345,8 @@ export async function generateAdaptivePlan(input) {
         recommendations: intelligence.recommendations,
         adjustmentRequest: input.adjustmentRequest,
         previousPlan: input.previousPlan,
+        contextPack,
+        conversationSummary,
       }),
       schema: guidancePlanSchema,
       temperature: 0.65,
@@ -383,6 +404,12 @@ export async function generateAdaptiveFollowup(input) {
   const intelligence = await prepareIntelligence(input);
 
   try {
+    const conversationSummary = summarizeConversationTurn({
+      previousSummary: input.conversationSummary,
+      turnType: "followup",
+      adjustmentRequest: input.adjustmentRequest,
+      followUpPrompt: input.followUpPrompt,
+    });
     const payload = await provider.generateStructured({
       systemPrompt: buildFollowupSystemPrompt({
         personality: intelligence.personality,
@@ -394,6 +421,8 @@ export async function generateAdaptiveFollowup(input) {
         memory: intelligence.memory,
         currentPlan: input.currentPlan,
         followUpPrompt: input.followUpPrompt,
+        contextPack: intelligence.contextPack,
+        conversationSummary,
       }),
       schema: followupSchema,
       temperature: 0.55,

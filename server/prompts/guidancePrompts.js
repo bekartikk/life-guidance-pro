@@ -32,9 +32,23 @@ export function buildGuidanceUserPrompt({
   recommendations,
   adjustmentRequest = "",
   previousPlan = "",
+  contextPack = {},
+  conversationSummary = "",
 }) {
+  const compactProfile = {
+    primaryGoal: contextPack.primaryGoal,
+    energyStress: contextPack.energyStress,
+    recentCompletedActions: contextPack.recentCompletedActions,
+    activePlan: contextPack.activePlan,
+    relevantMemories: contextPack.relevantMemories,
+    conversationSummary,
+  };
+
   return [
     "Create an adaptive guidance plan from the following structured user context.",
+    "",
+    "Compact context pack:",
+    JSON.stringify(compactProfile, null, 2),
     "",
     "User profile:",
     JSON.stringify(profile, null, 2),
@@ -70,9 +84,21 @@ export function buildFollowupUserPrompt({
   memory,
   currentPlan,
   followUpPrompt,
+  contextPack = {},
+  conversationSummary = "",
 }) {
   return [
     "Refine the user's current plan according to the follow-up request.",
+    "",
+    "Compact context pack:",
+    JSON.stringify({
+      primaryGoal: contextPack.primaryGoal,
+      energyStress: contextPack.energyStress,
+      recentCompletedActions: contextPack.recentCompletedActions,
+      activePlan: contextPack.activePlan,
+      relevantMemories: contextPack.relevantMemories,
+      conversationSummary,
+    }, null, 2),
     "",
     "Profile:",
     JSON.stringify(profile, null, 2),
