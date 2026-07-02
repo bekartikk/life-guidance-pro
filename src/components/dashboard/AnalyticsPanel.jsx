@@ -1,6 +1,8 @@
-﻿import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { collection, getDocs, query } from "firebase/firestore";
 import { db } from "../../firebase-db";
+import { LoadingCard } from "../skeletons/index.js";
+import { ErrorAlert } from "../ui/feedback/index.js";
 
 function AnalyticsPanel({ userId }) {
   const [adjustmentPatterns, setAdjustmentPatterns] = useState([]);
@@ -81,7 +83,7 @@ function AnalyticsPanel({ userId }) {
     return () => window.clearTimeout(timer);
   }, [loadAnalytics, userId]);
 
-  if (isLoading) return <section className="analytics-panel">Loading analytics...</section>;
+  if (isLoading) return <section className="analytics-panel"><LoadingCard lines={4} showBadge={false} /></section>;
 
   return (
     <section className="analytics-panel in-workspace">
@@ -95,7 +97,7 @@ function AnalyticsPanel({ userId }) {
         </button>
       </div>
 
-      {error && <p className="error-message">{error}</p>}
+      {error && <ErrorAlert>{error}</ErrorAlert>}
 
       {adjustmentPatterns.length > 0 && (
         <div className="analytics-section">

@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import { LoadingCard } from "../skeletons/index.js";
+import { ErrorAlert } from "../ui/feedback/index.js";
 
 function parseProjectMap(source) {
   const lines = String(source || "").split(/\r?\n/);
@@ -61,8 +63,8 @@ function ProjectMapTab() {
         </div>
       </div>
 
-      {isLoading && <section className="section-loading-card">Loading the latest project map...</section>}
-      {error && <p className="error-message">{error}</p>}
+      {isLoading && <LoadingCard lines={3} showBadge={false} />}
+      {error && <ErrorAlert>{error}</ErrorAlert>}
 
       {!isLoading && !error && (
         <>
