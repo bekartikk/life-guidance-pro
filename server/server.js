@@ -4,6 +4,7 @@ import express from "express";
 import { generateAdaptiveFollowup, generateAdaptivePlan } from "./ai/orchestrator.js";
 import { loadAdaptiveInsights } from "./db/services/loadAdaptiveInsights.js";
 import { persistAdaptiveFollowupArtifacts, persistAdaptivePlanArtifacts } from "./db/services/persistAdaptiveArtifacts.js";
+import { requireFirebaseAuth } from "./auth/requireFirebaseAuth.js";
 
 dotenv.config({ path: new URL(".env", import.meta.url) });
 
@@ -160,10 +161,9 @@ app.get("/healthz", (req, res) => {
   res.json({ ok: true, provider: activeProvider, model: activeModel });
 });
 
-app.get("/api/adaptive-insights", async (req, res) => {
+app.get("/api/adaptive-insights", requireFirebaseAuth, async (req, res) => {
   try {
-    const userId = clip(req.query.userId, 160);
-    const payload = await loadAdaptiveInsights({ userId });
+    const payload = await loadAdaptiveInsights({ userId: req.user.uid });
     return res.json(payload);
   } catch (error) {
     return res.status(error.status || 500).json({
@@ -180,13 +180,13 @@ app.get("/api/adaptive-insights", async (req, res) => {
   }
 });
 
-app.post("/api/guidance", async (req, res) => {
+app.post("/api/guidance", requireFirebaseAuth, async (req, res) => {
   const profile = cleanProfile(req.body.profile);
   const adjustmentRequest = clip(req.body.adjustmentRequest, 1600);
   const previousPlan = clip(req.body.previousPlan, 9000);
   const aiContext = cleanAiContext(req.body.aiContext);
-  const userEmail = clip(req.body.userEmail, 160);
-  const userId = clip(req.body.userId, 160);
+  const userEmail = clip(req.user.email, 160);
+  const userId = clip(req.user.uid, 160);
   const needsUrgentSupport = containsUrgentSupportLanguage(
     JSON.stringify(profile),
     adjustmentRequest,
@@ -235,13 +235,13 @@ app.post("/api/guidance", async (req, res) => {
   }
 });
 
-app.post("/api/followup", async (req, res) => {
+app.post("/api/followup", requireFirebaseAuth, async (req, res) => {
   const profile = cleanProfile(req.body.profile);
   const currentPlan = clip(req.body.currentPlan, 12000);
   const followUpPrompt = clip(req.body.followUpPrompt, 1600);
   const aiContext = cleanAiContext(req.body.aiContext);
-  const userEmail = clip(req.body.userEmail, 160);
-  const userId = clip(req.body.userId, 160);
+  const userEmail = clip(req.user.email, 160);
+  const userId = clip(req.user.uid, 160);
   const needsUrgentSupport = containsUrgentSupportLanguage(
     JSON.stringify(profile),
     currentPlan,
