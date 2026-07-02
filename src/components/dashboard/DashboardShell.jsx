@@ -1,4 +1,4 @@
-import { Suspense, lazy } from "react";
+import { memo, Suspense, lazy } from "react";
 
 import Header from "./Header.jsx";
 import PlannerBoard from "./PlannerBoard.jsx";
@@ -133,7 +133,7 @@ function LazySection({ title, description, children }) {
   );
 }
 
-export default function DashboardShell({
+const DashboardShell = memo(function DashboardShell({
   focusMode,
   sidebarItems,
   activeTab,
@@ -688,4 +688,6 @@ export default function DashboardShell({
 
     </>
   );
-}
+});
+
+export default DashboardShell;
