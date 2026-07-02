@@ -1,6 +1,6 @@
 # Project Brain Map
 
-_Auto-generated on 8 May 2026, 2:08 pm. This file updates from the repo structure and app/server entry points._
+_Auto-generated on 2 Jul 2026, 5:27 pm. This file updates from the repo structure and app/server entry points._
 
 ## What This Project Is
 
@@ -18,7 +18,7 @@ flowchart TD
   B --> C["Auth Layer"]
   B --> D["Dashboard Workspace"]
   B --> E["Planner + Result Panel"]
-  D --> F["Tabs: AchievementTab, AdminTab, AnalyticsChart, AnalyticsPanel, CareerExplorerTab, ChatExtensionTab, DailyProgressTab, FeedbackTab, ..."]
+  D --> F["Tabs: AchievementTab, AdminTab, AnalyticsChart, AnalyticsPanel, CareerExplorerTab, ChatExtensionTab, DailyProgressTab, DashboardShell, ..."]
   E --> G["Express API"]
   G --> H["Gemini Guidance + Follow-up"]
   D --> I["Firestore Services"]
@@ -116,6 +116,8 @@ export async function submitDailyCheckin(userId, payload) {
   - `CareerExplorerTab`
   - `ChatExtensionTab`
   - `DailyProgressTab`
+  - `DashboardShell`
+  - `DashboardTabRouter`
   - `FeedbackTab`
   - `GoalTab`
   - `HabitTab`
@@ -147,6 +149,7 @@ export async function submitDailyCheckin(userId, payload) {
 - Routes:
   - `GET /`
   - `GET /healthz`
+  - `GET /api/adaptive-insights`
   - `POST /api/guidance`
   - `POST /api/followup`
 
@@ -286,6 +289,21 @@ const routineBuildersCollection = collection(db, `
 - `VITE_FIREBASE_MEASUREMENT_ID`
 - `VITE_API_BASE_URL`
 - `VITE_ADMIN_EMAILS`
+- `VITE_POSTHOG_KEY`
+- `VITE_POSTHOG_HOST`
+- `VITE_APP_VERSION`
+- `VITE_COMMIT_SHA`
+- `VITE_BACKEND_MODE`
+- `VITE_SENTRY_DSN`
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
+- `VITE_SUPABASE_REALTIME`
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `SENTRY_DSN`
+- `ENABLE_SUPABASE_MIRROR`
+- `ENABLE_AI_EMBEDDINGS`
+- `ENABLE_SUPABASE_REALTIME`
 
 ## Tooling
 
@@ -297,11 +315,30 @@ const routineBuildersCollection = collection(db, `
   - `preview`: `vite preview`
   - `project:map`: `node scripts/generate-project-map.mjs`
   - `project:map:watch`: `node scripts/watch-project-map.mjs`
+  - `cap:sync`: `npx cap sync`
+  - `cap:open`: `npx cap open android`
+  - `test`: `vitest run`
+  - `test:watch`: `vitest`
+  - `test:e2e`: `playwright test`
 - Vite config present: `yes`
 
 ## High-Level File Map
 
 ### src/
+- `src/ai`
+- `src/ai/cache`
+- `src/ai/cache/upstashAdapter.js`
+- `src/ai/memory`
+- `src/ai/memory/memorySchema.js`
+- `src/ai/memory/memoryService.js`
+- `src/ai/memory/providers`
+- `src/ai/memory/providers/pineconeAdapter.js`
+- `src/ai/orchestration`
+- `src/ai/orchestration/adaptiveIntelligence.js`
+- `src/ai/orchestration/buildAiRequestContext.js`
+- `src/ai/orchestration/runtimeConfig.js`
+- `src/analytics`
+- `src/analytics/posthog.js`
 - `src/App.css`
 - `src/App.jsx`
 - `src/assets`
@@ -309,6 +346,12 @@ const routineBuildersCollection = collection(db, `
 - `src/assets/react.svg`
 - `src/assets/vite.svg`
 - `src/components`
+- `src/components/ai`
+- `src/components/ai/AdaptiveHistorySurface.jsx`
+- `src/components/ai/adaptiveInsightsRepository.js`
+- `src/components/ai/AdaptiveIntelligenceRail.jsx`
+- `src/components/ai/AdaptiveWidgetSkeleton.jsx`
+- `src/components/ai/useAdaptiveInsightsFeed.js`
 - `src/components/AppErrorBoundary.jsx`
 - `src/components/dashboard`
 - `src/components/dashboard/AchievementTab.jsx`
@@ -318,61 +361,76 @@ const routineBuildersCollection = collection(db, `
 - `src/components/dashboard/CareerExplorerTab.jsx`
 - `src/components/dashboard/ChatExtensionTab.jsx`
 - `src/components/dashboard/DailyProgressTab.jsx`
+- `src/components/dashboard/DashboardShell.jsx`
+- `src/components/dashboard/DashboardTabRouter.jsx`
 - `src/components/dashboard/FeedbackTab.jsx`
 - `src/components/dashboard/GoalTab.jsx`
-- `src/components/dashboard/HabitTab.jsx`
-- `src/components/dashboard/Header.jsx`
-- `src/components/dashboard/HistoryTab.jsx`
-- `src/components/dashboard/HobbyIncomeTab.jsx`
-- `src/components/dashboard/MissionsTab.jsx`
-- `src/components/dashboard/MonthlyReviewTab.jsx`
-- `src/components/dashboard/PersonalizationTab.jsx`
-- `src/components/dashboard/PlannerBoard.jsx`
-- `src/components/dashboard/PlannerTab.jsx`
-- `src/components/dashboard/ProfileTab.jsx`
-- `src/components/dashboard/ProgressWidget.jsx`
-- `src/components/dashboard/ProjectMapTab.jsx`
-- `src/components/dashboard/QuickAddModal.jsx`
-- `src/components/dashboard/ReminderTab.jsx`
-- `src/components/dashboard/ResultPanel.jsx`
-- `src/components/dashboard/RoutineBuilderTab.jsx`
-- `src/components/dashboard/SettingsTab.jsx`
-- `src/components/dashboard/Sidebar.jsx`
-- `src/components/dashboard/SupportTab.jsx`
-- `src/components/dashboard/TaskCard.jsx`
-- `src/components/dashboard/WeeklyProgressTab.jsx`
-- `src/components/dashboard/WeeklyReviewTab.jsx`
 
 ### server/
 - `server/.env`
 - `server/.env.example`
+- `server/adaptive-engine`
+- `server/adaptive-engine/adaptiveEngine.js`
+- `server/ai`
+- `server/ai/cache`
+- `server/ai/cache/runtimeCache.js`
+- `server/ai/orchestrator.js`
+- `server/ai/providerRegistry.js`
+- `server/ai/providers`
+- `server/ai/providers/geminiProvider.js`
+- `server/ai/providers/openaiProvider.js`
+- `server/auth`
+- `server/auth/firebaseAdmin.js`
+- `server/auth/requireFirebaseAuth.js`
+- `server/db`
+- `server/db/auth`
+- `server/db/auth/authContext.js`
+- `server/db/config.js`
+- `server/db/embeddings`
+- `server/db/embeddings/openaiEmbeddingProvider.js`
+- `server/db/repositories`
+- `server/db/repositories/index.js`
+- `server/db/repositories/noopAdaptiveRepository.js`
+- `server/db/repositories/supabaseAdaptiveRepository.js`
+- `server/db/repositories/types.js`
+- `server/db/retrieval`
+- `server/db/retrieval/adaptiveContextBuilder.js`
+- `server/db/retrieval/embeddingQueueHelpers.js`
+- `server/db/retrieval/memoryRankingEngine.js`
+- `server/db/retrieval/scoringUtils.js`
+- `server/db/retrieval/vectorMemoryService.js`
+- `server/db/services`
+- `server/db/services/loadAdaptiveInsights.js`
+- `server/db/services/persistAdaptiveArtifacts.js`
+- `server/db/supabaseAdmin.js`
+- `server/memory`
+- `server/memory/memoryEngine.js`
+- `server/monitoring`
 - `server/package-lock.json`
-- `server/package.json`
-- `server/server.js`
 
 ### docs and config
-- `.env`
-- `.env.example`
-- `.gitignore`
-- `AI_IMPROVEMENT_GUIDE.md`
-- `archive/new_components_prototype/dashboard_new/new_dashboard.jsx`
-- `archive/new_components_prototype/new_layout/applayout.jsx`
-- `archive/new_components_prototype/new_layout/header.jsx`
-- `archive/new_components_prototype/new_layout/rightpanel.jsx`
-- `archive/new_components_prototype/new_layout/sidebar.jsx`
-- `archive/new_components_prototype/sections/overview.jsx`
-- `archive/new_components_prototype/sections/plannersection.jsx`
-- `archive/new_components_prototype/sections/statsgrid.jsx`
-- `DATA_COLLECTION_SUMMARY.md`
-- `DEPLOYMENT_CHECKLIST.md`
-- `eslint.config.js`
-- `firestore.rules`
-- `index.html`
-- `MODERN_UI_REDESIGN.md`
-- `package-lock.json`
-- `package.json`
-- `postcss.config.js`
-- `PROJECT_BRAIN_MAP.md`
-- `public/favicon.svg`
-- `public/icons.svg`
-- `public/PROJECT_BRAIN_MAP.md`
+- `.agents/skills/supabase-postgres-best-practices/references/advanced-full-text-search.md`
+- `.agents/skills/supabase-postgres-best-practices/references/advanced-jsonb-indexing.md`
+- `.agents/skills/supabase-postgres-best-practices/references/conn-idle-timeout.md`
+- `.agents/skills/supabase-postgres-best-practices/references/conn-limits.md`
+- `.agents/skills/supabase-postgres-best-practices/references/conn-pooling.md`
+- `.agents/skills/supabase-postgres-best-practices/references/conn-prepared-statements.md`
+- `.agents/skills/supabase-postgres-best-practices/references/data-batch-inserts.md`
+- `.agents/skills/supabase-postgres-best-practices/references/data-n-plus-one.md`
+- `.agents/skills/supabase-postgres-best-practices/references/data-pagination.md`
+- `.agents/skills/supabase-postgres-best-practices/references/data-upsert.md`
+- `.agents/skills/supabase-postgres-best-practices/references/lock-advisory.md`
+- `.agents/skills/supabase-postgres-best-practices/references/lock-deadlock-prevention.md`
+- `.agents/skills/supabase-postgres-best-practices/references/lock-short-transactions.md`
+- `.agents/skills/supabase-postgres-best-practices/references/lock-skip-locked.md`
+- `.agents/skills/supabase-postgres-best-practices/references/monitor-explain-analyze.md`
+- `.agents/skills/supabase-postgres-best-practices/references/monitor-pg-stat-statements.md`
+- `.agents/skills/supabase-postgres-best-practices/references/monitor-vacuum-analyze.md`
+- `.agents/skills/supabase-postgres-best-practices/references/query-composite-indexes.md`
+- `.agents/skills/supabase-postgres-best-practices/references/query-covering-indexes.md`
+- `.agents/skills/supabase-postgres-best-practices/references/query-index-types.md`
+- `.agents/skills/supabase-postgres-best-practices/references/query-missing-indexes.md`
+- `.agents/skills/supabase-postgres-best-practices/references/query-partial-indexes.md`
+- `.agents/skills/supabase-postgres-best-practices/references/schema-constraints.md`
+- `.agents/skills/supabase-postgres-best-practices/references/schema-data-types.md`
+- `.agents/skills/supabase-postgres-best-practices/references/schema-foreign-key-indexes.md`

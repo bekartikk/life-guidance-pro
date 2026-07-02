@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   HiOutlineChartBarSquare,
@@ -921,7 +921,7 @@ function Dashboard({ user }) {
   );
 
 
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     try {
       trackEvent("logout_clicked", { surface: "dashboard_header" });
       await signOut(auth);
@@ -930,7 +930,7 @@ function Dashboard({ user }) {
     } catch (logoutError) {
       setError(logoutError.message || "Could not sign out right now.");
     }
-  };
+  }, []);
 
 
   const updateField = (event) => setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
@@ -960,7 +960,7 @@ function Dashboard({ user }) {
     setStatusMessage("");
   };
 
-  const handleQuickAddSubmit = (event) => {
+  const handleQuickAddSubmit = useCallback((event) => {
     event.preventDefault();
     const title = quickAddDraft.title.trim();
     const note = quickAddDraft.note.trim();
@@ -1000,7 +1000,7 @@ function Dashboard({ user }) {
     setQuickAddDraft({ type: "goal", title: "", note: "" });
     setIsQuickAddOpen(false);
     setError("");
-  };
+  }, [quickAddDraft.note, quickAddDraft.title, quickAddDraft.type, setActiveTab, setError, setGoalDraft, setHabitDraft, setIsQuickAddOpen, setQuickAddDraft, setStatusMessage, setForm]);
 
   const applyProfileToPlanner = () => {
     setForm((current) => ({ ...current, ...buildAutofillFromProfile(profile) }));
@@ -1802,71 +1802,95 @@ function Dashboard({ user }) {
       userId={userId}
     />
   );
-  const intelligenceCards = [
-    {
-      label: "Current focus",
-      value: formatDisplayLabel(insightNarrative.focus),
-      detail: personalizationInsights.nextMove,
-    },
-    {
-      label: "Low-energy pattern",
-      value: progress.activeStreak > 0 ? "Protected" : "Needs backup",
-      detail: personalizationInsights.lowEnergyPattern,
-    },
-    {
-      label: "Best guidance tone",
-      value: formatDisplayLabel(personalizationInsights.preferredTone),
-      detail: personalizationInsights.routineStyle,
-    },
-  ];
+  const intelligenceCards = useMemo(
+    () => [
+      {
+        label: "Current focus",
+        value: formatDisplayLabel(insightNarrative.focus),
+        detail: personalizationInsights.nextMove,
+      },
+      {
+        label: "Low-energy pattern",
+        value: progress.activeStreak > 0 ? "Protected" : "Needs backup",
+        detail: personalizationInsights.lowEnergyPattern,
+      },
+      {
+        label: "Best guidance tone",
+        value: formatDisplayLabel(personalizationInsights.preferredTone),
+        detail: personalizationInsights.routineStyle,
+      },
+    ],
+    [insightNarrative.focus, personalizationInsights.lowEnergyPattern, personalizationInsights.nextMove, personalizationInsights.preferredTone, personalizationInsights.routineStyle, progress.activeStreak],
+  );
   const showResultPanel = activeTab === "planner";
   const dashboardGreetingName = (profile.fullName || user?.displayName || "Alex").split(" ")[0] || "Alex";
-  const dashboardKpis = [
-    { label: "Momentum Score", value: `${Math.min(100, Math.max(0, progress.momentumPoints || 0))}%`, hint: `${progress.activeStreak || 0} day streak` },
-    { label: "Focus Time", value: currentPlan ? "4h 20m" : "Ready", hint: currentPlan ? "Protected today" : "Generate a plan" },
-    { label: "Tasks Completed", value: `${completion.completed}/${completion.total || 4}`, hint: completion.total ? "Plan actions" : "Starter checklist" },
-    { label: "Goal Progress", value: `${Math.min(100, Math.round(completion.percent || 0))}%`, hint: `${goals.filter((goal) => goal.status !== "completed").length} active goals` },
-  ];
-  const todayTimeline = [
-    { time: "09:00", title: "Deep Work", note: "Most important focus block" },
-    { time: "11:00", title: "Class", note: "Learning or work session" },
-    { time: "01:00", title: "Break", note: "Recovery and reset" },
-    { time: "02:00", title: "Project Work", note: "Move one outcome forward" },
-    { time: "05:00", title: "Review", note: "Close loops and adjust tomorrow" },
-  ];
-  const dashboardTasks = [
-    currentPlan ? currentPlan.title : "Generate today's AI plan",
-    goals[0]?.title || "Choose one priority goal",
-    habits[0]?.title || "Complete one tiny habit",
-  ];
-  const habitPreview = habits.slice(0, 3).map((habit, index) => ({
-    title: habit.title,
-    streak: habit.streak || progress.activeStreak || index + 1,
-    percent: habit.isTodayComplete ? 100 : Math.max(32, 72 - index * 14),
-  }));
-  const fallbackHabitPreview = [
-    { title: "Morning routine", streak: progress.activeStreak || 3, percent: 76 },
-    { title: "Study session", streak: 5, percent: 62 },
-    { title: "Evening review", streak: 2, percent: 48 },
-  ];
+  const dashboardKpis = useMemo(
+    () => [
+      { label: "Momentum Score", value: `${Math.min(100, Math.max(0, progress.momentumPoints || 0))}%`, hint: `${progress.activeStreak || 0} day streak` },
+      { label: "Focus Time", value: currentPlan ? "4h 20m" : "Ready", hint: currentPlan ? "Protected today" : "Generate a plan" },
+      { label: "Tasks Completed", value: `${completion.completed}/${completion.total || 4}`, hint: completion.total ? "Plan actions" : "Starter checklist" },
+      { label: "Goal Progress", value: `${Math.min(100, Math.round(completion.percent || 0))}%`, hint: `${goals.filter((goal) => goal.status !== "completed").length} active goals` },
+    ],
+    [completion, currentPlan, goals, progress.activeStreak, progress.momentumPoints],
+  );
+  const todayTimeline = useMemo(
+    () => [
+      { time: "09:00", title: "Deep Work", note: "Most important focus block" },
+      { time: "11:00", title: "Class", note: "Learning or work session" },
+      { time: "01:00", title: "Break", note: "Recovery and reset" },
+      { time: "02:00", title: "Project Work", note: "Move one outcome forward" },
+      { time: "05:00", title: "Review", note: "Close loops and adjust tomorrow" },
+    ],
+    [],
+  );
+  const dashboardTasks = useMemo(
+    () => [
+      currentPlan ? currentPlan.title : "Generate today's AI plan",
+      goals[0]?.title || "Choose one priority goal",
+      habits[0]?.title || "Complete one tiny habit",
+    ],
+    [currentPlan, goals, habits],
+  );
+  const habitPreview = useMemo(
+    () => habits.slice(0, 3).map((habit, index) => ({
+      title: habit.title,
+      streak: habit.streak || progress.activeStreak || index + 1,
+      percent: habit.isTodayComplete ? 100 : Math.max(32, 72 - index * 14),
+    })),
+    [habits, progress.activeStreak],
+  );
+  const fallbackHabitPreview = useMemo(
+    () => [
+      { title: "Morning routine", streak: progress.activeStreak || 3, percent: 76 },
+      { title: "Study session", streak: 5, percent: 62 },
+      { title: "Evening review", streak: 2, percent: 48 },
+    ],
+    [progress.activeStreak],
+  );
   const dashboardHabits = habitPreview.length ? habitPreview : fallbackHabitPreview;
-  const aiCoachCards = [
-    { title: "Today's Focus", body: formatDisplayLabel(insightNarrative.focus) },
-    { title: "Why This Focus", body: personalizationInsights.nextMove },
-    { title: "Recovery Suggestion", body: personalizationInsights.lowEnergyPattern },
-    { title: "Your Pattern", body: personalizationInsights.routineStyle },
-    { title: "Quick Actions", body: "Review plan, log check-in, or adjust intensity." },
-  ];
+  const aiCoachCards = useMemo(
+    () => [
+      { title: "Today's Focus", body: formatDisplayLabel(insightNarrative.focus) },
+      { title: "Why This Focus", body: personalizationInsights.nextMove },
+      { title: "Recovery Suggestion", body: personalizationInsights.lowEnergyPattern },
+      { title: "Your Pattern", body: personalizationInsights.routineStyle },
+      { title: "Quick Actions", body: "Review plan, log check-in, or adjust intensity." },
+    ],
+    [insightNarrative.focus, personalizationInsights.lowEnergyPattern, personalizationInsights.nextMove, personalizationInsights.routineStyle],
+  );
   const showMobilePlannerSkeleton = showResultPanel && (plannerBootstrapPending || isLoading || isAdjusting);
   const showMobileInsightSkeleton = progressPanelPending || sectionLoading.profile;
-  const mobileBottomNavItems = [
-    { key: "home", label: "Home", icon: HiOutlineChartBarSquare, action: () => handleTabChange("planner") },
-    { key: "plan", label: "Plan", icon: HiOutlineClipboardDocumentList, action: () => handleTabChange("planner") },
-    { key: "quick-add", label: "Add", icon: HiOutlinePlus, action: () => setIsQuickAddOpen(true), isPrimary: true },
-    { key: "coach", label: "AI Coach", icon: HiOutlineSparkles, action: () => handleTabChange("chat") },
-    { key: "insights", label: "Insights", icon: HiOutlineChartBarSquare, action: () => handleTabChange("insights") },
-    { key: "profile", label: "Profile", icon: HiOutlineUserCircle, action: () => handleTabChange("profile") },
-  ];
+  const mobileBottomNavItems = useMemo(
+    () => [
+      { key: "home", label: "Home", icon: HiOutlineChartBarSquare, action: () => handleTabChange("planner") },
+      { key: "plan", label: "Plan", icon: HiOutlineClipboardDocumentList, action: () => handleTabChange("planner") },
+      { key: "quick-add", label: "Add", icon: HiOutlinePlus, action: () => setIsQuickAddOpen(true), isPrimary: true },
+      { key: "coach", label: "AI Coach", icon: HiOutlineSparkles, action: () => handleTabChange("chat") },
+      { key: "insights", label: "Insights", icon: HiOutlineChartBarSquare, action: () => handleTabChange("insights") },
+      { key: "profile", label: "Profile", icon: HiOutlineUserCircle, action: () => handleTabChange("profile") },
+    ],
+    [handleTabChange, setIsQuickAddOpen],
+  );
   const shouldRenderAnalyticsChart =
     !isCompactMobile || showMobileAnalytics || ["daily", "weekly", "insights"].includes(activeTab);
   const canRenderAnalyticsChart = shouldRenderAnalyticsChart && shouldHydrateAnalytics;

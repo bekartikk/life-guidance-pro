@@ -1,4 +1,4 @@
-import { Suspense, lazy } from "react";
+import { memo, Suspense, lazy } from "react";
 import {
   HiOutlineArrowTrendingUp,
   HiOutlineBolt,
@@ -245,7 +245,7 @@ const tabMeta = {
   },
 };
 
-function DashboardTabRouter({
+const DashboardTabRouter = memo(function DashboardTabRouter({
   activeTab,
   sectionLoading,
   isLoadingWorkspace,
@@ -474,7 +474,7 @@ function DashboardTabRouter({
     default:
       return null;
   }
-}
+});
 
 DashboardTabRouter.tabMeta = tabMeta;
 export default DashboardTabRouter;

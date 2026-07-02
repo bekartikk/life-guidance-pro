@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { memo, useMemo, useState } from "react";
 import {
   HiOutlineArrowDownTray,
   HiOutlineClipboardDocument,
@@ -714,4 +714,4 @@ function ResultPanel({
   );
 }
 
-export default ResultPanel;
+export default memo(ResultPanel);

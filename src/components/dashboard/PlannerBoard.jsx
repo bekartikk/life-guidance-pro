@@ -1,3 +1,4 @@
+import { memo } from "react";
 import TaskCard from "./TaskCard";
 import { GridLayout, PanelLayout } from "../layout/index.js";
 
@@ -64,4 +65,4 @@ function PlannerBoard({ currentPlan, goals, habits, activeTab, onGoToTab, childr
   );
 }
 
-export default PlannerBoard;
+export default memo(PlannerBoard);
