@@ -13,7 +13,7 @@ import {
 } from "../prompts/guidancePrompts.js";
 import { followupSchema, guidancePlanSchema } from "../prompts/schemas.js";
 import { buildCompactContextPack, summarizeConversationTurn } from "./context/adaptiveContextEngine.js";
-import { logBackendException } from "../observability.js";
+import { logBackendException, logBackendWarning } from "../observability.js";
 
 const runtimeConfig = {
   cacheTtlMs: Number(process.env.AI_CACHE_TTL_MS || 120000),
@@ -28,25 +28,26 @@ function buildTaskIntensityLabel(value) {
 }
 
 function renderPlanText(plan) {
+  const safePlan = plan && typeof plan === "object" ? plan : {};
   const lines = [
     "1. Quick understanding",
-    plan.summary.quickUnderstanding,
+    safePlan.summary?.quickUnderstanding || "A safe guidance plan is ready.",
     "",
     "2. Motivational note",
-    plan.summary.motivationalNote,
+    safePlan.summary?.motivationalNote || "Take one realistic next step today.",
     "",
     "3. Main plan summary",
-    plan.summary.mainPlanSummary,
+    safePlan.summary?.mainPlanSummary || "Focus on one meaningful action and one recovery action.",
     "",
     "4. Complete routine plan",
   ];
 
-  plan.routinePlan.forEach((phase, index) => {
+  (safePlan.routinePlan || []).forEach((phase, index) => {
     lines.push(
-      `${index + 1}. ${phase.phase} - ${phase.focus} (${phase.intensity})`,
-      ...phase.blocks.flatMap((block, blockIndex) => [
-        `   ${blockIndex + 1}. ${block.label}: ${block.detail}`,
-        `      Fallback: ${block.fallback}`,
+      `${index + 1}. ${phase?.phase || "Routine step"} - ${phase?.focus || "Keep momentum"} (${phase?.intensity || "medium"})`,
+      ...(phase?.blocks || []).flatMap((block, blockIndex) => [
+        `   ${blockIndex + 1}. ${block?.label || "Action"}: ${block?.detail || "Choose a manageable next step."}`,
+        `      Fallback: ${block?.fallback || "Use a smaller version of the action."}`,
       ]),
       "",
     );
@@ -54,35 +55,35 @@ function renderPlanText(plan) {
 
   lines.push(
     "5. Problem-solving suggestions",
-    ...plan.insights.map((item, index) => `${index + 1}. ${item.title}: ${item.detail} Why: ${item.why}`),
+    ...(safePlan.insights || []).map((item, index) => `${index + 1}. ${item?.title || "Keep it simple"}: ${item?.detail || "Focus on one manageable action."} Why: ${item?.why || "Small steps protect consistency."}`),
     "",
     "6. Future scopes from hobbies and likes",
-    ...plan.roadmap.map((item, index) => `${index + 1}. ${item.phase}: ${item.goal}`),
+    ...(safePlan.roadmap || []).map((item, index) => `${index + 1}. ${item?.phase || "Next phase"}: ${item?.goal || "Build a sustainable routine."}`),
     "",
     "7. Career or study roadmap",
-    ...plan.roadmap.flatMap((item, index) => [
-      `${index + 1}. ${item.phase} milestones:`,
-      ...item.milestones.map((milestone) => `   - ${milestone}`),
-      `   Recovery guard: ${item.recoveryGuard}`,
+    ...(safePlan.roadmap || []).flatMap((item, index) => [
+      `${index + 1}. ${item?.phase || "Next phase"} milestones:`,
+      ...(item?.milestones || []).map((milestone) => `   - ${milestone}`),
+      `   Recovery guard: ${item?.recoveryGuard || "Reduce intensity when energy is low."}`,
     ]),
     "",
     "8. Activities for lonely or low-energy moments",
-    ...plan.recovery.lonelyMoments.map((item, index) => `${index + 1}. ${item}`),
+    ...(safePlan.recovery?.lonelyMoments || []).map((item, index) => `${index + 1}. ${item}`),
     "",
     "9. Difficulty rescue plan",
-    ...plan.recovery.difficultDayPlan.map((item, index) => `${index + 1}. ${item}`),
+    ...(safePlan.recovery?.difficultDayPlan || []).map((item, index) => `${index + 1}. ${item}`),
     "",
     "10. How to customize if this becomes difficult",
-    ...plan.customization.map((item, index) => `${index + 1}. ${item}`),
+    ...(safePlan.customization || []).map((item, index) => `${index + 1}. ${item}`),
     "",
     "11. Three actions for today",
-    ...plan.quickActions.map((item, index) => `${index + 1}. ${item.title} - ${item.detail}`),
+    ...(safePlan.quickActions || []).map((item, index) => `${index + 1}. ${item?.title || "Next action"} - ${item?.detail || "Take one manageable step."}`),
     "",
     "12. Question for your next adjustment",
-    plan.nextQuestion,
+    safePlan.nextQuestion || "What would make the next step feel easier?",
     "",
     "13. Privacy and safety reminder",
-    plan.privacyNote,
+    safePlan.privacyNote || "This is supportive planning, not emergency care.",
   );
 
   return lines.join("\n").trim();
@@ -201,7 +202,13 @@ function buildSafeFallbackPlan({
         recoveryGuard: "Keep fallback versions visible so momentum survives uneven days.",
       },
     ],
-    insights: recommendations.recommendations,
+    insights: Array.isArray(recommendations.recommendations) && recommendations.recommendations.length >= 3
+      ? recommendations.recommendations
+      : [
+        { title: "Keep the plan small", detail: "Choose one manageable action at a time.", why: "Small steps are easier to repeat." },
+        { title: "Protect recovery", detail: "Make room for rest before pressure builds.", why: "Recovery supports consistent progress." },
+        { title: "Review honestly", detail: "Notice what helped and what created friction.", why: "Honest feedback improves the next plan." },
+      ],
     recovery: {
       lonelyMoments: [
         "Use a lighter task that still counts as showing up.",
@@ -267,6 +274,117 @@ function buildSafeFallbackFollowup() {
 
 function isStructuredParseFallback(payload) {
   return Boolean(payload?.parseError && payload?.provider);
+}
+
+function valueOrDefault(value, fallback) {
+  return typeof value === "string" && value.trim() ? value : fallback;
+}
+
+function objectOrEmpty(value) {
+  return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+}
+
+function numberOrDefault(value, fallback) {
+  return Number.isFinite(value) ? value : fallback;
+}
+
+function listOrDefault(value, fallback, minimum, maximum, normalizeItem) {
+  const source = Array.isArray(value) && value.length >= minimum ? value : fallback;
+  return source.slice(0, maximum).map((item, index) => normalizeItem(item, fallback[index] || fallback[0]));
+}
+
+function normalizeGuidancePlan(payload, fallbackPlan, requestContext) {
+  const source = payload && typeof payload === "object" && !Array.isArray(payload) ? payload : {};
+  const needsDefaults = isStructuredParseFallback(source)
+    || !source.summary?.quickUnderstanding
+    || !source.summary?.motivationalNote
+    || !source.summary?.mainPlanSummary
+    || !source.adaptiveState?.personality
+    || !source.dailyFocus?.title
+    || !Array.isArray(source.quickActions) || source.quickActions.length < 3
+    || !Array.isArray(source.routinePlan) || source.routinePlan.length < 3
+    || !Array.isArray(source.roadmap) || source.roadmap.length < 2
+    || !Array.isArray(source.insights) || source.insights.length < 3
+    || !Array.isArray(source.recovery?.lonelyMoments) || source.recovery.lonelyMoments.length < 2
+    || !Array.isArray(source.recovery?.difficultDayPlan) || source.recovery.difficultDayPlan.length < 3
+    || !Array.isArray(source.customization) || source.customization.length < 3
+    || !source.nextQuestion || !source.privacyNote;
+
+  if (needsDefaults) {
+    logBackendWarning("Gemini guidance response was incomplete; missing sections were replaced with safe defaults.", {
+      ...requestContext,
+      provider: "gemini",
+      details: { missingSections: Object.keys(fallbackPlan).filter((key) => source[key] == null) },
+    });
+  }
+
+  const summary = objectOrEmpty(source.summary);
+  const adaptiveState = objectOrEmpty(source.adaptiveState);
+  const dailyFocus = objectOrEmpty(source.dailyFocus);
+  const recovery = objectOrEmpty(source.recovery);
+  return {
+    summary: {
+      quickUnderstanding: valueOrDefault(summary.quickUnderstanding, fallbackPlan.summary.quickUnderstanding),
+      motivationalNote: valueOrDefault(summary.motivationalNote, fallbackPlan.summary.motivationalNote),
+      mainPlanSummary: valueOrDefault(summary.mainPlanSummary, fallbackPlan.summary.mainPlanSummary),
+    },
+    adaptiveState: {
+      personality: valueOrDefault(adaptiveState.personality, fallbackPlan.adaptiveState.personality),
+      burnoutRisk: numberOrDefault(adaptiveState.burnoutRisk, fallbackPlan.adaptiveState.burnoutRisk),
+      taskIntensity: ["low", "medium", "high"].includes(adaptiveState.taskIntensity) ? adaptiveState.taskIntensity : fallbackPlan.adaptiveState.taskIntensity,
+      recoveryMode: typeof adaptiveState.recoveryMode === "boolean" ? adaptiveState.recoveryMode : fallbackPlan.adaptiveState.recoveryMode,
+      momentumScore: numberOrDefault(adaptiveState.momentumScore, fallbackPlan.adaptiveState.momentumScore),
+    },
+    dailyFocus: {
+      title: valueOrDefault(dailyFocus.title, fallbackPlan.dailyFocus.title),
+      whyItMatters: valueOrDefault(dailyFocus.whyItMatters, fallbackPlan.dailyFocus.whyItMatters),
+      todayTarget: valueOrDefault(dailyFocus.todayTarget, fallbackPlan.dailyFocus.todayTarget),
+    },
+    quickActions: listOrDefault(source.quickActions, fallbackPlan.quickActions, 3, 3, (item, fallback) => {
+      const entry = objectOrEmpty(item);
+      return { title: valueOrDefault(entry.title, fallback.title), detail: valueOrDefault(entry.detail, fallback.detail) };
+    }),
+    routinePlan: listOrDefault(source.routinePlan, fallbackPlan.routinePlan, 3, 6, (phase, fallback) => {
+      const entry = objectOrEmpty(phase);
+      return {
+        phase: valueOrDefault(entry.phase, fallback.phase),
+        focus: valueOrDefault(entry.focus, fallback.focus),
+        intensity: ["low", "medium", "high"].includes(entry.intensity) ? entry.intensity : fallback.intensity,
+        blocks: listOrDefault(entry.blocks, fallback.blocks, 2, 6, (block, blockFallback) => {
+          const blockEntry = objectOrEmpty(block);
+          return {
+            label: valueOrDefault(blockEntry.label, blockFallback.label),
+            detail: valueOrDefault(blockEntry.detail, blockFallback.detail),
+            fallback: valueOrDefault(blockEntry.fallback, blockFallback.fallback),
+          };
+        }),
+      };
+    }),
+    roadmap: listOrDefault(source.roadmap, fallbackPlan.roadmap, 2, 5, (item, fallback) => {
+      const entry = objectOrEmpty(item);
+      return {
+        phase: valueOrDefault(entry.phase, fallback.phase),
+        goal: valueOrDefault(entry.goal, fallback.goal),
+        milestones: listOrDefault(entry.milestones, fallback.milestones, 2, 5, (milestone, milestoneFallback) => valueOrDefault(milestone, milestoneFallback)),
+        recoveryGuard: valueOrDefault(entry.recoveryGuard, fallback.recoveryGuard),
+      };
+    }),
+    insights: listOrDefault(source.insights, fallbackPlan.insights, 3, 5, (item, fallback) => {
+      const entry = objectOrEmpty(item);
+      return {
+        title: valueOrDefault(entry.title, fallback.title),
+        detail: valueOrDefault(entry.detail, fallback.detail),
+        why: valueOrDefault(entry.why, fallback.why),
+      };
+    }),
+    recovery: {
+      lonelyMoments: listOrDefault(recovery.lonelyMoments, fallbackPlan.recovery.lonelyMoments, 2, 5, (item, fallback) => valueOrDefault(item, fallback)),
+      difficultDayPlan: listOrDefault(recovery.difficultDayPlan, fallbackPlan.recovery.difficultDayPlan, 3, 6, (item, fallback) => valueOrDefault(item, fallback)),
+    },
+    customization: listOrDefault(source.customization, fallbackPlan.customization, 3, 5, (item, fallback) => valueOrDefault(item, fallback)),
+    nextQuestion: valueOrDefault(source.nextQuestion, fallbackPlan.nextQuestion),
+    privacyNote: valueOrDefault(source.privacyNote, fallbackPlan.privacyNote),
+  };
 }
 
 async function prepareIntelligence(input) {
@@ -394,16 +512,18 @@ export async function generateAdaptivePlan(input) {
       requestContext: input.requestContext,
     });
 
+    const fallbackPlan = buildSafeFallbackPlan({
+      adaptiveState: intelligence.adaptiveState,
+      personality: intelligence.personality,
+      recommendations: intelligence.recommendations,
+      memory: intelligence.memory,
+    });
+    const structuredPlan = normalizeGuidancePlan(payload, fallbackPlan, input.requestContext);
+
     if (isStructuredParseFallback(payload)) {
-      const fallbackPlan = buildSafeFallbackPlan({
-        adaptiveState: intelligence.adaptiveState,
-        personality: intelligence.personality,
-        recommendations: intelligence.recommendations,
-        memory: intelligence.memory,
-      });
       return {
-        plan: renderPlanText(fallbackPlan),
-        structuredPlan: fallbackPlan,
+        plan: renderPlanText(structuredPlan),
+        structuredPlan,
         aiMeta: {
           ...buildResponseMeta({
             provider: provider.provider,
@@ -422,8 +542,8 @@ export async function generateAdaptivePlan(input) {
     }
 
     const result = {
-      plan: renderPlanText(payload),
-      structuredPlan: payload,
+      plan: renderPlanText(structuredPlan),
+      structuredPlan,
       aiMeta: buildResponseMeta({
         provider: provider.provider,
         model: provider.model,

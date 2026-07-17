@@ -21,6 +21,19 @@ export function logBackendException(error, context = {}) {
   }));
 }
 
+export function logBackendWarning(message, context = {}) {
+  console.warn(JSON.stringify({
+    timestamp: new Date().toISOString(),
+    level: "warn",
+    requestId: context.requestId || "unknown",
+    route: context.route || "unknown",
+    provider: context.provider || "unknown",
+    userId: context.userId || "unauthenticated",
+    message,
+    ...context.details,
+  }));
+}
+
 export function errorResponse(res, status, message, requestId) {
   return res.status(status).json({ message, requestId });
 }
