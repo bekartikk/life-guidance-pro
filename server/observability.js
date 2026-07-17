@@ -17,6 +17,7 @@ export function logBackendException(error, context = {}) {
     userId: context.userId || "unauthenticated",
     message: error?.message || "Unknown backend exception",
     stack: error?.stack || null,
+    ...context.details,
   }));
 }
 

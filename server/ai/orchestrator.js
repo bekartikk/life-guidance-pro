@@ -250,6 +250,25 @@ function createEmptySemanticMemory() {
   };
 }
 
+function buildSafeFallbackFollowup() {
+  return {
+    summary: "Your follow-up request was received, but the AI response could not be formatted safely. Keep the current plan and use one small adjustment today.",
+    changes: [
+      { title: "Keep the next step small", detail: "Choose one part of the current plan that feels realistic for today." },
+      { title: "Protect recovery", detail: "Lower the workload if stress or energy makes the current plan feel too heavy." },
+    ],
+    nextSteps: [
+      "Complete one minimum version of your next planned action.",
+      "Send another follow-up with the part that felt difficult or unclear.",
+    ],
+    supportNote: "This is a temporary safe fallback while the AI response is unavailable.",
+  };
+}
+
+function isStructuredParseFallback(payload) {
+  return Boolean(payload?.parseError && payload?.provider);
+}
+
 async function prepareIntelligence(input) {
   const semanticMemory = input.disableSemanticMemory ? createEmptySemanticMemory() : await retrieveSemanticAdaptiveMemories({
     userEmail: input.userEmail,
@@ -372,7 +391,35 @@ export async function generateAdaptivePlan(input) {
       }),
       schema: guidancePlanSchema,
       temperature: 0.65,
+      requestContext: input.requestContext,
     });
+
+    if (isStructuredParseFallback(payload)) {
+      const fallbackPlan = buildSafeFallbackPlan({
+        adaptiveState: intelligence.adaptiveState,
+        personality: intelligence.personality,
+        recommendations: intelligence.recommendations,
+        memory: intelligence.memory,
+      });
+      return {
+        plan: renderPlanText(fallbackPlan),
+        structuredPlan: fallbackPlan,
+        aiMeta: {
+          ...buildResponseMeta({
+            provider: provider.provider,
+            model: provider.model,
+            adaptiveState: intelligence.adaptiveState,
+            personality: intelligence.personality,
+            recommendations: intelligence.recommendations,
+            memory: intelligence.memory,
+            semanticMemory: intelligence.semanticMemory,
+          }),
+          fallback: true,
+          parseError: payload.parseError,
+          rawResponse: payload.rawResponse,
+        },
+      };
+    }
 
     const result = {
       plan: renderPlanText(payload),
@@ -452,7 +499,30 @@ export async function generateAdaptiveFollowup(input) {
       }),
       schema: followupSchema,
       temperature: 0.55,
+      requestContext: input.requestContext,
     });
+
+    if (isStructuredParseFallback(payload)) {
+      const fallbackReply = buildSafeFallbackFollowup();
+      return {
+        reply: renderFollowupText(fallbackReply),
+        structuredReply: fallbackReply,
+        aiMeta: {
+          ...buildResponseMeta({
+            provider: provider.provider,
+            model: provider.model,
+            adaptiveState: intelligence.adaptiveState,
+            personality: intelligence.personality,
+            recommendations: intelligence.recommendations,
+            memory: intelligence.memory,
+            semanticMemory: intelligence.semanticMemory,
+          }),
+          fallback: true,
+          parseError: payload.parseError,
+          rawResponse: payload.rawResponse,
+        },
+      };
+    }
 
     return {
       reply: renderFollowupText(payload),
