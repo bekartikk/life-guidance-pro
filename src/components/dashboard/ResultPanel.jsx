@@ -1,4 +1,5 @@
 import { memo, useMemo, useState } from "react";
+import { normalizePlanForUI } from "../../lib/plannerUtils";
 import {
   HiOutlineArrowDownTray,
   HiOutlineClipboardDocument,
@@ -176,7 +177,7 @@ function ResultPanel({
   onRegenerate,
   onRate,
 }) {
-  const sections = useMemo(() => splitPlanSections(currentPlan?.result), [currentPlan?.result]);
+  const { sections, plainText } = useMemo(() => normalizePlanForUI(currentPlan?.result), [currentPlan?.result]);
   const safeBehavioralInsights = behavioralInsights && typeof behavioralInsights === "object" ? behavioralInsights : {};
   const [expandedState, setExpandedState] = useState(() => ({
     planId: null,
@@ -275,7 +276,7 @@ function ResultPanel({
 
   async function handleCopyPlan() {
     try {
-      await navigator.clipboard.writeText(currentPlan.result || "");
+      await navigator.clipboard.writeText(plainText || "");
       setActionMessage("Plan copied to clipboard.");
     } catch {
       setActionMessage("Could not copy the plan on this device.");
@@ -285,7 +286,7 @@ function ResultPanel({
   async function handleSharePlan() {
     const sharePayload = {
       title: currentPlan.title,
-      text: currentPlan.result,
+      text: plainText,
     };
 
     try {
@@ -294,7 +295,7 @@ function ResultPanel({
         setActionMessage("Plan shared.");
         return;
       }
-      await navigator.clipboard.writeText(`${currentPlan.title}\n\n${currentPlan.result}`);
+      await navigator.clipboard.writeText(`${currentPlan.title}\n\n${plainText}`);
       setActionMessage("Share is not available here, so the plan was copied instead.");
     } catch {
       setActionMessage("Share was cancelled.");
@@ -302,7 +303,7 @@ function ResultPanel({
   }
 
   function handleExportPlan() {
-    const blob = new Blob([currentPlan.result || ""], { type: "text/plain;charset=utf-8" });
+    const blob = new Blob([plainText || ""], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;

@@ -5,6 +5,7 @@ import { applyRewardAction } from "../services/progressData";
 import { logPlanAdjustment, logPlanGeneration } from "../services/dataCollection";
 import { trackEvent } from "../utils/analytics";
 import { fetchWithFirebaseAuth } from "../utils/authFetch";
+import { normalizePlanForUI } from "../lib/plannerUtils";
 
 const API_BASE = String(import.meta.env.VITE_API_BASE_URL || "").replace(/\/+$/, "");
 
@@ -97,13 +98,16 @@ export function usePlanGeneration({
       console.log('response.body (first 500 chars):', rawBody.slice(0, 500));
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || "Could not create your plan.");
+      // Normalize plan into canonical UI model
+      const normalized = normalizePlanForUI(data.plan);
+      const planResult = normalized.plainText;
       const savedPlan = await savePlanRecord({
         userId,
         userEmail,
         title: createPlanTitle(form),
         profileSnapshot: form,
         profileSummary: profile,
-        result: data.plan,
+        result: planResult,
         aiMeta: data.aiMeta || null,
         adjustment,
       });
