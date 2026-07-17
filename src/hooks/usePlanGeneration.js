@@ -65,11 +65,16 @@ export function usePlanGeneration({
   };
 
   const requestPlan = async ({ adjustment = "" } = {}) => {
+
     setError("");
     setStatusMessage("");
     if (!validatePlanner()) return;
+    console.log('Validation passed');
+    console.log('Loading=true');
     adjustment ? setIsAdjusting(true) : setIsLoading(true);
     try {
+
+
       const response = await fetchWithFirebaseAuth(`${API_BASE}/api/guidance`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -83,6 +88,13 @@ export function usePlanGeneration({
           aiContext: aiRequestContext,
         }),
       });
+      console.log('fetch called');
+      // Log response details
+      console.log('response.status', response.status);
+      console.log('response.ok', response.ok);
+      const responseClone = response.clone();
+      const rawBody = await responseClone.text();
+      console.log('response.body (first 500 chars):', rawBody.slice(0, 500));
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || "Could not create your plan.");
       const savedPlan = await savePlanRecord({
@@ -116,6 +128,7 @@ export function usePlanGeneration({
           adjustmentRequest: null,
         });
       }
+      console.log('Response received');
       trackEvent(adjustment ? "plan_adjusted" : "plan_generated", {
         roadmap_focus: form.roadmapFocus,
         duration: form.planDuration,
@@ -130,10 +143,13 @@ export function usePlanGeneration({
       setActiveTab("planner");
       setStatusMessage(adjustment ? "Plan updated successfully. Your revised plan is ready below." : "Plan generated successfully. Your new guidance plan is ready below.");
     } catch (requestError) {
+      console.error('Generate Plan failed', requestError);
       setError(requestError.message || "Something went wrong while creating your plan.");
     } finally {
+      console.log('Loading=false');
       setIsLoading(false);
       setIsAdjusting(false);
+
     }
   };
 

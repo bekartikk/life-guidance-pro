@@ -108,17 +108,20 @@ export async function generateStructuredWithGemini({
   temperature = 0.65,
   requestContext,
 }) {
+}) {
   const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+  // Log the endpoint for debugging
+  console.log('Gemini request endpoint:', endpoint);
   const response = await fetch(endpoint, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      systemInstruction: { parts: [{ text: systemPrompt }] },
+      systemInstruction: { parts: [{ text: systemPrompt + "\n\nSTRICT JSON ONLY. No markdown, explanations, or prose." }] },
       contents: [
         {
           role: "user",
           parts: [{
-            text: `${userPrompt}\n\nJSON schema name: ${schema.name}\nSchema:\n${JSON.stringify(schema.schema, null, 2)}\n\nReturn only valid JSON.`,
+            text: `${userPrompt}\n\nJSON schema name: ${schema.name}\nSchema:\n${JSON.stringify(schema.schema, null, 2)}\n\nReturn ONLY raw JSON without any surrounding text.`,
           }],
         },
       ],
@@ -127,16 +130,31 @@ export async function generateStructuredWithGemini({
         topP: 0.9,
         maxOutputTokens: 3800,
         responseMimeType: "application/json",
+        // Provide structured output schema if supported by the model (Gemini 2.5+)
+        ...(schema && {
+          responseSchema: {
+            jsonSchema: {
+              name: schema.name,
+              schema: schema.schema,
+              strict: true,
+            },
+          },
+        }),
       },
     }),
   });
 
   const data = await response.json();
+  // Log raw Gemini response for troubleshooting
+  console.log('Gemini raw response data:', JSON.stringify(data, null, 2));
   if (!response.ok) {
     const message = data?.error?.message || "Gemini request failed.";
     throw Object.assign(new Error(message), { status: response.status, provider: "gemini" });
   }
 
   const raw = extractCandidateText(data);
-  return processStructuredGeminiResponse(raw, requestContext);
+  console.log('Extracted candidate text before parsing:', raw);
+  const parsed = processStructuredGeminiResponse(raw, requestContext);
+  console.log('Processed Gemini structured response:', parsed);
+  return parsed;
 }
