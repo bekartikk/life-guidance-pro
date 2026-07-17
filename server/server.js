@@ -5,8 +5,11 @@ import { generateAdaptiveFollowup, generateAdaptivePlan } from "./ai/orchestrato
 import { loadAdaptiveInsights } from "./db/services/loadAdaptiveInsights.js";
 import { persistAdaptiveFollowupArtifacts, persistAdaptivePlanArtifacts } from "./db/services/persistAdaptiveArtifacts.js";
 import { requireFirebaseAuth } from "./auth/requireFirebaseAuth.js";
+import { errorResponse, logBackendException, requestIdMiddleware } from "./observability.js";
+import { validateStartupEnvironment } from "./startupConfig.js";
 
 dotenv.config({ path: new URL(".env", import.meta.url) });
+validateStartupEnvironment();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -24,6 +27,7 @@ const allowedOrigins = String(process.env.CLIENT_ORIGIN || "http://localhost:517
   .map((origin) => origin.trim())
   .filter(Boolean);
 
+app.use(requestIdMiddleware);
 app.use(cors({
   origin(origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
@@ -166,7 +170,9 @@ app.get("/api/adaptive-insights", requireFirebaseAuth, async (req, res) => {
     const payload = await loadAdaptiveInsights({ userId: req.user.uid });
     return res.json(payload);
   } catch (error) {
+    logBackendException(error, { requestId: req.requestId, route: req.route.path, userId: req.user?.uid, provider: activeProvider });
     return res.status(error.status || 500).json({
+      requestId: req.requestId,
       enabled: false,
       source: "firebase-primary",
       reason: error.message || "Adaptive insights could not be loaded right now.",
@@ -194,7 +200,7 @@ app.post("/api/guidance", requireFirebaseAuth, async (req, res) => {
   );
 
   if (!hasRequiredProfile(profile)) {
-    return res.status(400).json({ message: "Please complete all required profile fields." });
+    return errorResponse(res, 400, "Please complete all required profile fields.", req.requestId);
   }
 
   try {
@@ -206,6 +212,7 @@ app.post("/api/guidance", requireFirebaseAuth, async (req, res) => {
       aiContext,
       adjustmentRequest,
       previousPlan,
+      requestContext: { requestId: req.requestId, route: req.route.path, userId },
     });
     const responseText = needsUrgentSupport ? appendSafetySupport(result.plan) : result.plan;
 
@@ -221,7 +228,9 @@ app.post("/api/guidance", requireFirebaseAuth, async (req, res) => {
       structuredPayload: result.structuredPlan,
       cacheHit: Boolean(result.cached),
       latencyMs: Date.now() - startedAt,
-    });
+    }).catch((error) => logBackendException(error, {
+      requestId: req.requestId, route: req.route.path, userId, provider: activeProvider,
+    }));
 
     return res.json({
       plan: responseText,
@@ -229,9 +238,11 @@ app.post("/api/guidance", requireFirebaseAuth, async (req, res) => {
       structuredPlan: result.structuredPlan,
     });
   } catch (error) {
-    return res.status(error.status || 500).json({
-      message: error.publicMessage || error.message || "Server error while creating your plan. Please try again.",
-    });
+    logBackendException(error, { requestId: req.requestId, route: req.route.path, userId, provider: activeProvider });
+    const status = error.status === 429 ? 429 : 500;
+    return errorResponse(res, status, status === 429
+      ? error.publicMessage || "The AI planner is receiving too many requests. Please wait a moment and try again."
+      : "Guidance could not be created right now. Please try again shortly.", req.requestId);
   }
 });
 
@@ -249,11 +260,11 @@ app.post("/api/followup", requireFirebaseAuth, async (req, res) => {
   );
 
   if (!currentPlan.trim()) {
-    return res.status(400).json({ message: "A current plan is required for follow-up guidance." });
+    return errorResponse(res, 400, "A current plan is required for follow-up guidance.", req.requestId);
   }
 
   if (!followUpPrompt.trim()) {
-    return res.status(400).json({ message: "Write a follow-up request before sending it." });
+    return errorResponse(res, 400, "Write a follow-up request before sending it.", req.requestId);
   }
 
   try {
@@ -265,6 +276,7 @@ app.post("/api/followup", requireFirebaseAuth, async (req, res) => {
       aiContext,
       currentPlan,
       followUpPrompt,
+      requestContext: { requestId: req.requestId, route: req.route.path, userId },
     });
     const responseText = needsUrgentSupport ? appendSafetySupport(result.reply) : result.reply;
 
@@ -280,7 +292,9 @@ app.post("/api/followup", requireFirebaseAuth, async (req, res) => {
       structuredPayload: result.structuredReply,
       cacheHit: false,
       latencyMs: Date.now() - startedAt,
-    });
+    }).catch((error) => logBackendException(error, {
+      requestId: req.requestId, route: req.route.path, userId, provider: activeProvider,
+    }));
 
     return res.json({
       reply: responseText,
@@ -288,9 +302,11 @@ app.post("/api/followup", requireFirebaseAuth, async (req, res) => {
       structuredReply: result.structuredReply,
     });
   } catch (error) {
-    return res.status(error.status || 500).json({
-      message: error.publicMessage || error.message || "Server error while creating follow-up guidance. Please try again.",
-    });
+    logBackendException(error, { requestId: req.requestId, route: req.route.path, userId, provider: activeProvider });
+    const status = error.status === 429 ? 429 : 500;
+    return errorResponse(res, status, status === 429
+      ? error.publicMessage || "The AI service is busy. Please try again shortly."
+      : "Follow-up guidance could not be created right now. Please try again shortly.", req.requestId);
   }
 });
 
@@ -299,9 +315,8 @@ app.use((error, req, res, next) => {
     return next(error);
   }
 
-  return res.status(error.status || 500).json({
-    message: error.publicMessage || error.message || "Server error.",
-  });
+  logBackendException(error, { requestId: req.requestId, route: req.originalUrl, userId: req.user?.uid, provider: activeProvider });
+  return errorResponse(res, error.status || 500, error.publicMessage || "Server error.", req.requestId);
 });
 
 app.listen(PORT, () => {

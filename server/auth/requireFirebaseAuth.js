@@ -1,4 +1,5 @@
 import { getFirebaseAdminAuth } from "./firebaseAdmin.js";
+import { errorResponse, logBackendException } from "../observability.js";
 
 function readBearerToken(header = "") {
   const [scheme, token] = String(header).trim().split(/\s+/);
@@ -11,11 +12,11 @@ function readBearerToken(header = "") {
 export async function requireFirebaseAuth(req, res, next) {
   const token = readBearerToken(req.get("authorization"));
   if (!token) {
-    return res.status(401).json({ message: "Authentication required." });
+    return errorResponse(res, 401, "Authentication required.", req.requestId);
   }
 
   if (token.split(".").length !== 3) {
-    return res.status(401).json({ message: "Invalid or expired authentication token." });
+    return errorResponse(res, 401, "Invalid or expired authentication token.", req.requestId);
   }
 
   try {
@@ -28,9 +29,10 @@ export async function requireFirebaseAuth(req, res, next) {
     };
     return next();
   } catch (error) {
+    logBackendException(error, { requestId: req.requestId, route: req.originalUrl, provider: "firebase", userId: req.user?.uid });
     if (error.status === 503) {
-      return res.status(503).json({ message: "Authentication service is not configured." });
+      return errorResponse(res, 503, "Authentication service is unavailable.", req.requestId);
     }
-    return res.status(401).json({ message: "Invalid or expired authentication token." });
+    return errorResponse(res, 401, "Invalid or expired authentication token.", req.requestId);
   }
 }

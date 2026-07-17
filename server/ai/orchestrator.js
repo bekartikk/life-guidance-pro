@@ -13,6 +13,7 @@ import {
 } from "../prompts/guidancePrompts.js";
 import { followupSchema, guidancePlanSchema } from "../prompts/schemas.js";
 import { buildCompactContextPack, summarizeConversationTurn } from "./context/adaptiveContextEngine.js";
+import { logBackendException } from "../observability.js";
 
 const runtimeConfig = {
   cacheTtlMs: Number(process.env.AI_CACHE_TTL_MS || 120000),
@@ -240,8 +241,17 @@ function getPublicError(error) {
   return error.message || "The AI request could not be completed.";
 }
 
+function createEmptySemanticMemory() {
+  return {
+    enabled: false,
+    source: "adaptive-context-unavailable",
+    memories: [],
+    summary: { headline: "No semantic memories yet", bullets: [] },
+  };
+}
+
 async function prepareIntelligence(input) {
-  const semanticMemory = await retrieveSemanticAdaptiveMemories({
+  const semanticMemory = input.disableSemanticMemory ? createEmptySemanticMemory() : await retrieveSemanticAdaptiveMemories({
     userEmail: input.userEmail,
     userId: input.userId,
     profile: input.profile,
@@ -292,6 +302,18 @@ async function prepareIntelligence(input) {
   return { adaptiveState, personality, memory, recommendations, semanticMemory, contextPack };
 }
 
+async function prepareIntelligenceSafely(input, provider) {
+  try {
+    return await prepareIntelligence(input);
+  } catch (error) {
+    logBackendException(error, {
+      ...input.requestContext,
+      provider: provider.provider,
+    });
+    return prepareIntelligence({ ...input, disableSemanticMemory: true });
+  }
+}
+
 export async function generateAdaptivePlan(input) {
   const provider = resolveAiProvider();
   if (!provider) {
@@ -310,7 +332,7 @@ export async function generateAdaptivePlan(input) {
     });
   }
 
-  const intelligence = await prepareIntelligence(input);
+  const intelligence = await prepareIntelligenceSafely(input, provider);
   const cacheKey = createCacheKey("guidance", {
     profile: input.profile,
     aiContext: input.aiContext,
@@ -368,6 +390,10 @@ export async function generateAdaptivePlan(input) {
     setCachedValue(cacheKey, result, runtimeConfig.cacheTtlMs);
     return result;
   } catch (error) {
+    logBackendException(error, {
+      ...input.requestContext,
+      provider: provider.provider,
+    });
     const fallbackPlan = buildSafeFallbackPlan({
       adaptiveState: intelligence.adaptiveState,
       personality: intelligence.personality,
@@ -401,7 +427,7 @@ export async function generateAdaptiveFollowup(input) {
     throw buildProviderMissingError();
   }
 
-  const intelligence = await prepareIntelligence(input);
+  const intelligence = await prepareIntelligenceSafely(input, provider);
 
   try {
     const conversationSummary = summarizeConversationTurn({
@@ -442,6 +468,10 @@ export async function generateAdaptiveFollowup(input) {
       }),
     };
   } catch (error) {
+    logBackendException(error, {
+      ...input.requestContext,
+      provider: provider.provider,
+    });
     throw Object.assign(new Error(getPublicError(error)), {
       status: error.status || 500,
     });

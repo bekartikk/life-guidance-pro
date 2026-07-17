@@ -1,6 +1,6 @@
 # Project Brain Map
 
-_Auto-generated on 2 Jul 2026, 5:27 pm. This file updates from the repo structure and app/server entry points._
+_Auto-generated on 17 Jul 2026, 6:29 pm. This file updates from the repo structure and app/server entry points._
 
 ## What This Project Is
 
@@ -374,6 +374,9 @@ const routineBuildersCollection = collection(db, `
 - `server/ai`
 - `server/ai/cache`
 - `server/ai/cache/runtimeCache.js`
+- `server/ai/context`
+- `server/ai/context/adaptiveContextEngine.js`
+- `server/ai/context/adaptiveContextEngine.test.js`
 - `server/ai/orchestrator.js`
 - `server/ai/providerRegistry.js`
 - `server/ai/providers`
@@ -404,9 +407,6 @@ const routineBuildersCollection = collection(db, `
 - `server/db/services/persistAdaptiveArtifacts.js`
 - `server/db/supabaseAdmin.js`
 - `server/memory`
-- `server/memory/memoryEngine.js`
-- `server/monitoring`
-- `server/package-lock.json`
 
 ### docs and config
 - `.agents/skills/supabase-postgres-best-practices/references/advanced-full-text-search.md`
