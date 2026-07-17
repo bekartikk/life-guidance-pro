@@ -47,6 +47,7 @@ import { buildBehavioralInsights } from "../services/behavioralInsights";
 import { buildAdaptiveIntelligence } from "../ai/orchestration/adaptiveIntelligence.js";
 import { buildAiRequestContext } from "../ai/orchestration/buildAiRequestContext.js";
 import { trackEvent } from "../utils/analytics";
+import { fetchWithFirebaseAuth } from "../utils/authFetch";
 
 const tabMeta = DashboardTabRouter.tabMeta;
 
@@ -1447,7 +1448,7 @@ function Dashboard({ user }) {
     setError("");
     const userMessage = { role: "user", content: chatPrompt.trim() };
     try {
-      const response = await fetch(`${API_BASE}/api/followup`, {
+      const response = await fetchWithFirebaseAuth(`${API_BASE}/api/followup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

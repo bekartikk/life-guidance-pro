@@ -1,3 +1,5 @@
+import { fetchWithFirebaseAuth } from "../../utils/authFetch";
+
 const API_BASE = String(import.meta.env.VITE_API_BASE_URL || "").replace(/\/+$/, "");
 const insightCache = new Map();
 const CACHE_TTL_MS = 60_000;
@@ -17,7 +19,7 @@ export async function fetchAdaptiveInsights({ userId, signal }) {
     return cached.payload;
   }
 
-  const response = await fetch(
+  const response = await fetchWithFirebaseAuth(
     `${API_BASE}/api/adaptive-insights?userId=${encodeURIComponent(userId)}`,
     {
       method: "GET",

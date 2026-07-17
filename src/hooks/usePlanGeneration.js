@@ -1,9 +1,10 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 
 import { savePlanRecord } from "../services/appData";
 import { applyRewardAction } from "../services/progressData";
 import { logPlanAdjustment, logPlanGeneration } from "../services/dataCollection";
 import { trackEvent } from "../utils/analytics";
+import { fetchWithFirebaseAuth } from "../utils/authFetch";
 
 const API_BASE = String(import.meta.env.VITE_API_BASE_URL || "").replace(/\/+$/, "");
 
@@ -69,7 +70,7 @@ export function usePlanGeneration({
     if (!validatePlanner()) return;
     adjustment ? setIsAdjusting(true) : setIsLoading(true);
     try {
-      const response = await fetch(`${API_BASE}/api/guidance`, {
+      const response = await fetchWithFirebaseAuth(`${API_BASE}/api/guidance`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
