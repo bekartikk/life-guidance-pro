@@ -391,7 +391,6 @@ const DashboardTabRouter = memo(function DashboardTabRouter({
           onQuickFocus={applyQuickFocus}
           onReset={resetPlanner}
           onSubmit={(event) => {
-            console.log('Generate Plan clicked');
             event.preventDefault();
             requestPlan();
           }}

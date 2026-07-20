@@ -18,6 +18,23 @@ function buildPlannerProfile(form, profile) {
   return { ...form, profileContext: profile };
 }
 
+function createPendingPlan({ form, profile, planResult, aiMeta, adjustment, userId, userEmail }) {
+  const createdAt = new Date().toISOString();
+  return {
+    id: `pending-${Date.now()}`,
+    userId,
+    userEmail,
+    title: createPlanTitle(form),
+    profileSnapshot: form,
+    profileSummary: profile,
+    result: planResult,
+    aiMeta,
+    adjustment,
+    createdAt,
+    updatedAt: createdAt,
+  };
+}
+
 export function usePlanGeneration({
   form,
   profile,
@@ -70,12 +87,8 @@ export function usePlanGeneration({
     setError("");
     setStatusMessage("");
     if (!validatePlanner()) return;
-    console.log('Validation passed');
-    console.log('Loading=true');
     adjustment ? setIsAdjusting(true) : setIsLoading(true);
     try {
-
-
       const response = await fetchWithFirebaseAuth(`${API_BASE}/api/guidance`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -89,18 +102,35 @@ export function usePlanGeneration({
           aiContext: aiRequestContext,
         }),
       });
-      console.log('fetch called');
-      // Log response details
-      console.log('response.status', response.status);
-      console.log('response.ok', response.ok);
-      const responseClone = response.clone();
-      const rawBody = await responseClone.text();
-      console.log('response.body (first 500 chars):', rawBody.slice(0, 500));
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || "Could not create your plan.");
-      // Normalize plan into canonical UI model
+
       const normalized = normalizePlanForUI(data.plan);
       const planResult = normalized.plainText;
+      if (!planResult.trim()) {
+        throw new Error("The guidance service returned an empty plan.");
+      }
+
+      const pendingPlan = createPendingPlan({
+        form,
+        profile,
+        planResult,
+        aiMeta: data.aiMeta || null,
+        adjustment,
+        userId,
+        userEmail,
+      });
+
+      // Rendering the returned plan must never wait on Firestore acknowledgements.
+      setPlans((current) => [pendingPlan, ...current]);
+      setCurrentPlan(pendingPlan);
+      setFollowupAiMeta(null);
+      setAdjustmentRequest("");
+      setActiveTab("planner");
+      setStatusMessage(adjustment ? "Plan updated successfully. Your revised plan is ready below." : "Plan generated successfully. Your new guidance plan is ready below.");
+      setIsLoading(false);
+      setIsAdjusting(false);
+
       const savedPlan = await savePlanRecord({
         userId,
         userEmail,
@@ -111,28 +141,31 @@ export function usePlanGeneration({
         aiMeta: data.aiMeta || null,
         adjustment,
       });
-      const rewardResult = await applyRewardAction(userId, {
+
+      setPlans((current) => current.map((plan) => (plan.id === pendingPlan.id ? savedPlan : plan)));
+      setCurrentPlan((plan) => (plan?.id === pendingPlan.id ? savedPlan : plan));
+
+      void applyRewardAction(userId, {
         type: adjustment ? "plan-adjusted" : "plan-created",
         planId: savedPlan.id,
         roadmapFocus: form.roadmapFocus,
-      });
-      mergeRewardResult(rewardResult);
+      })
+        .then(mergeRewardResult)
+        .catch((error) => console.error("Plan reward update failed", error.stack || error));
 
-      // Log data for AI improvement
-      if (adjustment) {
-        await logPlanAdjustment(userId, {
+      const analyticsWrite = adjustment
+        ? logPlanAdjustment(userId, {
           originalFocus: currentPlan?.profileSnapshot?.roadmapFocus,
           adjustmentRequest: adjustment,
           planDuration: form.planDuration,
-        });
-      } else {
-        await logPlanGeneration(userId, {
+        })
+        : logPlanGeneration(userId, {
           profile: buildPlannerProfile(form, profile),
           plan: data.plan,
           adjustmentRequest: null,
         });
-      }
-      console.log('Response received');
+      void analyticsWrite.catch((error) => console.error("Plan analytics write failed", error.stack || error));
+
       trackEvent(adjustment ? "plan_adjusted" : "plan_generated", {
         roadmap_focus: form.roadmapFocus,
         duration: form.planDuration,
@@ -140,20 +173,12 @@ export function usePlanGeneration({
         has_profile_context: Boolean(profile.fullName || profile.mainGoal),
       });
 
-      setPlans((current) => [savedPlan, ...current]);
-      setCurrentPlan(savedPlan);
-      setFollowupAiMeta(null);
-      setAdjustmentRequest("");
-      setActiveTab("planner");
-      setStatusMessage(adjustment ? "Plan updated successfully. Your revised plan is ready below." : "Plan generated successfully. Your new guidance plan is ready below.");
     } catch (requestError) {
-      console.error('Generate Plan failed', requestError);
+      console.error("Generate Plan failed", requestError.stack || requestError);
       setError(requestError.message || "Something went wrong while creating your plan.");
     } finally {
-      console.log('Loading=false');
       setIsLoading(false);
       setIsAdjusting(false);
-
     }
   };
 

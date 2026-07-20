@@ -1,4 +1,4 @@
-import { memo, Suspense, lazy } from "react";
+import { memo, Suspense, lazy, useEffect } from "react";
 
 import Header from "./Header.jsx";
 import PlannerBoard from "./PlannerBoard.jsx";
