@@ -1,5 +1,7 @@
 import { memo, useMemo, useState } from "react";
 import { normalizePlanForUI } from "../../lib/plannerUtils";
+import { StructuredPlanner } from "./planner/StructuredPlanner.jsx";
+import { hasStructuredPlannerData } from "./planner/structuredPlannerData.js";
 import {
   HiOutlineArrowDownTray,
   HiOutlineClipboardDocument,
@@ -48,26 +50,6 @@ function buildWeeklyLabel(progress) {
   const summary = progress.lastWeekSummary;
   if (!summary) return "Start your first check-in";
   return `${summary.positiveDays || 0}/7 positive days`;
-}
-
-function splitPlanSections(text) {
-  const source = String(text || "").trim();
-  if (!source) return [];
-
-  const matches = [...source.matchAll(/(^|\n)(\d+\.\s+[^\n]+)\n/g)];
-  if (matches.length === 0) {
-    return [{ heading: "Full plan", body: source }];
-  }
-
-  return matches.map((match, index) => {
-    const heading = match[2].trim();
-    const start = match.index + match[1].length + heading.length + 1;
-    const end = index + 1 < matches.length ? matches[index + 1].index : source.length;
-    return {
-      heading,
-      body: source.slice(start, end).trim(),
-    };
-  });
 }
 
 function getSectionSentence(section) {
@@ -178,6 +160,8 @@ function ResultPanel({
   onRate,
 }) {
   const { sections, plainText } = useMemo(() => normalizePlanForUI(currentPlan?.result), [currentPlan?.result]);
+  const structuredPlan = currentPlan?.structuredPlan;
+  const hasStructuredPlan = hasStructuredPlannerData(structuredPlan);
   const safeBehavioralInsights = behavioralInsights && typeof behavioralInsights === "object" ? behavioralInsights : {};
   const [expandedState, setExpandedState] = useState(() => ({
     planId: null,
@@ -347,6 +331,8 @@ function ResultPanel({
 
           {actionMessage ? <Badge className="feedback-badge" tone="info">{actionMessage}</Badge> : null}
 
+          {hasStructuredPlan ? <StructuredPlanner plan={structuredPlan} /> : null}
+
           <GridLayout className="reward-summary">
             <Card tone="soft">
               <CardContent>
@@ -374,7 +360,7 @@ function ResultPanel({
             </Card>
           </GridLayout>
 
-          {summaryCards.length > 0 && (
+          {!hasStructuredPlan && summaryCards.length > 0 && (
             <GridLayout className="result-summary-grid">
               {summaryCards.map((item) => (
                 <Card className="result-summary-card" key={`${item.label}-${item.section.heading}`} tone="soft">
@@ -645,7 +631,7 @@ function ResultPanel({
             </CardContent>
           </Card>
 
-          <Card className="result-outline" tone="soft">
+          {!hasStructuredPlan && <Card className="result-outline" tone="soft">
             <CardHeader>
               <CardTitle>Plan outline</CardTitle>
               <CardDescription>Open only the sections you need right now so the roadmap feels calmer to scan.</CardDescription>
@@ -666,8 +652,9 @@ function ResultPanel({
               ))}
             </CardContent>
           </Card>
+          }
 
-          <PanelLayout className="result-sections">
+          {!hasStructuredPlan && <PanelLayout className="result-sections">
             {sections.map((section) => (
               <Card
                 className="result-section-card"
@@ -694,7 +681,7 @@ function ResultPanel({
                 ) : null}
               </Card>
             ))}
-          </PanelLayout>
+          </PanelLayout>}
 
           <Card className="adjust-panel" tone="elevated">
             <CardHeader>

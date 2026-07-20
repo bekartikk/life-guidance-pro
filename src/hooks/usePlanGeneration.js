@@ -18,7 +18,7 @@ function buildPlannerProfile(form, profile) {
   return { ...form, profileContext: profile };
 }
 
-function createPendingPlan({ form, profile, planResult, aiMeta, adjustment, userId, userEmail }) {
+function createPendingPlan({ form, profile, planResult, structuredPlan, aiMeta, adjustment, userId, userEmail }) {
   const createdAt = new Date().toISOString();
   return {
     id: `pending-${Date.now()}`,
@@ -28,6 +28,7 @@ function createPendingPlan({ form, profile, planResult, aiMeta, adjustment, user
     profileSnapshot: form,
     profileSummary: profile,
     result: planResult,
+    structuredPlan,
     aiMeta,
     adjustment,
     createdAt,
@@ -115,6 +116,7 @@ export function usePlanGeneration({
         form,
         profile,
         planResult,
+        structuredPlan: data.structuredPlan || null,
         aiMeta: data.aiMeta || null,
         adjustment,
         userId,
@@ -138,6 +140,7 @@ export function usePlanGeneration({
         profileSnapshot: form,
         profileSummary: profile,
         result: planResult,
+        structuredPlan: data.structuredPlan || null,
         aiMeta: data.aiMeta || null,
         adjustment,
       });

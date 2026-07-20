@@ -1,4 +1,5 @@
-import { memo, Suspense, lazy, useEffect } from "react";
+import { memo, Suspense, lazy, useEffect, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 
 import Header from "./Header.jsx";
 import PlannerBoard from "./PlannerBoard.jsx";
@@ -92,6 +93,74 @@ const AdaptiveIntelligenceRail = safeLazy(() => import("../ai/AdaptiveIntelligen
 const AdaptiveHistorySurface = safeLazy(() => import("../ai/AdaptiveHistorySurface.jsx"), "Adaptive history");
 const ProgressWidget = safeLazy(() => import("./ProgressWidget.jsx"), "Progress overview");
 const AnalyticsChart = safeLazy(() => import("./AnalyticsChart.jsx"), "Analytics chart");
+
+const PLANNER_LOADING_STAGES = [
+  {
+    eyebrow: "Reading your context",
+    title: "Gathering your routine and goals",
+    detail: "The planner is turning your real-life setup into a calm, usable roadmap.",
+    chips: ["Routine signals", "Goal patterns", "Energy context"],
+  },
+  {
+    eyebrow: "Shaping the plan",
+    title: "Mapping the next few steps",
+    detail: "Your pressure points, strengths, and preferences are being translated into a clear plan.",
+    chips: ["Priority shifts", "Supportive pacing", "Adaptive guidance"],
+  },
+  {
+    eyebrow: "Polishing the output",
+    title: "Formatting your roadmap",
+    detail: "The final structure is being arranged so it feels easier to read and act on.",
+    chips: ["Readable flow", "Action layers", "Refine loop"],
+  },
+];
+
+function PlannerLoadingState({ shouldReduceMotion, stageIndex }) {
+  const stage = PLANNER_LOADING_STAGES[stageIndex] || PLANNER_LOADING_STAGES[0];
+  const skeletonMotion = shouldReduceMotion
+    ? { initial: false, animate: { opacity: 1 } }
+    : {
+        initial: { opacity: 0.7, y: 6 },
+        animate: { opacity: [0.7, 1, 0.7], y: 0 },
+        transition: { duration: 1.2, repeat: Infinity, ease: "easeInOut" },
+      };
+
+  return (
+    <Card padded={false} className="result-loading-state">
+      <div className="result-loading-state__header">
+        <div className="result-loading-state__pulse" />
+        <div className="result-loading-state__copy">
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={`${stage.eyebrow}-${stage.title}`}
+              initial={shouldReduceMotion ? false : { opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={shouldReduceMotion ? false : { opacity: 0, y: -10 }}
+              transition={{ duration: shouldReduceMotion ? 0 : 0.22, ease: "easeOut" }}
+              className="result-loading-state__stage"
+            >
+              <p className="dashboard-eyebrow">{stage.eyebrow}</p>
+              <h3>{stage.title}</h3>
+              <p>{stage.detail}</p>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </div>
+      <div className="result-loading-state__meta">
+        {stage.chips.map((chip) => (
+          <Badge key={chip} className="hero-header-chip" tone="info">
+            {chip}
+          </Badge>
+        ))}
+      </div>
+      <div className="result-loading-state__skeletons" aria-hidden="true">
+        <motion.div {...skeletonMotion} className="result-skeleton-card result-skeleton-card--plan" />
+        <motion.div {...skeletonMotion} className="result-skeleton-card result-skeleton-card--compact" />
+        <motion.div {...skeletonMotion} className="result-skeleton-card result-skeleton-card--compact" />
+      </div>
+    </Card>
+  );
+}
 
 function SectionLoadingCard({ title, description }) {
   return (
@@ -214,6 +283,23 @@ const DashboardShell = memo(function DashboardShell({
   handleQuickAddSubmit,
   mobileBottomNavItems,
 }) {
+  const [loadingStageIndex, setLoadingStageIndex] = useState(0);
+  const shouldReduceMotion = useReducedMotion();
+
+  useEffect(() => {
+    if (!isLoading) {
+      setLoadingStageIndex(0);
+      return undefined;
+    }
+
+    setLoadingStageIndex(0);
+    const timerId = window.setInterval(() => {
+      setLoadingStageIndex((current) => (current + 1) % PLANNER_LOADING_STAGES.length);
+    }, 1800);
+
+    return () => window.clearInterval(timerId);
+  }, [isLoading]);
+
   return (
     <>
       <div className={`dashboard-app-shell${focusMode ? " dashboard-app-shell--focus" : ""}`}>
@@ -406,23 +492,7 @@ const DashboardShell = memo(function DashboardShell({
                     </div>
                     <div className="planner-workspace-grid__result" ref={resultPanelRef}>
                       {isLoading ? (
-                        <Card padded={false} className="result-loading-state">
-                          <div className="result-loading-state__pulse" />
-                          <div className="result-loading-state__copy">
-                            <p className="dashboard-eyebrow">AI is thinking</p>
-                            <h3>Building your roadmap</h3>
-                            <p>We&apos;re translating your routine, pressure, energy, and preferences into a calmer plan you can actually use.</p>
-                          </div>
-                          <div className="result-loading-state__meta">
-                            <Badge className="hero-header-chip" tone="info">Adaptive memory syncing</Badge>
-                            <Badge className="hero-header-chip" tone="info">Planner output formatting</Badge>
-                          </div>
-                          <div className="result-loading-state__skeletons">
-                            <div className="result-skeleton-card" />
-                            <div className="result-skeleton-card" />
-                            <div className="result-skeleton-card" />
-                          </div>
-                        </Card>
+                        <PlannerLoadingState shouldReduceMotion={shouldReduceMotion} stageIndex={loadingStageIndex} />
                       ) : currentPlan ? (
                         <ResultPanel
                           currentPlan={currentPlan}
